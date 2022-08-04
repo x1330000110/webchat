@@ -1,5 +1,6 @@
 package com.socket.webchat.model;
 
+import com.socket.webchat.custom.ftp.FTPFile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -18,17 +19,22 @@ public class ChatRecordFile extends BaseModel {
      */
     private String mid;
     /**
-     * 文件大小
+     * 文件路径
      */
-    private long size;
+    private String path;
     /**
      * 散列名称
      */
     private String hash;
+    /**
+     * 文件大小
+     */
+    private long size;
 
-    public ChatRecordFile(String mid, String hash, long size) {
+    public ChatRecordFile(String mid, FTPFile file, long size) {
         this.mid = mid;
-        this.hash = hash;
+        this.path = file.getParent();
+        this.hash = file.getName();
         this.size = size;
     }
 }

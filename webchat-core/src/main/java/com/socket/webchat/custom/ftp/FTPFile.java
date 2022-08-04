@@ -20,12 +20,11 @@ public class FTPFile {
         this.name = name;
     }
 
-    /**
-     * 获取FTP映射路径
-     *
-     * @return 映射路径
-     */
+    public String getPath() {
+        return parent + separator + name;
+    }
+
     public String getMapping() {
-        return UploadService.MAPPING + parent + separator + name;
+        return UploadService.MAPPING + getPath();
     }
 }

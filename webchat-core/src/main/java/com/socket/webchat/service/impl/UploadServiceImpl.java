@@ -1,21 +1,23 @@
 package com.socket.webchat.service.impl;
 
 import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.enums.SqlKeyword;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.webchat.constant.Constants;
-import com.socket.webchat.model.enums.FilePath;
-import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.custom.ftp.FTPClient;
 import com.socket.webchat.custom.ftp.FTPFile;
-import com.socket.webchat.runtime.UploadException;
 import com.socket.webchat.mapper.ChatRecordFileMapper;
 import com.socket.webchat.mapper.ChatRecordMapper;
 import com.socket.webchat.model.BaseModel;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.ChatRecordFile;
+import com.socket.webchat.model.enums.FilePath;
+import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.request.BaiduSpeechRequest;
+import com.socket.webchat.runtime.UploadException;
 import com.socket.webchat.service.UploadService;
 import com.socket.webchat.util.Assert;
 import com.socket.webchat.util.Wss;
@@ -30,6 +32,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 文件上传服务
@@ -52,7 +56,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         // 上传文件获取路径
         FTPFile save = client.upload(path, file.getBytes());
         // 记录文件
-        super.save(new ChatRecordFile(mid, save.getName(), size));
+        super.save(new ChatRecordFile(mid, save, size));
         return save.getMapping();
     }
 
@@ -79,7 +83,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
             // 检查文件类型过期时间
             LocalDateTime create = LocalDateTime.ofInstant(file.getCreateTime().toInstant(), ZoneId.systemDefault());
             MessageType type = record.getType();
-            if (type != MessageType.BLOB || create.plusDays(3).isAfter(LocalDateTime.now())) {
+            if (type != MessageType.BLOB || create.plusDays(Constants.FILE_EXPIRED_DAYS).isAfter(LocalDateTime.now())) {
                 return writeStream(FilePath.of(type), file.getHash(), stream);
             }
         }
@@ -103,6 +107,14 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
 
     @Scheduled(cron = "0 0 0 * * ?")
     public void clearExpiredResources() {
-
+        LambdaQueryWrapper<ChatRecordFile> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(ChatRecordFile::getPath, FilePath.BLOB.getName());
+        // 清理4天前的数据（第三天的文件还没有过期）
+        int days = Constants.FILE_EXPIRED_DAYS + 1;
+        String condition = StrUtil.format("NOW() - INTERVAL {} SECOND", days);
+        String column = Wss.columnToString(ChatRecord::getCreateTime);
+        wrapper.getExpression().add(() -> column, SqlKeyword.LT, () -> condition);
+        List<String> paths = list(wrapper).stream().map(ChatRecordFile::getPath).collect(Collectors.toList());
+        client.deleteFiles(paths);
     }
 }

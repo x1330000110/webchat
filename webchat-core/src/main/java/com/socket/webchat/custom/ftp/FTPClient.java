@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
+import java.util.List;
 
 /**
  * 文件上传管理服务
@@ -99,5 +100,22 @@ public class FTPClient {
             log.warn(e.getMessage());
         }
         return stream;
+    }
+
+    /**
+     * 移除FTP文件
+     *
+     * @param paths 文件路径
+     */
+    public void deleteFiles(List<String> paths) {
+        try (Ftp ftp = getClient()) {
+            for (String path : paths) {
+                if (!ftp.delFile(path)) {
+                    log.warn("移除指定文件失败：{}", path);
+                }
+            }
+        } catch (IOException | IORuntimeException e) {
+            log.warn(e.getMessage());
+        }
     }
 }
