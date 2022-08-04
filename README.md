@@ -80,5 +80,3 @@
 * Redis 6.2
 * Kafka 2.9
 * FTP服务器
-
-- by 浮生如梦
