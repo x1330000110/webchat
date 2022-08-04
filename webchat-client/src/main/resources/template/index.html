@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="no-referrer" name="referrer"/>
+    <meta content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport"/>
+    <title>在线聊天室</title>
+    <link path="//gitee.com/mirrors/litewebchat_frame/raw/master/litewebchat.min.css"/>
+    <link path="//cdn.jsdelivr.net/npm/element-plus/dist/index.css"/>
+    <link random path="/css/webchat.css"/>
+    <script path="//cdn.jsdelivr.net/npm/vue/dist/vue.global.prod.js"></script>
+    <script async path="//cdn.jsdelivr.net/npm/@element-plus/icons-vue"></script>
+    <script async path="//cdn.jsdelivr.net/npm/dplayer"></script>
+    <script path="//cdn.jsdelivr.net/npm/element-plus@2.2.9/dist/index.full.min.js"></script>
+    <script async path="//cdn.jsdelivr.net/npm/adapterjs"></script>
+    <script path="//cdn.jsdelivr.net/npm/axios"></script>
+    <script async path="/js/recorder.min.js"></script>
+    <script path="/js/viewer.min.js"></script>
+    <script random path="/js/wss.js"></script>
+    <script random path="/js/webchat.js"></script>
+    <!-- initialize -->
+    <link href="/css/root.theme.css" rel="stylesheet"/>
+    <script src="/js/root.min.js"></script>
+</head>
+<body>
+<div id="app">
+    <template>
+        <el-container :class="{hide: dialog.login}" :style="{'--theme-bg':setting.sub_rgb, '--theme-popper':setting.sub_rgb}">
+            <!-- 侧边栏 -->
+            <el-aside>
+                <!-- 个人信息 -->
+                <div class="myself">
+                    <div class="username">{{myself.name}}</div>
+                    <el-popover popper-class="mini-menu" ref="options" width="auto" trigger="click">
+                        <el-menu @select="closePopover">
+                            <el-menu-item @click="dialog.password=!0">
+                                <el-icon><edit/></el-icon>
+                                修改密码
+                            </el-menu-item>
+                            <el-menu-item @click="openMaterial(myself.uid)">
+                                <el-icon><avatar/></el-icon>
+                                个人信息
+                            </el-menu-item>
+                            <el-menu-item @click="dialog.setting=!0">
+                                <el-icon><setting/></el-icon>
+                                设置
+                            </el-menu-item>
+                            <el-menu-item @click="logout()">
+                                <el-icon><close/></el-icon>
+                                退出
+                            </el-menu-item>
+                        </el-menu>
+                        <template #reference>
+                            <el-avatar :size="35" :src="myself.headimgurl" class="pointer" fit="cover" shape="circle">
+                            </el-avatar>
+                        </template>
+                    </el-popover>
+                </div>
+
+                <!-- 搜索栏 -->
+                <div class="search-user">
+                    <el-input placeholder="search user...">
+                        <template #prefix>
+                            <el-icon><search/></el-icon>
+                        </template>
+                    </el-input>
+                </div>
+
+                <!-- 用户列表 -->
+                <el-scrollbar>
+                    <el-tree :data="userList" empty-text="请登录"
+                             @node-click="user => switchSession(user)"
+                             @node-contextmenu="(event, user) => openUserMenu(user.uid, event)">
+                        <template #default="{ node, data }">
+                            <!-- 用户信息 -->
+                            <div class="flex-center">
+                                <div class="relative">
+                                    <el-avatar :class="{gray: !data.online, group: data.isgroup}"
+                                               :size="35" fit="cover"
+                                               :src="data.headimgurl">
+                                    </el-avatar>
+                                    <div :class="{online: data.online}"></div>
+                                </div>
+                                <div class="data-item">
+                                    <div class="flex column">
+                                        <div class="data-name">{{data.name}}</div>
+                                        <div class="preview">
+                                            <template v-if="!data.preview">[{{getUserState(data)}}]</template>
+                                            <!-- 最新消息 -->
+                                            <template v-else>{{data.preview}}</template>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="last-time">{{data.lastTime}}</div>
+                                        <div class="badge" v-if="data.unreadCount">{{data.unreadCount}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </el-tree>
+                </el-scrollbar>
+            </el-aside>
+
+            <el-container>
+                <!-- 顶部 -->
+                <el-header>
+                    <div class="right-navigate">
+                        <el-icon @click="touch?.left()"><arrow-left/></el-icon>
+                    </div>
+                    <div class="room-info">
+                        <el-avatar :class="{gray: !room.user.online}" :size="30" :src="room.user.headimgurl" fit="cover">
+                        </el-avatar>
+                        <div class="room-name">{{room.user.name}}
+                            <div v-if="loads.page">
+                                <el-icon class="loading"><loading/></el-icon>同步消息
+                            </div>
+                            <div v-else-if="loads.stream">
+                                <el-icon class="loading"><loading/></el-icon>初始化设备
+                            </div>
+                            <div v-else>
+                                {{getUserState(room.user)}}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="right">
+                        <el-popover popper-class="mini-menu" ref="phone" trigger="click" width="auto">
+                            <el-menu @select="closePopover">
+                                <el-menu-item @click="openAudioDialog()">
+                                    <el-icon><phone/></el-icon>
+                                    语音通话
+                                </el-menu-item>
+                                <el-menu-item @click="openVideoDialog()">
+                                    <el-icon><video-camera/></el-icon>
+                                    视频通话
+                                </el-menu-item>
+                            </el-menu>
+                            <template #reference>
+                                <el-button circle v-if="setting.target !== Ws.group">
+                                    <el-icon><phone/></el-icon>
+                                </el-button>
+                            </template>
+                        </el-popover>
+                        <el-popover popper-class="mini-menu" ref="more" trigger="click" width="auto">
+                            <el-menu @select="closePopover">
+                                <el-menu-item @click="openRecordDialog()">
+                                    <el-icon><film/></el-icon>
+                                    录制视频
+                                </el-menu-item>
+                                <el-menu-item @click="clearMsg()">
+                                    <el-icon><delete/></el-icon>
+                                    清空消息
+                                </el-menu-item>
+                                <el-menu-item @click="beFull()">
+                                    <el-icon><full-screen/></el-icon>
+                                    {{fullscreen ? '退出全屏' : '全屏'}}
+                                </el-menu-item>
+                            </el-menu>
+                            <template #reference>
+                                <el-button circle>
+                                    <el-icon><more-filled/></el-icon>
+                                </el-button>
+                            </template>
+                        </el-popover>
+                    </div>
+                </el-header>
+                <!-- 消息主体 -->
+                <el-main v-loading="!ismobile && loads.animation"
+                         :style="{'--theme-bubble-color': setting.bubble}"
+                         class="lite-chatbox" :class="{'group': room.user.isgroup}">
+                    <el-scrollbar @scroll="scroll => loadMessage()" ref="scroll">
+                        <template v-for="wsmsg in room.user.messages">
+                            <!-- 系统消息 -->
+                            <div class="tips" v-if="wsmsg.sysmsg">
+                                <span :class='`tips-${wsmsg.type}`' v-html="wsmsg.content"></span>
+                            </div>
+
+                            <!-- 用户消息 -->
+                            <div :class='`cmsg ${wsmsg.position}`' v-else>
+        							<span :class="{right: wsmsg.position === 'cleft'}" class="mask">
+        							    <!-- 消息头像 -->
+        								<el-avatar :size="38" :src="wsmsg.headimgurl"
+                                                   @click="switchSession(finduser(wsmsg.uid))"
+                                                   @contextmenu="e => openUserMenu(wsmsg.uid, e)" fit="cover">
+        								</el-avatar>
+        							</span>
+                                <div class="max-width">
+                                    <!-- 消息昵称 -->
+                                    <span class="name" v-if="room.user.isgroup">
+        								<span :class="`htitle ${wsmsg.role}`"
+                                              v-if="wsmsg.alias || wsmsg.role !== Ws.user">
+        									{{wsmsg.alias || wsmsg.role}}
+        								</span>
+        								{{wsmsg.name}}
+        							</span>
+
+                                    <!-- 消息内容 -->
+                                    <div :ref="m => room.indexes[wsmsg.mid] = m"
+                                         @contextmenu.prevent="openMsgMenu(wsmsg)"
+                                         class="content"
+                                         :class="{'move-animation': loads.animation}">
+
+                                        <!-- 图片/视频消息 -->
+                                        <div @click="wsmsg.isimage ? viewImages(wsmsg.content) : playVideo(wsmsg)"
+                                             class="relative" v-if="wsmsg.isimage || wsmsg.isvideo">
+                                            <el-image :src="wsmsg.content" @load="imageLoaded"
+                                                      scroll-container='.el-scrollbar__wrap'
+                                                      :class="{filter: isSending(wsmsg)}"
+                                                      :style="{height: getScaleHeight(wsmsg.data)}"
+                                                      fit="cover" loading="lazy" :key="wsmsg.mid">
+                                                <template #placeholder>
+                                                    <div class="img-load">
+                                                        <el-icon class="loading" v-if="!wsmsg.isvideo"><star/></el-icon>
+                                                    </div>
+                                                </template>
+                                                <template #error>
+                                                    <div class="img-load">
+                                                        <el-icon v-if="!wsmsg.isvideo"><picture-rounded/></el-icon>
+                                                    </div>
+                                                </template>
+                                            </el-image>
+                                            <el-icon v-if="wsmsg.isvideo" class="play-icon"><video-play/></el-icon>
+                                            <div v-if="wsmsg.isvideo" class="video-time">{{wsmsg.data.duration}}</div>
+                                        </div>
+
+                                        <!-- 语音消息 -->
+                                        <div :style="{width: (65 + wsmsg.data.time) + 'px'}"
+                                             @click="playAudio(wsmsg)" class="message audio-message"
+                                             v-if="wsmsg.isaudio">
+        										<span class="audio-group">
+        										    <el-icon class="loading" v-if="wsmsg.playing"><star/></el-icon>
+        										    <el-icon class="wifi" v-else>
+        										        <svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512">
+        										            <path d="M332.41 310.59a115 115 0 00-152.8 0M393.46 249.54a201.26 201.26 0 00-274.92 0M447.72 182.11a288 288 0 00-383.44 0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/>
+        										            <path d="M256 416a32 32 0 1132-32 32 32 0 01-32 32z"/>
+        										        </svg>
+        										    </el-icon>
+        										</span>
+                                            <span class="audio-time">{{wsmsg.data.time}}''</span>
+                                        </div>
+
+                                        <!--文件消息-->
+                                        <div @click="openBlob(wsmsg)" class="blob-message" v-if="wsmsg.isblob"
+                                             :style="{'--upload-width': wsmsg.progress}">
+                                            <div>
+                                                <el-icon v-if="wsmsg.canPlay && !wsmsg.playing"><video-play/></el-icon>
+                                                <el-icon v-else-if="wsmsg.playing" class="loading"><star/></el-icon>
+                                                <el-icon v-else><document/></el-icon>
+                                            </div>
+                                            <div>
+                                                <div class="blob-name">{{wsmsg.content}}</div>
+                                                <div class="blob-tips">{{getBlobDescribe(wsmsg)}}</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- 文字消息 -->
+                                        <div class="message" v-if="wsmsg.istext" v-html="parseEmoji(wsmsg.content)"></div>
+
+                                        <!-- 拒收标记 -->
+                                        <div class="reject-msg" v-if="wsmsg.reject">
+                                            <el-icon><warning-filled/></el-icon>
+                                        </div>
+
+                                        <!--发送中标记-->
+                                        <div class="sending-msg" v-if="isSending(wsmsg)">
+                                            <el-icon class="loading"><star/></el-icon>
+                                        </div>
+
+                                        <!-- 未读语音红点提示 -->
+                                        <div class="unread-audio" v-if="isUnreadAudio(wsmsg)"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </el-scrollbar>
+                    <transition name="fade-in-linear">
+                        <div class="drag-box" v-if="dragBox">
+                            <el-icon><copy-document/></el-icon>
+                            松开鼠标发送文件
+                        </div>
+                    </transition>
+                </el-main>
+                <!-- 底部 -->
+                <el-footer class="flex-center">
+                    <div class="max-flex">
+                        <div @click="clearAudio()" class="max-width">
+                            <el-popover placement="top-start" :width="180" popper-class="mini-menu" :visible="input.popper">
+                                <template #reference>
+                                    <el-input :disabled="input.disabled || loads.record || media.audioBlob"
+                                              :placeholder="input.placeholder" maxlength="300" @input="monitorInput"
+                                              @keydown.native.enter="sendmsg(input.content.trim())"
+                                              ref="input" v-model="input.content">
+                                    </el-input>
+                                </template>
+                                <!--@触发器-->
+                                <el-tree :data="userList" @node-click="insertName" :filter-node-method="filterUser" ref="tree">
+                                    <template #default="{ node, data }">
+                                        <div v-if="!data.isgroup" class="user-brief">
+                                            <el-avatar :class="{gray: !data.online, group: data.isgroup}"
+                                                       :size="30" fit="cover"
+                                                       :src="data.headimgurl">
+                                            </el-avatar>
+                                            <div class="data-name">{{data.name}}</div>
+                                        </div>
+                                    </template>
+                                </el-tree>
+                            </el-popover>
+                        </div>
+                        <div class="btn-group">
+                            <el-popover :placement="ismobile ? 'top' : 'top-end'"
+                                        popper-class="emoji-popper"
+                                        title="表情选择" width="auto" ref="emoji"
+                                        trigger="click">
+                                <el-scrollbar>
+                                    <div class="emoji-table" @click="insertEmoji">
+                                        <span v-for="(v,k) in emojiMap" :emoji="k">
+                                            <el-image loading="lazy" :src="`https://twemoji.maxcdn.com/v/latest/svg/${v}`">
+                                                <template #placeholder>
+                                                    <div class="img-load">
+                                                        <el-icon class="loading"><star/></el-icon>
+                                                    </div>
+                                                </template>
+                                            </el-image>
+                                        </span>
+                                    </div>
+                                </el-scrollbar>
+                                <template #reference>
+                                    <el-button :disabled="isDisabledBottom()" circle>
+                                        <el-icon>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512">
+                                                <circle cx="184" cy="232" r="24"/>
+                                                <path d="M256.05 384c-45.42 0-83.62-29.53-95.71-69.83a8 8 0 017.82-10.17h175.69a8 8 0 017.82 10.17c-11.99 40.3-50.2 69.83-95.62 69.83z"/>
+                                                <circle cx="328" cy="232" r="24"/>
+                                                <circle cx="256" cy="256" r="208" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="32"/>
+                                            </svg>
+                                        </el-icon>
+                                    </el-button>
+                                </template>
+                            </el-popover>
+                            <el-button :disabled="isDisabledBottom()" :loading="loads.upload" @click="uploadBlob()" circle>
+                                <el-icon><files/></el-icon>
+                            </el-button>
+                            <el-button :disabled="input.disabled" v-on:[inputevt].prevent="sendmsg(input.content.trim())">
+                                <el-icon v-show="!input.content.trim() && !loads.record"><microphone/></el-icon>
+                                <el-icon v-show="loads.record" class="loading"><star/></el-icon>
+                                <el-icon v-show="!!input.content.trim()"><position/></el-icon>
+                                {{input.content.trim() || media.audioBlob ? '发送' : loads.record ? '停止' : '录音'}}
+                            </el-button>
+                        </div>
+                    </div>
+                </el-footer>
+            </el-container>
+        </el-container>
+
+        <!--语音通话最小化-->
+        <div @contextmenu.native="switchMiniAudio()" class="mini-audio" v-if="mini.audio">
+            <el-icon><phone/></el-icon>
+            <div class="connect-time" style="margin-top: 5px">{{webrtc.connectionTime}}</div>
+        </div>
+
+        <!-- 视频通话最小化 -->
+        <div @contextmenu.native="switchMiniVideo()" class="mini-video" v-if="mini.video">
+            <video autoplay id="mini-remote" muted></video>
+        </div>
+
+        <!-- 用户右键菜单 -->
+        <transition name="fade-in-linear">
+            <el-menu class="contextmenu mini-menu"
+                     :style="{left: menu.left + 'px', top: menu.top + 'px'}"
+                     v-if="menu.show">
+                <el-menu-item @click="readAllMsg()">
+                    <el-icon><check/></el-icon>
+                    已读
+                </el-menu-item>
+                <el-menu-item @click="shieldUser()">
+                    <el-icon><hide/></el-icon>
+                    {{myself.shields.includes(cache.user.uid) ? '取消屏蔽' : '屏蔽'}}
+                </el-menu-item>
+                <el-menu-item @click="openMaterial(cache.user.uid)">
+                    <el-icon><user-filled/></el-icon>
+                    查看资料
+                </el-menu-item>
+                <div class="divider"></div>
+                <el-menu-item @click="openLimit('mute')">
+                    <el-icon><mute/></el-icon>
+                    禁言
+                </el-menu-item>
+                <el-menu-item @click="openLimit('lock')">
+                    <el-icon><lock/></el-icon>
+                    限制登录
+                </el-menu-item>
+                <div class="divider"></div>
+                <el-menu-item @click="updateAlias()">
+                    <el-icon><star/></el-icon>
+                    设置头衔
+                </el-menu-item>
+                <el-menu-item @click="updateAdmin()">
+                    <el-icon><avatar/></el-icon>
+                    {{cache.user.isuser() ? '设为' : '取消'}}管理员
+                </el-menu-item>
+            </el-menu>
+        </transition>
+
+        <!-- 消息工具 -->
+        <el-popover :virtual-ref="room.indexes[cache.message.mid]"
+                    placement="top" width="auto" virtual-triggering
+                    popper-class="mini-menu"
+                    v-model:visible="popover.message">
+            <!-- 消息工具 -->
+            <el-menu :ellipsis="!1" class="message-tools" mode="horizontal">
+                <el-menu-item @click="setBackground(cache.message.content)" v-if="cache.message.isimage">
+                    <el-icon><picture-rounded/></el-icon>
+                    设为背景
+                </el-menu-item>
+                <el-menu-item @click="setRingtone(cache.message)" v-if="cache.message.canPlay">
+                    <el-icon><bell/></el-icon>
+                    设为铃声
+                </el-menu-item>
+                <el-menu-item @click="convertAudio()" v-if="cache.message.isaudio">
+                    <el-icon><pointer/></el-icon>
+                    转文字
+                </el-menu-item>
+                <el-menu-item v-if="isUnreadAudio()" @click="readAudioMsg()">
+                    <el-icon><check/></el-icon>
+                    已读
+                </el-menu-item>
+                <el-menu-item @click="copyText()" v-if="cache.message.istext">
+                    <el-icon><copy-document/></el-icon>
+                    复制
+                </el-menu-item>
+                <el-menu-item v-if="cache.message.isvideo || cache.message.isblob || cache.message.isimage"
+                              @click="saveBlob()">
+                    <el-icon><download/></el-icon>
+                    保存
+                </el-menu-item>
+                <el-menu-item @click="withdrawMsg()" v-if="canWithdraw()">
+                    <el-icon><refresh-left/></el-icon>
+                    撤回
+                </el-menu-item>
+                <el-menu-item @click="removeMsg()">
+                    <el-icon><delete/></el-icon>
+                    删除
+                </el-menu-item>
+                <el-menu-item @click="dialog.details=!0">
+                    <el-icon><more-filled/></el-icon>
+                    详情
+                </el-menu-item>
+            </el-menu>
+        </el-popover>
+
+        <!--语音转换-->
+        <el-popover :virtual-ref="room.indexes[cache.message.mid]" virtual-triggering
+                    placement="top" width="auto" popper-class="convert"
+                    v-model:visible="popover.convert">
+            <div v-if="loads.convert" class="convert-audio">
+                <el-icon class="loading"><loading/></el-icon>
+                转换中...
+            </div>
+            {{cache.message.text}}
+        </el-popover>
+
+        <!-- 用户资料 -->
+        <el-drawer title="用户资料" v-model="dialog.material" size="400px" custom-class="material">
+            <el-avatar :size="70" :src="cache.user.headimgurl"
+                       @click="updateAvatar()" class="pointer" fit="cover">
+            </el-avatar>
+            <div class="uid" @click="copyText(cache.user.uid)">{{cache.user.name}} [{{cache.user.uid}}]</div>
+            <div class="tips">当前权限：{{parseRole(cache.user)}}</div>
+            <div class="divider" style="margin: 25px 0"></div>
+            <el-form :disabled="!cache.user.self" style="margin:0 30px">
+                <div class="material-title">基本信息</div>
+                <el-form-item label="昵称">
+                    <el-input show-word-limit maxlength="8" placeholder="请输入昵称" v-model="cache.user.name">
+                        <template #prefix>
+                            <el-icon><user/></el-icon>
+                        </template>
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="性别">
+                    <el-icon class="el-select-icon"><male/></el-icon>
+                    <el-select placeholder="暂无" v-model="cache.user.sex" class="max-width">
+                        <el-option :value="0" label="保密"></el-option>
+                        <el-option :value="1" label="男"></el-option>
+                        <el-option :value="2" label="女"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="年龄">
+                    <el-input :maxlength="2" oninput="value=value.replace(/[^\d]/g,'')" placeholder="暂无"
+                              v-model="cache.user.age">
+                        <template #prefix>
+                            <el-icon><coffee-cup/></el-icon>
+                        </template>
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="邮箱">
+                    <el-input @click="dialog.email=!0" name="email" placeholder="暂无" readonly
+                              v-model="cache.user.email">
+                        <template #prefix>
+                            <el-icon><eleme/></el-icon>
+                        </template>
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="手机">
+                    <el-input maxlength="11" oninput="value=value.replace(/[^\d]/g,'')" placeholder="暂无"
+                              v-model="cache.user.phone">
+                        <template #prefix>
+                            <el-icon><iphone/></el-icon>
+                        </template>
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="生日">
+                    <el-date-picker style="width:100%" :clearable="!1" :editable="!1" placeholder="暂无" type="date"
+                                    v-model="cache.user.birth" value-format="YYYY-MM-DD"></el-date-picker>
+                </el-form-item>
+            </el-form>
+            <div v-if="cache.user.self" style="margin: 2rem 0;">
+                <el-button :loading="loads.optional" @click="updateMaterial()">修改</el-button>
+                <el-button @click="dialog.material=!1">返回</el-button>
+            </div>
+        </el-drawer>
+
+        <!-- 禁言/限制登陆 -->
+        <el-dialog :title="menu.limit.typeName" v-model="dialog.limit" width="500px">
+            <el-descriptions :column="1" :title='`当前选择的用户：${cache.user.name} [${cache.user.uid}]`'>
+                <el-descriptions-item label="您的权限:">
+                    <el-icon><user-filled/></el-icon>
+                    {{parseRole(myself)}} ({{myself.role}})
+                </el-descriptions-item>
+                <el-descriptions-item label="目标权限:">
+                    <el-icon><user-filled/></el-icon>
+                    {{parseRole(cache.user)}} ({{cache.user.role}})
+                </el-descriptions-item>
+            </el-descriptions>
+            <div class="tips limit-tips">注：禁言最大可设置7天，限制登录可设置30天</div>
+            <div style="margin:1rem 0">
+                <div class="flex">
+                    <el-input-number :max="menu.limit.max" :min="1" v-model="menu.limit.time"></el-input-number>
+                    <el-select @change="changeTimeUnit()" v-model="menu.limit.unit">
+                        <el-option :value="60" label="分钟"></el-option>
+                        <el-option :value="3600" label="小时"></el-option>
+                        <el-option :value="86400" label="天"></el-option>
+                    </el-select>
+                </div>
+                <el-slider :max="menu.limit.max" :min="1" :show-tooltip="!1" v-model="menu.limit.time"></el-slider>
+            </div>
+            <div class='right'>
+                <el-button @click="limitUser(!0)">解除{{menu.limit.typeName.substr(0,2)}}</el-button>
+                <el-button @click="limitUser()">{{menu.limit.typeName}}</el-button>
+                <el-button @click="dialog.limit=!1">返回</el-button>
+            </div>
+        </el-dialog>
+
+        <!-- 密码修改 -->
+        <el-dialog :title="myself.uid ? '修改密码' : '找回密码'"
+                   @close="$refs.password.resetFields()"
+                   v-model="dialog.password" width="480px" top="10vh">
+            <el-form label-position="top" ref="password" :model="formData" :rules="formData.rules">
+                <el-form-item v-if="!myself.uid" label="账号" prop="user">
+                    <el-input maxlength="50" v-model="formData.user" placeholder="要找回的UID/邮箱"></el-input>
+                </el-form-item>
+                <el-form-item label="邮箱验证码" prop="code">
+                    <div class="max-flex-center">
+                        <el-input maxlength="6" v-model="formData.code" class="max-width" placeholder="邮箱验证码"></el-input>
+                        <el-button :disabled="loads.sending" @click="sendEmail(myself.uid || formData.user)">发送验证码</el-button>
+                    </div>
+                </el-form-item>
+                <el-form-item label="新密码" prop="pass">
+                    <el-input type="password" maxlength="16" v-model="formData.pass" placeholder="请输入新密码（8-16位组成）"></el-input>
+                </el-form-item>
+                <el-form-item label="重复密码" prop="repeat">
+                    <el-input type="password" maxlength="16" v-model="formData.repeat" placeholder="请再次输入密码"></el-input>
+                </el-form-item>
+                <div class="tips">Ps: 微信首次登录请先绑定邮箱后修改密码</div>
+                <el-form-item class="right" style="margin: 2rem 0">
+                    <el-button @click="updatePassword()" :loading="loads.optional">确定</el-button>
+                    <el-button @click="dialog.password=!1">返回</el-button>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
+
+        <!-- 修改邮箱 -->
+        <el-drawer title="修改邮箱" v-model="dialog.email" size="400px"
+                   @open="myself.email || (formData.rules.code.required = false)"
+                   @close="$refs.email.resetFields() && (formData.rules.code.required = true)">
+            <el-form label-position="top" ref="email" :model="formData" :rules="formData.rules">
+                <el-form-item label="原邮箱地址">
+                    <el-input disabled placeholder="首次修改无需验证原邮箱" v-model="myself.email"></el-input>
+                </el-form-item>
+                <el-form-item label="邮箱验证码" prop="code">
+                    <div class="max-flex-center">
+                        <el-input v-model="formData.code" :disabled="!myself.email" placeholder="邮箱验证码"></el-input>
+                        <el-button @click="sendEmail(myself.email)" :disabled="!myself.email || loads.sending">发送验证码</el-button>
+                    </div>
+                </el-form-item>
+                <el-form-item label="新邮箱地址" prop="email">
+                    <el-input v-model="formData.email" placeholder="新邮箱地址"></el-input>
+                </el-form-item>
+                <el-form-item label="邮箱验证码" prop="newcode">
+                    <div class="max-flex-center">
+                        <el-input v-model="formData.newcode" placeholder="邮箱验证码"></el-input>
+                        <el-button @click="sendEmail(formData.email)" :disabled="loads.sending">发送验证码</el-button>
+                    </div>
+                </el-form-item>
+                <el-form-item class="right" style="margin: 2rem 0">
+                    <el-button @click="updateEmail()" :loading="loads.optional">修改</el-button>
+                    <el-button @click="dialog.email=!1">返回</el-button>
+                </el-form-item>
+            </el-form>
+        </el-drawer>
+
+        <!-- 语音通话 -->
+        <el-dialog :close-on-click-modal="!1"
+                   v-model="webrtc.dialog.audio"
+                   title="语音通话" width="300px"
+                   :close-on-press-escape="!1"
+                   :show-close="!1" center>
+            <el-avatar :size="120" :src="webrtc.user.headimgurl" fit="cover"></el-avatar>
+            <div class="bold" style="margin: 1rem 0;">{{webrtc.user.name}} [{{webrtc.user.uid}}]</div>
+            <div class="connect-time">连接时长：{{webrtc.connectionTime}}</div>
+            <div style="margin: 2rem 0;">
+                <el-button :disabled="disabled.call" :loading="loads.call" @click="startRemote('audio')">
+                    <el-icon><phone/></el-icon>
+                    {{webrtc.startBtn}}
+                </el-button>
+                <el-button :disabled="disabled.leave" @click="closeRemote()">
+                    <el-icon><switch-button/></el-icon>
+                    挂断
+                </el-button>
+                <el-button v-show="webrtc.connected != null" @click="switchMiniAudio(!0)" plain>
+                    <el-icon><d-arrow-right/></el-icon>
+                </el-button>
+                <div class="tips" style="margin: 1rem 0;">PS：若连接失败请尝试更换网络环境重试</div>
+            </div>
+        </el-dialog>
+
+        <!-- 视频通话 -->
+        <el-dialog :close-on-click-modal="!1"
+                   :show-close="!1"
+                   custom-class="video-dialog"
+                   title="视频通话" top="5vh"
+                   v-model="webrtc.dialog.video"
+                   :close-on-press-escape="!1"
+                   width="710px">
+            <div class="relative">
+                <video id="remote-video"></video>
+                <div>
+                    <video @click="switchLocalRemote" id="local-video" muted></video>
+                </div>
+            </div>
+            <div class="video-option">
+                <div class="connect-time" style="margin: 1rem 0;">连接时长：{{webrtc.connectionTime}}</div>
+                <div style="margin-bottom: 20px;">
+                    <el-button @click="switchCamera()" plain v-show="ismobile && webrtc.connected != null">
+                        <el-icon><refresh/></el-icon>
+                    </el-button>
+                    <el-button :disabled="disabled.call" :loading="loads.call" @click="startRemote('video')">
+                        <el-icon><video-camera/></el-icon>
+                        {{webrtc.startBtn}}
+                    </el-button>
+                    <el-button :disabled="disabled.leave" @click="closeRemote()">
+                        <el-icon><switch-button/></el-icon>
+                        挂断
+                    </el-button>
+                    <el-button v-show="webrtc.connected != null" @click="switchMiniVideo(!0)" plain>
+                        <el-icon><d-arrow-right/></el-icon>
+                    </el-button>
+                </div>
+            </div>
+        </el-dialog>
+
+        <!--通话接受-->
+        <el-dialog :close-on-click-modal="!1"
+                   :title="webrtc.typeName" center
+                   @close="media.phone.stop()"
+                   v-model="webrtc.dialog.phone" width="550px">
+            <div class="center">
+                <el-avatar :size="120" :src="webrtc.user.headimgurl" fit="cover"></el-avatar>
+                <div class="bold" style="margin: 1rem 0;">来自 {{webrtc.user.name}} [{{webrtc.user.uid}}]</div>
+                <div style="margin: 1rem 0;">
+                    <el-icon class="phone-icon" v-show="webrtc.type === Ws.audio"><phone/></el-icon>
+                    <el-icon class="phone-icon" v-show="webrtc.type === Ws.video"><video-camera/></el-icon>
+                    {{webrtc.user.name}} 向您发起了{{webrtc.typeName}}请求
+                </div>
+                <div class="tips" style="margin: 1.5rem 1rem 2rem;">
+                    注：若您不想收到此用户的任何消息，可选择下方按钮屏蔽此用户
+                </div>
+                <div style="margin: 1rem 0;">
+                    <el-button @click="acceptRemote()">
+                        <el-icon v-show="webrtc.type === Ws.audio"><phone/></el-icon>
+                        <el-icon v-show="webrtc.type === Ws.video"><video-camera/></el-icon>
+                        接受
+                    </el-button>
+                    <el-button @click="rejectRemote()">
+                        <el-icon><switch-button/></el-icon>
+                        拒绝
+                    </el-button>
+                    <el-button @click="rejectRemote(!0)">
+                        <el-icon><hide/></el-icon>
+                        屏蔽
+                    </el-button>
+                </div>
+            </div>
+        </el-dialog>
+
+        <!-- 粘贴板图片 -->
+        <el-dialog title="来自粘贴板的图片" custom-class="clipboard" v-model="dialog.clipboard" width="500px">
+            <el-image :src="clipboard.url" fit="contain"></el-image>
+            <div class="right" style="margin: 1rem;">
+                <el-button @click="uploadBlob(clipboard.blob)">发送</el-button>
+                <el-button @click="dialog.clipboard=!1">返回</el-button>
+            </div>
+        </el-dialog>
+
+        <!--录制视频-->
+        <el-dialog title="录制视频" custom-class="video-dialog" top="5vh"
+                   :close-on-click-modal="!1" @close="disposeRecorder"
+                   v-model="dialog.recorder" width="700px">
+            <div class="relative">
+                <video loop muted id="recorder-video"></video>
+                <div class="record-tips" v-if="media.videoBlob">{{ismobile?'长按':'右键'}}下方按钮清除录制数据</div>
+                <div class="record-tips" v-if="media.recording">正在录制 {{media.recordTime}}</div>
+
+                <div @contextmenu.prevent="clearVideo()"
+                     @click="startVideoRecord()"
+                     :class="{recording: media.recording}"
+                     class="record-btn">
+                    <div v-if="media.videoBlob">
+                        <el-icon><check/></el-icon>
+                    </div>
+                </div>
+
+                <div class="record-opt" v-if="ismobile">
+                    <el-icon @click="disposeRecorder()"><d-arrow-left/></el-icon>
+                    <el-icon @click="openRecordDialog()"><refresh/></el-icon>
+                </div>
+            </div>
+        </el-dialog>
+
+        <!--视频播放-->
+        <el-dialog title="视频播放" custom-class="video-dialog" @close="media.DPlayer.pause()"
+                   width="700px" v-model="dialog.player" top="10vh">
+            <div id="dplayer"></div>
+        </el-dialog>
+
+        <!--消息详情-->
+        <el-dialog title="消息详情" v-model="dialog.details" width="500px">
+            <el-descriptions :column="1">
+                <el-descriptions-item v-if="cache.message.istext" label="消息内容:">
+                    {{cache.message.content}}
+                </el-descriptions-item>
+                <el-descriptions-item label="消息类型:">
+                    {{parseType(cache.message)}}
+                    <span v-if="cache.message.isblob">[{{cache.message.content}}]</span>
+                </el-descriptions-item>
+                <el-descriptions-item label="消息来自:">
+                    {{cache.message.name}}
+                    <span class="pointer" @click="copyText(cache.message.uid)">
+                            [{{cache.message.uid}}]
+                        </span>
+                </el-descriptions-item>
+                <el-descriptions-item label="发送时间:">
+                    {{parseTime(cache.message.createTime)}}
+                </el-descriptions-item>
+            </el-descriptions>
+            <div class='right'>
+                <el-button @click="copyText(cache.message.mid)">复制消息ID</el-button>
+                <el-button @click="dialog.details=!1">返回</el-button>
+            </div>
+        </el-dialog>
+
+        <!-- 设置 -->
+        <el-dialog title="设置" v-model="dialog.setting" width="500px" custom-class="setting">
+            <el-menu :default-active="activeTab" mode="horizontal"
+                     :ellipsis="!1" @select="index => activeTab = index">
+                <el-menu-item index="1">系统设置</el-menu-item>
+                <el-menu-item index="2">通知设置</el-menu-item>
+                <el-menu-item index="3">通话设置</el-menu-item>
+                <el-menu-item index="4" v-if="myself?.isowner()">权限设置</el-menu-item>
+                <el-menu-item index="5">兼容性报告</el-menu-item>
+            </el-menu>
+            <div class="setting-scroll">
+                <!--系统设置-->
+                <el-form label-position="top" v-if="activeTab == 1">
+                    <el-form-item label="背景图片">
+                        <div class="max-flex-center">
+                            <el-input placeholder="网络图片地址" v-model="setting.bgURL"></el-input>
+                            <el-button :loading="loads.upload" @click="setBackground(setting.bgURL)" plain>
+                                <el-icon><picture-filled/></el-icon>
+                            </el-button>
+                            <el-button @click="clearBackground" plain>
+                                <el-icon><delete/></el-icon>
+                            </el-button>
+                        </div>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-checkbox v-model="setting.theme">
+                            <el-icon><magic-stick/></el-icon>透明主题 (推荐)
+                        </el-checkbox>
+                        <el-checkbox v-model="setting.sub_theme" v-show="setting.theme">
+                            <el-icon><brush-filled/></el-icon>同步主题色
+                        </el-checkbox>
+                    </el-form-item>
+                    <el-form-item label="气泡颜色">
+                        <div class="el-color-predefine__colors" v-for="color in predefine">
+                            <div class="el-color-predefine__color-selector">
+                                <div @click="changeBubble(color)" :style="{background: color}"></div>
+                            </div>
+                        </div>
+                    </el-form-item>
+                </el-form>
+
+                <!--通知设置-->
+                <el-collapse accordion v-if="activeTab == 2" v-model="collapse">
+                    <el-collapse-item title="群组通知" name="1">
+                        <el-form label-position="top">
+                            <el-form-item label="桌面">
+                                <el-checkbox @click.native.prevent="openNotify(!0)" v-model="setting.g_notify">
+                                    <el-icon><monitor/></el-icon>桌面通知
+                                </el-checkbox>
+                            </el-form-item>
+                            <el-form-item label="通知">
+                                <el-checkbox v-model="setting.g_tips">
+                                    <el-icon><comment/></el-icon>始终通知
+                                </el-checkbox>
+                                <el-checkbox v-model="setting.g_tips_at">
+                                    <el-icon><comment/></el-icon>@时通知
+                                </el-checkbox>
+                                <el-checkbox v-model="setting.g_voice">
+                                    <el-icon><bell-filled/></el-icon>声音
+                                </el-checkbox>
+                                <el-checkbox :disabled="!ismobile" v-model="setting.g_vibrate">
+                                    <el-icon><cellphone/></el-icon>振动
+                                </el-checkbox>
+                            </el-form-item>
+                        </el-form>
+                    </el-collapse-item>
+                    <el-collapse-item title="私聊通知" name="2">
+                        <el-form label-position="top">
+                            <el-form-item label="桌面">
+                                <el-checkbox @click.native.prevent="openNotify()" v-model="setting.notify">
+                                    <el-icon><monitor/></el-icon>桌面通知
+                                </el-checkbox>
+                            </el-form-item>
+                            <el-form-item label="通知">
+                                <el-checkbox v-model="setting.tips">
+                                    <el-icon><comment/></el-icon>通知
+                                </el-checkbox>
+                                <el-checkbox v-model="setting.voice">
+                                    <el-icon><bell-filled/></el-icon>声音
+                                </el-checkbox>
+                                <el-checkbox :disabled="!ismobile" v-model="setting.vibrate">
+                                    <el-icon><cellphone/></el-icon>震动
+                                </el-checkbox>
+                            </el-form-item>
+                        </el-form>
+                    </el-collapse-item>
+                    <el-collapse-item title="系统通知" name="3">
+                        <el-form label-position="top">
+                            <el-form-item label="用户">
+                                <el-checkbox v-model="setting.join">
+                                    <el-icon><top/></el-icon>用户加入
+                                </el-checkbox>
+                                <el-checkbox v-model="setting.exit">
+                                    <el-icon><bottom/></el-icon>用户退出
+                                </el-checkbox>
+                            </el-form-item>
+                        </el-form>
+                    </el-collapse-item>
+                </el-collapse>
+
+                <!--通话设置-->
+                <el-form label-position="top" v-if="activeTab == 3">
+                    <el-form-item label="通话设置">
+                        <el-checkbox v-model="setting.phone">
+                            <el-icon><phone/></el-icon>启用WebRTC (实验性)
+                        </el-checkbox>
+                    </el-form-item>
+                    <el-form-item label="来电铃声">
+                        <el-checkbox v-model="setting.p_voice">
+                            <el-icon><bell-filled/></el-icon>来电铃声
+                        </el-checkbox>
+                        <el-checkbox :disabled="!ismobile" v-model="setting.p_vibrate">
+                            <el-icon><cellphone/></el-icon>接通震动
+                        </el-checkbox>
+                    </el-form-item>
+                    <el-form-item v-if="setting.p_voice">
+                        <div class="max-flex-center">
+                            <el-input readonly v-model="setting.p_voice_src_name" placeholder="默认铃声"></el-input>
+                            <el-button :loading="loads.upload" @click="setRingtone()" plain>
+                                <el-icon><bell/></el-icon>
+                            </el-button>
+                            <el-button plain @click="clearRingtone">
+                                <el-icon><refresh-left/></el-icon>
+                            </el-button>
+                        </div>
+                    </el-form-item>
+                </el-form>
+
+                <!--系统管理员权限-->
+                <el-form label-position="top" v-if="activeTab == 4">
+                    <el-form-item label="群组">
+                        <el-checkbox>
+                            <el-icon><close-bold/></el-icon>全员禁言
+                        </el-checkbox>
+                    </el-form-item>
+                    <el-form-item label="公告">
+                        <div class="max-flex-center">
+                            <el-input v-model="owner.announce" :rows="3"
+                                      type="textarea" placeholder="公告内容"
+                                      show-word-limit maxlength="300"></el-input>
+                            <el-button @click="pushAnnounce">
+                                <el-icon><promotion/></el-icon>发布
+                            </el-button>
+                        </div>
+                    </el-form-item>
+                    <el-form-item label="移除用户">
+                        <div class="max-flex-center">
+                            <el-input placeholder="用户UID" v-model="owner.uid"></el-input>
+                            <el-button :loading="loads.rmuser" @click="removeUser">
+                                <el-icon><delete/></el-icon>移除
+                            </el-button>
+                        </div>
+                    </el-form-item>
+                    <el-form-item label="移除消息">
+                        <div class="max-flex-center">
+                            <el-input placeholder="消息MID" v-model="owner.mid"></el-input>
+                            <el-button :loading="loads.rmmsg" @click="removeMsg2()">
+                                <el-icon><delete/></el-icon>移除
+                            </el-button>
+                        </div>
+                    </el-form-item>
+                </el-form>
+                <!-- 兼容性报告 -->
+                <el-form v-if="activeTab == 5">
+                    <el-form-item>
+                        <span class="bold">高斯模糊背景：</span>
+                        {{Support.backdrop ? '支持' : '不支持'}} <br>
+                    </el-form-item>
+                    <el-form-item>
+                        <span class="bold">媒体访问权限（摄像头和麦克风）：</span>
+                        {{Support.media ? '支持' : '不支持'}} <br>
+                    </el-form-item>
+                    <el-form-item>
+                        <span class="bold">网页即时通信（WebRTC）：</span>
+                        {{Support.webrtc ? '支持' : '不支持'}} <br>
+                    </el-form-item>
+                    <el-form-item>
+                        <span class="bold">指定资源下载文件名：</span>
+                        {{Support.download ? '支持' : '不支持'}} <br>
+                    </el-form-item>
+                    <el-form-item>
+                        <span class="bold">边界观察者（ResizeObserver）：</span>
+                        {{Support.observer ? '支持' : '不支持'}} <br>
+                    </el-form-item>
+                    <el-form-item>
+                        <span class="bold">读取粘贴板图片：</span>
+                        {{Support.clipboard ? '支持' : '不支持'}} <br>
+                    </el-form-item>
+                    <el-form-item>
+                        <span class="bold">桌面消息通知：</span>
+                        {{Support.notify ? '支持' : '不支持'}} <br>
+                    </el-form-item>
+                </el-form>
+            </div>
+            <!--提示消息-->
+            <div class="tips">
+                注：配置信息保存在本地，清空缓存可能导致部分数据重置
+            </div>
+        </el-dialog>
+
+        <!--内置登录-->
+        <el-dialog :close-on-click-modal="!1"
+                   :close-on-press-escape="!1"
+                   v-model="dialog.login"
+                   @close="$refs.login.resetFields()"
+                   :show-close="!1"
+                   title="登录" width="480px">
+            <el-form :model="login" :rules="login.rules" ref="login" status-icon label-position="top">
+                <el-form-item label="账号" prop="user">
+                    <el-input maxlength="50" v-model="login.user" placeholder="UID/ 邮箱"></el-input>
+                </el-form-item>
+                <el-form-item label="密码" prop="pass">
+                    <el-input type="password" maxlength="16" v-model="login.pass" placeholder="密码"></el-input>
+                </el-form-item>
+                <el-form-item v-if="login.offsite" label="验证码" prop="code">
+                    <div class="max-flex-center">
+                        <el-input maxlength="6" v-model="login.code" class="max-width" placeholder="邮箱验证码"></el-input>
+                        <el-button @click="sendEmail(login.user)" :disabled="loads.sending">发送验证码</el-button>
+                    </div>
+                </el-form-item>
+                <el-form-item>
+                    <div class="max-flex between">
+                        <el-checkbox v-model="login.auto" style="margin-left:5px">
+                            <el-icon><check/></el-icon>自动登录
+                        </el-checkbox>
+                        <el-switch v-model="setting.theme"
+                                   inline-prompt size="large"
+                                   class="theme-switch-btn"
+                                   active-text="黑"
+                                   inactive-text="白">
+                        </el-switch>
+                    </div>
+                </el-form-item>
+                <el-form-item class="center">
+                    <el-popover @hide="clearWxInterval" @before-enter="getWxFastURL" ref="wxpopover"
+                                placement="top" :width="200" :show-after="200" trigger="click">
+                        <template #reference>
+                            <el-link type="primary">
+                                <el-icon><cloudy/></el-icon>微信登录
+                            </el-link>
+                        </template>
+                        <el-image ref="wxcode" class="wxcode">
+                            <template #placeholder>
+                                <div class="img-load">
+                                    <el-icon class="loading"><star/></el-icon>
+                                </div>
+                            </template>
+                            <template #error>
+                                <div class="img-load">
+                                    <el-icon class="loading"><star/></el-icon>
+                                </div>
+                            </template>
+                        </el-image>
+                        <div class="tips" style="text-align: center;">授权微信登录请联系所有者</div>
+                    </el-popover>
+                    <el-link @click="dialog.password=!0" type="danger">
+                        <el-icon><compass/></el-icon>找回密码
+                    </el-link>
+                </el-form-item>
+                <el-form-item class="center">
+                    <el-button :loading="loads.optional" @click="userLogin">
+                        <el-icon><apple/></el-icon>登入
+                    </el-button>
+                    <el-button @click="dialog.register=!0">
+                        <el-icon><bottom-right/></el-icon>注册
+                    </el-button>
+                </el-form-item>
+            </el-form>
+            <div class="login-tips">{{input.placeholder}}</div>
+        </el-dialog>
+        <!--内置注册-->
+        <el-dialog v-model="dialog.register"
+                   width="480px" top="10vh" title="注册"
+                   @close="$refs.register.resetFields()">
+            <el-form :model="formData" :rules="formData.rules" ref="register" status-icon label-position="top">
+                <el-form-item label="昵称" prop="name">
+                    <el-input maxlength="8" v-model="formData.name" placeholder="8个字符以内"></el-input>
+                </el-form-item>
+                <el-form-item label="邮箱" prop="email">
+                    <el-input v-model="formData.email" placeholder="用于接收验证码"></el-input>
+                </el-form-item>
+                <el-form-item label="密码" prop="pass">
+                    <el-input type="password" maxlength="16" v-model="formData.pass" placeholder="8到16位组成"></el-input>
+                </el-form-item>
+                <el-form-item label="重复密码" prop="repeat">
+                    <el-input type="password" maxlength="16" v-model="formData.repeat" placeholder="再次输入密码"></el-input>
+                </el-form-item>
+                <el-form-item label="验证码" prop="code">
+                    <div class="max-flex-center">
+                        <el-input v-model="formData.code" class="max-width" placeholder="邮箱验证码"></el-input>
+                        <el-button :disabled="loads.sending" @click="sendEmail(formData.email)">发送验证码</el-button>
+                    </div>
+                </el-form-item>
+                <el-form-item class="center">
+                    <el-button :loading="loads.optional" @click="userRegister">
+                        <el-icon><apple/></el-icon>注册
+                    </el-button>
+                    <el-button @click="dialog.register=!1">
+                        <el-icon><back/></el-icon>返回
+                    </el-button>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
+    </template>
+</div>
+</body>
+</html>

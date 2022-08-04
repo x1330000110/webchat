@@ -1,0 +1,271 @@
+package com.socket.webchat.service.impl;
+
+import cn.hutool.core.date.LocalDateTimeUtil;
+import cn.hutool.core.img.Img;
+import cn.hutool.core.img.ImgUtil;
+import cn.hutool.core.io.IORuntimeException;
+import cn.hutool.core.lang.Opt;
+import cn.hutool.core.lang.Validator;
+import cn.hutool.core.util.DesensitizedUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.Header;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.socket.secure.event.entity.InitiatorEvent;
+import com.socket.webchat.constant.Constants;
+import com.socket.webchat.model.enums.FilePath;
+import com.socket.webchat.model.enums.RedisTree;
+import com.socket.webchat.custom.ftp.FTPClient;
+import com.socket.webchat.runtime.AccountException;
+import com.socket.webchat.runtime.UploadException;
+import com.socket.webchat.mapper.SysUserMapper;
+import com.socket.webchat.model.SysUser;
+import com.socket.webchat.model.condition.EmailCondition;
+import com.socket.webchat.model.condition.LoginCondition;
+import com.socket.webchat.model.condition.PasswordCondition;
+import com.socket.webchat.model.condition.RegisterCondition;
+import com.socket.webchat.service.SysUserService;
+import com.socket.webchat.util.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authc.UnknownAccountException;
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.subject.PrincipalCollection;
+import org.apache.shiro.subject.SimplePrincipalCollection;
+import org.apache.shiro.subject.Subject;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
+    private final RedisTemplate<String, Object> template;
+    private final FTPClient client;
+    private final Email sender;
+
+    @Override
+    public void login(LoginCondition condition) {
+        String code = condition.getCode(), uid = condition.getUser();
+        // 优先验证邮箱验证码
+        if (StrUtil.isNotEmpty(code)) {
+            String email = uid;
+            if (!email.contains("@")) {
+                LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery(SysUser.class);
+                wrapper.eq(SysUser::getUid, uid);
+                email = Opt.ofNullable(get(wrapper)).map(SysUser::getEmail).get();
+                Assert.notNull(email, UnknownAccountException::new);
+            }
+            RedisValue<Object> value = RedisValue.of(template, RedisTree.EMAIL.getPath(email));
+            Assert.isTrue(Objects.equals(value.get(), code), "验证码不正确", AccountException::new);
+            Requests.set(Constants.OFFSITE);
+            value.remove();
+        }
+        // shiro登录
+        SecurityUtils.getSubject().login(new UsernamePasswordToken(uid, condition.getPass(), condition.isAuto()));
+        // 更新登录信息
+        LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
+        wrapper.eq(uid.contains("@") ? SysUser::getEmail : SysUser::getUid, uid);
+        wrapper.set(SysUser::getIp, Wss.getRemoteIP());
+        wrapper.set(SysUser::getLoginTime, LocalDateTime.now());
+        String userAgent = Requests.get().getHeader(Header.USER_AGENT.getValue());
+        wrapper.set(SysUser::getPlatform, Wss.getPlatform(userAgent));
+        super.update(wrapper);
+    }
+
+    @Override
+    public void register(RegisterCondition condition) {
+        // 检查
+        LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(SysUser::getName, StrUtil.trim(condition.getName()));
+        Assert.isNull(this.get(wrapper), "昵称已被使用", IllegalStateException::new);
+        // 验证邮箱
+        RedisValue<Object> emailValue = RedisValue.of(template, RedisTree.EMAIL.getPath(condition.getEmail()));
+        Assert.isTrue(Objects.equals(condition.getCode(), emailValue.get()), "验证码不正确", IllegalStateException::new);
+        emailValue.remove();
+        // 注册
+        SysUser init = SysUser.newInstance();
+        init.setName(condition.getName());
+        init.setEmail(condition.getEmail());
+        init.setHash(Bcrypt.digest(condition.getPass()));
+        super.save(init);
+        // 通过邮箱登录
+        this.login(new LoginCondition(condition.getEmail(), condition.getPass()));
+    }
+
+    @Override
+    public String sendEmail(String email) {
+        // 检查邮箱与UID
+        if (!Validator.isEmail(email)) {
+            final String uid = email;
+            LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
+            wrapper.eq(SysUser::getUid, uid);
+            SysUser user = getOne(wrapper);
+            Assert.notNull(user, "找不到相关账号信息", IllegalStateException::new);
+            Assert.isFalse(user.isDeleted(), "该账号已被永久限制登录", IllegalStateException::new);
+            email = user.getEmail();
+            Assert.isFalse(StrUtil.isEmpty(email), "该账号未绑定邮箱信息", IllegalStateException::new);
+        }
+        this.checkEmail(email);
+        String code = sender.send(email);
+        // 保存到redis 10分钟
+        RedisValue.of(template, RedisTree.EMAIL.getPath(email)).set(code, Constants.EMAIL_CODE_VALID_TIME * 60);
+        return DesensitizedUtil.email(email);
+    }
+
+    @Override
+    public boolean updatePassword(PasswordCondition condition) {
+        LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
+        String email = condition.getEmail();
+        SysUser user = Wss.getUser();
+        if (StrUtil.isEmpty(email)) {
+            Assert.notNull(user, "请输入邮箱", IllegalStateException::new);
+            email = user.getEmail();
+        }
+        RedisValue<Object> redisValue = RedisValue.of(template, RedisTree.EMAIL.getPath(email));
+        String code = (String) redisValue.get();
+        Assert.isTrue(Objects.equals(code, condition.getCode()), "邮箱验证码不正确", IllegalStateException::new);
+        // 通过邮箱修改密码
+        wrapper.eq(SysUser::getEmail, email);
+        wrapper.set(SysUser::getHash, Bcrypt.digest(condition.getPassword()));
+        redisValue.remove();
+        boolean update = super.update(wrapper);
+        // 更新凭证
+        if (update && user != null) {
+            this.updatePrincipal(user::setEmail, email);
+        }
+        return update;
+    }
+
+    @Override
+    public boolean updateMaterial(SysUser sysUser) {
+        LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
+        // 清空uid
+        sysUser.setUid(null);
+        // 修改头像使用 /updateAvatar
+        sysUser.setHeadimgurl(null);
+        // 修改邮箱使用 /updateEmail
+        sysUser.setEmail(null);
+        // 若生日不为空 优先使用基于生日的年龄
+        if (sysUser.getBirth() != null) {
+            LocalDateTime time = sysUser.getBirth().atStartOfDay();
+            long between = LocalDateTimeUtil.between(time, LocalDateTime.now(), ChronoUnit.YEARS);
+            sysUser.setAge(Math.toIntExact(between));
+        }
+        wrapper.eq(SysUser::getUid, Wss.getUserId());
+        super.update(sysUser, wrapper);
+        // 更新缓存
+        this.updatePrincipal(Wss.getUser()::setName, sysUser.getName());
+        return true;
+    }
+
+    @Override
+    public String updateAvatar(byte[] bytes) {
+        Assert.isTrue(bytes.length <= 0x4b000, "图片大小超过限制", UploadException::new);
+        // byte[]转图片
+        BufferedImage image;
+        try {
+            image = ImgUtil.toImage(bytes);
+        } catch (IllegalArgumentException | IORuntimeException e) {
+            throw new UploadException("未能识别的图片格式");
+        }
+        // 创建图片文件
+        int min = Math.min(image.getWidth(), image.getHeight());
+        // 按最小宽度裁剪为正方形
+        Image cut = ImgUtil.cut(image, new Rectangle(0, 0, min, min));
+        Image scale = ImgUtil.scale(cut, 132, 132);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        Img.from(scale).setTargetImageType(ImgUtil.IMAGE_TYPE_PNG).write(bos);
+        // 图片映射地址
+        String path = client.upload(FilePath.IMAGE, bos.toByteArray()).getMapping();
+        LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
+        wrapper.eq(SysUser::getUid, Wss.getUserId());
+        wrapper.set(SysUser::getHeadimgurl, path);
+        super.update(wrapper);
+        // 更新缓存
+        this.updatePrincipal(Wss.getUser()::setHeadimgurl, path);
+        return path;
+    }
+
+    @Override
+    public boolean updateEmail(EmailCondition condition) {
+        // 验证原邮箱
+        String selfemail = Wss.getUser().getEmail();
+        if (StrUtil.isNotEmpty(selfemail)) {
+            RedisValue<Object> selfValue = RedisValue.of(template, RedisTree.EMAIL.getPath(selfemail));
+            String selfcode = (String) selfValue.get();
+            // 对比验证码
+            Assert.isTrue(Objects.equals(selfcode, condition.getSelfcode()), "原邮箱验证码不正确", IllegalStateException::new);
+        }
+        // 验证新邮箱
+        String newemail = condition.getUser();
+        LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
+        wrapper.eq(SysUser::getEmail, newemail);
+        Assert.isNull(this.get(wrapper), "该邮箱已被其他账号绑定", IllegalStateException::new);
+        RedisValue<Object> newValue = RedisValue.of(template, RedisTree.EMAIL.getPath(newemail));
+        String newcode = (String) newValue.get();
+        Assert.isTrue(Objects.equals(newcode, condition.getNewcode()), "新邮箱验证码不正确", IllegalStateException::new);
+        // 更新邮箱
+        wrapper.set(SysUser::getEmail, newemail);
+        this.updatePrincipal(Wss.getUser()::setEmail, newemail);
+        return super.update(wrapper);
+    }
+
+    @Override
+    public SysUser getUserInfo(String uid) {
+        LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(SysUser::getUid, uid);
+        wrapper.eq(SysUser::isDeleted, 0);
+        SysUser user = this.get(wrapper);
+        Assert.notNull(user, "找不到此用户信息", AccountException::new);
+        return user;
+    }
+
+    /**
+     * 邮箱发送验证
+     *
+     * @param email 邮箱
+     */
+    private void checkEmail(String email) {
+        // 检查重复发送间隔
+        String key = RedisTree.INTERIM_EMAIL.getPath(email);
+        RedisValue<Object> value = RedisValue.of(template, key);
+        Assert.isFalse(value.exist(), "验证码发送过于频繁", IllegalStateException::new);
+        // 检查发送次数上限
+        String key2 = RedisTree.LIMIT_EMAIL.getPath(email);
+        long count = RedisValue.of(template, key2).incr(1, TimeUnit.HOURS.toSeconds(Constants.EMAIL_LIMIT_SENDING_INTERVAL));
+        Assert.isTrue(count <= 3, "该账号验证码每日发送次数已达上限", IllegalStateException::new);
+        value.set(-1, Constants.EMAIL_SENDING_INTERVAL);
+    }
+
+    /**
+     * 更新Shiro凭证
+     *
+     * @param function lambda
+     * @param value    新的值
+     */
+    private <T> void updatePrincipal(Function<T, SysUser> function, T value) {
+        SysUser user = function.apply(value);
+        Subject subject = SecurityUtils.getSubject();
+        PrincipalCollection principals = subject.getPrincipals();
+        String realm = principals.getRealmNames().iterator().next();
+        subject.runAs(new SimplePrincipalCollection(user, realm));
+    }
+
+    @Override
+    public void onInterceptEvent(InitiatorEvent event) {
+        log.warn(event.getDescription());
+    }
+}

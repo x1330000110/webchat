@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport">
+    <title>错误</title>
+    <style>
+        body {
+            text-align: center;
+            background-color: #ffffff;
+        }
+
+        .text {
+            margin-top: 8rem;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <div style="margin-top: 10rem;">
+            <svg fill="#8C9EFF" height="120" viewBox="0 0 48 48" width="120" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M24,4 C35.045695,4 44,12.954305 44,24 C44,35.045695 35.045695,44 24,44 C12.954305,44 4,35.045695 4,24 C4,12.954305 12.954305,4 24,4 Z M24,31 C22.8954305,31 22,31.8954305 22,33 C22,34.1045695 22.8954305,35 24,35 C25.1045695,35 26,34.1045695 26,33 C26,31.8954305 25.1045695,31 24,31 Z M24,14 C23.1715729,14 22.5,14.6715729 22.5,15.5 L22.5,15.5 L22.5,27.5 C22.5,28.3284271 23.1715729,29 24,29 C24.8284271,29 25.5,28.3284271 25.5,27.5 L25.5,27.5 L25.5,15.5 C25.5,14.6715729 24.8284271,14 24,14 Z">
+                </path>
+            </svg>
+        </div>
+        <div class="text"></div>
+    </div>
+    <script>
+        !function(){const a=location.search.substr(1).split("&").map(a=>a.split("=")).map(a=>({[a[0]]:a[1]})),b={expired:"\u4E8C\u7EF4\u7801\u5DF2\u8FC7\u671F",lock:"\u8BE5\u8D26\u53F7\u5DF2\u88AB\u6C38\u4E45\u9650\u5236\u767B\u5F55",time:"\u60A8\u5DF2\u88AB\u9650\u5236\u767B\u5F55\uFF0C\u9884\u8BA1\u5269\u4F59"},c=a.find(a=>a.time)?.time,d=a.find(a=>a.key)?.key,e=c&&"lock"===d?b.time+(a=>{if(60>a)return a+"\u79D2";if(3600>a)return Math.floor(a/60)+"\u5206\u949F";const b=Math.floor(a/3600);if(a<86400)return b+"\u5C0F\u65F6";const c=Math.floor(a/86400);return c+"\u5929"+Math.floor(b-24*c)+"\u5C0F\u65F6"})(c):b[d];document.querySelector(".text").innerText=e?e:"\u65E0\u6548\u7684\u53C2\u6570"}();
+    </script>
+</body>
+</html>
