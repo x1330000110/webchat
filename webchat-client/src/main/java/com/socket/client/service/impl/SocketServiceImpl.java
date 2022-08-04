@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.concurrent.ListenableFuture;
 
 import javax.servlet.http.HttpSession;
 import javax.websocket.*;
@@ -125,13 +126,15 @@ public class SocketServiceImpl implements SocketService {
         boolean text = wsmsg.getType() == MessageType.TEXT;
         // 判断AI消息
         if (sysuid && text && socketManager.getOnline(Constants.SYSTEM_UID) == null) {
-            String dialogue = robot.dialogue(wsmsg.getContent());
-            if (dialogue != null) {
-                // AI消息
-                WsMsg aimsg = WsMsg.buildmsg(Constants.SYSTEM_UID, wsmsg.getUid(), dialogue, MessageType.TEXT);
-                aimsg.sendTo(self);
-                socketManager.cacheRecord(aimsg, true);
-            }
+            ListenableFuture<String> dialogue = robot.dialogue(wsmsg.getContent());
+            dialogue.addCallback(result -> {
+                if (result != null) {
+                    // AI消息
+                    WsMsg aimsg = WsMsg.buildmsg(Constants.SYSTEM_UID, wsmsg.getUid(), dialogue, MessageType.TEXT);
+                    aimsg.sendTo(self);
+                    socketManager.cacheRecord(aimsg, true);
+                }
+            }, exception -> log.warn(exception.getMessage()));
         }
     }
 

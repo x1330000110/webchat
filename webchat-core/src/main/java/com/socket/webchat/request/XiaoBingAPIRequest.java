@@ -10,7 +10,10 @@ import cn.hutool.script.JavaScriptEngine;
 import com.socket.webchat.util.Assert;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
+import org.springframework.util.concurrent.ListenableFuture;
 
 import javax.annotation.PostConstruct;
 import javax.script.ScriptException;
@@ -45,7 +48,8 @@ public class XiaoBingAPIRequest {
     /**
      * 发起小冰对话
      */
-    public String dialogue(String keyword) {
+    @Async
+    public ListenableFuture<String> dialogue(String keyword) {
         JSONObject json = new JSONObject();
         JSONObject enc = new JSONObject();
         enc.set("NormalizedQuery", getEncryptString(keyword));
@@ -57,9 +61,9 @@ public class XiaoBingAPIRequest {
                 .execute();
         String body = execute.body();
         try {
-            return JSONUtil.parseObj(body).getStr("content");
+            return AsyncResult.forValue(JSONUtil.parseObj(body).getStr("content"));
         } catch (JSONException e) {
-            return null;
+            return AsyncResult.forValue(null);
         }
     }
 }
