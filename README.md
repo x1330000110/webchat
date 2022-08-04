@@ -72,8 +72,8 @@
 #### 软件架构
 
 基于JDK11的聊天室系统
-* 后端：SpringBooot、Mybatis Plus、Shiro、Mysql、Redis、Kafka、Socket、FTP
-* 前端：HTML5、css3、javaScript(ES6+)、Vue3(原生)、Element Plus(原生)、WebSocket、WebRTC
+* 后端：Spring Boot、Mybatis Plus、Shiro、Mysql、Redis、Kafka、Socket、FTP
+* 前端：HTML5、css3、JavaScript(ES6+)、Vue3(原生)、Element Plus(原生)、WebSocket、WebRTC
 
 需要配置的环境依赖
 * MySQL 5.7
