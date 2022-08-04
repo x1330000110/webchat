@@ -130,7 +130,7 @@ public class SocketServiceImpl implements SocketService {
             dialogue.addCallback(result -> {
                 if (result != null) {
                     // AI消息
-                    WsMsg aimsg = WsMsg.buildmsg(Constants.SYSTEM_UID, wsmsg.getUid(), dialogue, MessageType.TEXT);
+                    WsMsg aimsg = WsMsg.buildmsg(Constants.SYSTEM_UID, wsmsg.getUid(), result, MessageType.TEXT);
                     aimsg.sendTo(self);
                     socketManager.cacheRecord(aimsg, true);
                 }

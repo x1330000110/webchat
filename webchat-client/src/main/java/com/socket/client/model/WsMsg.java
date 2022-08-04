@@ -68,7 +68,7 @@ public class WsMsg {
     /**
      * 构造用户消息
      */
-    public static WsMsg buildmsg(String uid, String target, ListenableFuture<String> content, MessageType type) {
+    public static WsMsg buildmsg(String uid, String target, String content, MessageType type) {
         String mid = MD5.create().digestHex(uid + content + type.getName() + target + System.currentTimeMillis());
         return new WsMsg(uid, target, content, type, mid);
     }
