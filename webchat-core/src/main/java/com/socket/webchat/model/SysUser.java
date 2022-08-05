@@ -1,6 +1,7 @@
 package com.socket.webchat.model;
 
 import cn.hutool.core.util.RandomUtil;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.socket.webchat.model.enums.UserRole;
 import lombok.Data;
@@ -56,7 +57,7 @@ public class SysUser extends BaseModel implements Serializable {
     /**
      * 生日
      */
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
     private LocalDate birth;
     /**
      * 性别（1男 2女）

@@ -1,6 +1,8 @@
 package com.socket.webchat.model.enums;
 
 import com.baomidou.mybatisplus.annotation.IEnum;
+import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * 角色枚举
@@ -23,6 +25,7 @@ public enum UserRole implements IEnum<String> {
         return name().toLowerCase();
     }
 
+    @JsonValue
     @Override
     public String toString() {
         return getRole();
