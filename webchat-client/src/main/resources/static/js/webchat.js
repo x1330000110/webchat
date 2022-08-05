@@ -850,9 +850,6 @@ const app = Vue.createApp({
             return this.input.disabled || this.loads.record || this.media.audioBlob
         },
 
-        // 消息发送中
-        isSending: (wsmsg) => wsmsg.reject == null && !wsmsg.isblob,
-
         // 检查未读语音
         isUnreadAudio(wsmsg) {
             wsmsg = wsmsg || this.cache.message
@@ -1806,9 +1803,7 @@ const app = Vue.createApp({
         // 上传图片/视频/文件
         async uploadBlob(blob) {
             // 禁言检查
-            if (this.input.disabled) {
-                return void this.showTips('禁言中，请稍后再试', Ws.warning)
-            }
+            if (this.input.disabled) return
             // 选择文件
             try {
                 blob = blob || await Wss.chooseFile(30 * 1024 * 1024)
@@ -1832,16 +1827,25 @@ const app = Vue.createApp({
                     image: blob,
                     mid: wsmsg.mid.encrypt(),
                     sign: await CryptoJS.signBlob(blob, wsmsg.mid)
-                })).then(async response => {
+                }), {
+                    onUploadProgress: event => {
+                        wsmsg.progress = (100 - event.loaded / event.total * 100 | 0) + '%'
+                    }
+                }).then(async response => {
                     const data = response.data
                     if (data.success) {
                         const imgURL = '/resource/' + wsmsg.mid
                         this.sendmsg(imgURL, Ws.img, size, wsmsg.mid)
                         // 真实图片URL将在切换会话时替换
                         this.room.cache.push({mid: wsmsg.mid, url: imgURL, blob: url})
+                        return
                     }
-                }).catch(() => {
-                    this.showTips('服务器繁忙，请稍后再试', Ws.error)
+                    throw data.message
+                }).catch(e => {
+                    this.pushsys(e || '由于网络原因，文件发送失败', Ws.danger)
+                    wsmsg.reject = true
+                }).finally(() => {
+                    wsmsg.progress = null
                 })
                 return
             }
@@ -1861,29 +1865,41 @@ const app = Vue.createApp({
                 const blobURL = URL.createObjectURL(vdata.frame)
                 const wsmsg = this.pushmsg(this.buildmsg(blobURL, Ws.video, data))
                 // 先上传预览图
+                wsmsg.progress = '100%'
                 axios.post('/resource/image', JSON.toForm({
                     image: vdata.frame,
                     sign: await CryptoJS.signBlob(vdata.frame)
                 })).then(async response => {
-                    const rd = response.data
-                    if (!rd.success) {
-                        return void this.showTips(rd.message, Ws.warning)
+                    let data = response.data
+                    if (!data.success) {
+                        throw data.message
                     }
                     // 视频预览图URL
-                    const imgURL = rd.data
+                    const imgURL = data.data
                     // 上传视频
-                    axios.post('/resource/blob', JSON.toForm({
-                        blob: blob,
-                        mid: wsmsg.mid.encrypt(),
-                        sign: await CryptoJS.signBlob(blob, wsmsg.mid)
-                    })).then(() => {
-                        this.sendmsg(imgURL, Ws.video, data, wsmsg.mid)
+                    try {
+                        response = await axios.post('/resource/blob', JSON.toForm({
+                            blob: blob,
+                            mid: wsmsg.mid.encrypt(),
+                            sign: await CryptoJS.signBlob(blob, wsmsg.mid)
+                        }), {
+                            onUploadProgress: event => wsmsg.progress = (100 - event.loaded / event.total * 100 | 0) + '%'
+                        })
+                    } catch (e) {
+                        throw '由于网络原因，文件发送失败'
+                    }
+                    data = response.data
+                    if (data.success) {
+                        this.sendmsg(imgURL, Ws.video, data.data, wsmsg.mid)
                         this.room.cache.push({mid: wsmsg.mid, url: imgURL})
-                    }).catch(() => {
-                        this.showTips('服务器繁忙，请稍后再试', Ws.error)
-                    })
-                }).catch(() => {
-                    this.showTips('服务器繁忙，请稍后再试', Ws.error)
+                        return
+                    }
+                    throw data.message
+                }).catch(e => {
+                    this.pushsys(e || '由于网络原因，文件发送失败', Ws.danger)
+                    wsmsg.reject = true
+                }).finally(() => {
+                    wsmsg.progress = null
                 })
                 return
             }
@@ -1896,20 +1912,21 @@ const app = Vue.createApp({
                 sign: await CryptoJS.signBlob(blob, wsmsg.mid)
             }), {
                 onUploadProgress: event => {
-                    wsmsg.progress = (event.loaded / event.total * 82 | 0) + '%'
+                    wsmsg.progress = (event.loaded / event.total * 100 | 0) + '%'
                 }
             }).then(response => {
                 const data = response.data
                 if (data.success) {
                     wsmsg.blobURL = URL.createObjectURL(blob)
                     this.sendmsg(blob.name, Ws.blob, size, wsmsg.mid)
-                } else {
-                    wsmsg.reject = true
+                    return
                 }
-                wsmsg.progress = null
-            }).catch(() => {
-                this.showTips('服务器繁忙，请稍后再试', Ws.error)
+                throw data.message
+            }).catch(e => {
+                this.pushsys(e || '由于网络原因，文件发送失败', Ws.danger)
                 wsmsg.reject = true
+            }).finally(() => {
+                wsmsg.progress = null
             })
         },
 

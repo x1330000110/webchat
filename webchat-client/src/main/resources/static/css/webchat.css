@@ -8,7 +8,7 @@ body {
     background-size: cover;
     background-position: center;
     overflow: hidden;
-    font-family: 'Inter', Sans-Serif;
+    font-family: 'Inter', sans-serif;
     transition: background .3s linear;
 }
 
@@ -185,11 +185,6 @@ img {
 
 .filter {
     filter: blur(5px);
-}
-
-.filter img {
-    filter: blur(5px);
-    transform: scale(1.1);
 }
 
 .tips {
@@ -1213,14 +1208,16 @@ img {
     justify-content: space-between;
 }
 
-.lite-chatbox .content .blob-message::after {
+.lite-chatbox .content .blob-message::before {
     content: '';
     position: absolute;
-    bottom: 1px;
-    width: var(--upload-width);
-    height: 3px;
+    left: 0;
+    bottom: 0;
+    width: var(--upload-progress);
+    z-index: 0;
+    height: 100%;
     border-radius: 10px;
-    background-color: #07c562;
+    background-color: rgba(255, 255, 255, .2);
     transition: width .5s;
 }
 
@@ -1383,6 +1380,19 @@ img {
     max-height: 300px;
     min-height: 2rem;
     width: var(--image-scale-width);
+}
+
+.lite-chatbox .el-image:before {
+    content: '';
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    position: absolute;
+    height: var(--upload-progress);
+    background: rgba(0, 0, 0, .4);
+    backdrop-filter: blur(2px);
+    transition: height .5s;
+    z-index: 2;
 }
 
 .el-image .img-load {
