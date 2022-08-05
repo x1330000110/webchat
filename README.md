@@ -1,7 +1,7 @@
 # webchat
 
 #### 介绍
-基于SpringBoot+Vue3+WebSocket在线聊天室
+基于SpringBoot+Vue3(原生)+WebSocket在线聊天室
 
 #### 项目介绍
 仿WX+QQ界面与功能，内部包含三个角色（用户，管理员，所有者），管理员可禁言、限制登录用户，所有者可设置管理员、头衔等功能
