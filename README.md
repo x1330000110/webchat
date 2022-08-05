@@ -8,6 +8,18 @@
 
 内部包含数据安全传输框架，基于SHA，AES，RSA加密交换数据
 
+#### 软件架构
+
+基于JDK11的聊天室系统
+* 后端：Spring Boot、Mybatis Plus、Shiro、Mysql、Redis、Kafka、Socket、FTP
+* 前端：HTML5、css3、JavaScript(ES6+)、Vue3(原生)、Element Plus(原生)、WebSocket、WebRTC
+
+需要配置的环境依赖
+* MySQL 5.7
+* Redis 6.2
+* Kafka 2.9
+* FTP服务器
+
 #### 现支持的功能
 
 #### 登录
@@ -69,14 +81,4 @@
 * 文件拖拽支持（可将文件直接拖拽到消息列表发送，通过扩展名识别文件类型）
 * 所有者接入小冰机器人（仅在所有者离线时，发送文字消息将由小冰接管）
 
-#### 软件架构
 
-基于JDK11的聊天室系统
-* 后端：Spring Boot、Mybatis Plus、Shiro、Mysql、Redis、Kafka、Socket、FTP
-* 前端：HTML5、css3、JavaScript(ES6+)、Vue3(原生)、Element Plus(原生)、WebSocket、WebRTC
-
-需要配置的环境依赖
-* MySQL 5.7
-* Redis 6.2
-* Kafka 2.9
-* FTP服务器
