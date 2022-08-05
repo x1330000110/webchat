@@ -200,9 +200,10 @@
                                          :class="{'move-animation': loads.animation}">
 
                                         <!-- 图片/视频消息 -->
-                                        <div @click="wsmsg.isimage ? viewImages(wsmsg.content) : playVideo(wsmsg)"
+                                        <div @click="wsmsg.isimage && viewImages(wsmsg.content)"
                                              class="relative" v-if="wsmsg.isimage || wsmsg.isvideo">
                                             <el-image :src="wsmsg.content" @load="imageLoaded"
+                                                      :type="wsmsg.isimage ? 'image' : 'video'"
                                                       scroll-container='.el-scrollbar__wrap'
                                                       :style="{height: getScaleHeight(wsmsg.data), '--upload-progress': wsmsg.progress}"
                                                       fit="cover" loading="lazy" :key="wsmsg.mid">
@@ -217,10 +218,11 @@
                                                     </div>
                                                 </template>
                                             </el-image>
-                                            <el-icon class="play-icon" v-if="wsmsg.isvideo && !wsmsg.progress">
-                                                <video-play/>
-                                            </el-icon>
-                                            <div v-if="wsmsg.isvideo" class="video-time">{{wsmsg.data.duration}}</div>
+                                            <div v-if="wsmsg.isvideo">
+                                                <el-icon v-if="!wsmsg.progress" @click="playVideo(wsmsg)" class="play-icon"><video-play/></el-icon>
+                                                <div class="progress-text" v-else>{{Math.min(wsmsg.progress_number, 99)}} %</div>
+                                                <div class="video-time">{{wsmsg.data.duration}}</div>
+                                            </div>
                                         </div>
 
                                         <!-- 语音消息 -->
@@ -243,15 +245,9 @@
                                         <div @click="openBlob(wsmsg)" class="blob-message" v-if="wsmsg.isblob"
                                              :style="{'--upload-progress': wsmsg.progress}">
                                             <div>
-                                                <el-icon v-if="wsmsg.canPlay && !wsmsg.playing">
-                                                    <video-play/>
-                                                </el-icon>
-                                                <el-icon class="loading" v-else-if="wsmsg.playing">
-                                                    <star/>
-                                                </el-icon>
-                                                <el-icon v-else>
-                                                    <document/>
-                                                </el-icon>
+                                                <el-icon v-if="wsmsg.canPlay && !wsmsg.playing"><video-play/></el-icon>
+                                                <el-icon v-else-if="wsmsg.playing" class="loading"><star/></el-icon>
+                                                <el-icon v-else><document/></el-icon>
                                             </div>
                                             <div style="z-index:1">
                                                 <div class="blob-name">{{wsmsg.content}}</div>
@@ -269,9 +265,7 @@
 
                                         <!--发送中标记-->
                                         <div class="sending-msg" v-if="wsmsg.reject == null">
-                                            <el-icon class="loading">
-                                                <star/>
-                                            </el-icon>
+                                            <el-icon class="loading"><star/></el-icon>
                                         </div>
 
                                         <!-- 未读语音红点提示 -->

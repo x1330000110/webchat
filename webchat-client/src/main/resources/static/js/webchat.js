@@ -1829,7 +1829,8 @@ const app = Vue.createApp({
                     sign: await CryptoJS.signBlob(blob, wsmsg.mid)
                 }), {
                     onUploadProgress: event => {
-                        wsmsg.progress = (100 - event.loaded / event.total * 100 | 0) + '%'
+                        wsmsg.progress_number = event.loaded / event.total * 100 | 0
+                        wsmsg.progress = (100 - wsmsg.progress_number) + '%'
                     }
                 }).then(async response => {
                     const data = response.data
@@ -1856,26 +1857,23 @@ const app = Vue.createApp({
             // 视频
             if (blob.type.startsWith('video')) {
                 // 获取视频数据
-                const vdata = await Wss.loadVideo(URL.createObjectURL(blob))
-                // 获取时长
-                const duration = blob.duration || (vdata.duration ? Wss.formatSeconds(vdata.duration) : '')
-                // 构造发送的数据
-                const data = {width: vdata.width, height: vdata.height, duration: duration}
+                const video = await Wss.loadVideo(URL.createObjectURL(blob))
+                const duration = blob.duration || (video.duration ? Wss.formatSeconds(video.duration) : '')
+                const data = {width: video.width, height: video.height, duration: duration}
                 // 抽取视频第一帧
-                const blobURL = URL.createObjectURL(vdata.frame)
+                const blobURL = URL.createObjectURL(video.frame)
                 const wsmsg = this.pushmsg(this.buildmsg(blobURL, Ws.video, data))
                 // 先上传预览图
+                wsmsg.progress_number = 0
                 wsmsg.progress = '100%'
                 axios.post('/resource/image', JSON.toForm({
-                    image: vdata.frame,
-                    sign: await CryptoJS.signBlob(vdata.frame)
+                    image: video.frame,
+                    sign: await CryptoJS.signBlob(video.frame)
                 })).then(async response => {
-                    let data = response.data
-                    if (!data.success) {
-                        throw data.message
-                    }
+                    let idata = response.data
+                    if (!idata.success) throw idata.message
                     // 视频预览图URL
-                    const imgURL = data.data
+                    const imgURL = idata.data
                     // 上传视频
                     try {
                         response = await axios.post('/resource/blob', JSON.toForm({
@@ -1883,18 +1881,21 @@ const app = Vue.createApp({
                             mid: wsmsg.mid.encrypt(),
                             sign: await CryptoJS.signBlob(blob, wsmsg.mid)
                         }), {
-                            onUploadProgress: event => wsmsg.progress = (100 - event.loaded / event.total * 100 | 0) + '%'
+                            onUploadProgress: event => {
+                                wsmsg.progress_number = event.loaded / event.total * 100 | 0
+                                wsmsg.progress = (100 - wsmsg.progress_number) + '%'
+                            }
                         })
                     } catch (e) {
                         throw '由于网络原因，文件发送失败'
                     }
-                    data = response.data
-                    if (data.success) {
-                        this.sendmsg(imgURL, Ws.video, data.data, wsmsg.mid)
+                    const vdata = response.data
+                    if (vdata.success) {
+                        this.sendmsg(imgURL, Ws.video, data, wsmsg.mid)
                         this.room.cache.push({mid: wsmsg.mid, url: imgURL})
                         return
                     }
-                    throw data.message
+                    throw vdata.message
                 }).catch(e => {
                     this.pushsys(e || '由于网络原因，文件发送失败', Ws.danger)
                     wsmsg.reject = true
@@ -1912,7 +1913,8 @@ const app = Vue.createApp({
                 sign: await CryptoJS.signBlob(blob, wsmsg.mid)
             }), {
                 onUploadProgress: event => {
-                    wsmsg.progress = (event.loaded / event.total * 100 | 0) + '%'
+                    wsmsg.progress_number = event.loaded / event.total * 100 | 0
+                    wsmsg.progress = wsmsg.progress_number + '%'
                 }
             }).then(response => {
                 const data = response.data
