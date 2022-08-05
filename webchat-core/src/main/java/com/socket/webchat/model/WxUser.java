@@ -7,7 +7,7 @@ import java.io.Serializable;
 /**
  * 微信用户信息
  *
- * @since 2021/7/9
+ * @date 2021/7/9
  */
 @Data
 public class WxUser implements Serializable {

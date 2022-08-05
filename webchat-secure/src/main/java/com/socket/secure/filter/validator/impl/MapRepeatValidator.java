@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @see SecureProperties#getLinkValidTime()
  * @see <a href="https://www.geeksforgeeks.org/replay-attack/">replay attack</a>
- * @since 2021.8.2
+ * @date 2021.8.2
  */
 public class MapRepeatValidator extends ConcurrentHashMap<String, Long> implements RepeatValidator, InitializingBean, DisposableBean {
     /**

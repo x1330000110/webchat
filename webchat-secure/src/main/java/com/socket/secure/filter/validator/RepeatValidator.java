@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
  *
  * @see MapRepeatValidator
  * @see RedisRepeatValidator
- * @since 2021.8.2
+ * @date 2021.8.2
  */
 public interface RepeatValidator {
     Logger log = LoggerFactory.getLogger(RepeatValidator.class);

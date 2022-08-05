@@ -5,7 +5,7 @@ import com.socket.webchat.model.ShieldUser;
 import org.springframework.stereotype.Repository;
 
 /**
- * @since 2021/9/10
+ * @date 2021/9/10
  */
 @Repository
 public interface ShieldUserMapper extends BaseMapper<ShieldUser> {

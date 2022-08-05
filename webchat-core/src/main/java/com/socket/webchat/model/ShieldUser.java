@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 /**
  * 屏蔽用户表
  *
- * @since 2021/9/10
+ * @date 2021/9/10
  */
 @Data
 @EqualsAndHashCode(callSuper = true)

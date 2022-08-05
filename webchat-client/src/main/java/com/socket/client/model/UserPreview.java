@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * 初始化聊天室的额外用户信息
  *
- * @since 2021/8/20
+ * @date 2021/8/20
  */
 @Data
 @EqualsAndHashCode(callSuper = true)

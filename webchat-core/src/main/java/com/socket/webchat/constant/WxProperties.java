@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 /**
  * 微信接口认证配置
  *
- * @since 2021/7/9
+ * @date 2021/7/9
  */
 @Data
 @Component
