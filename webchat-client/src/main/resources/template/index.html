@@ -423,7 +423,7 @@
                         <el-icon><pointer/></el-icon>
                         转文字
                     </el-menu-item>
-                    <el-menu-item v-if="!cache.message.expired && [Ws.img,Ws.video,Ws.blob].includes(cache.message.type)"
+                    <el-menu-item v-if="[Ws.img,Ws.video,Ws.blob].includes(cache.message.type)"
                                   @click="saveBlob()">
                         <el-icon><download/></el-icon>
                         下载
