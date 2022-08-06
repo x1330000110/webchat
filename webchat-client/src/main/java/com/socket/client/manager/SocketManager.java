@@ -338,14 +338,14 @@ public class SocketManager {
     /**
      * 更新发起人的消息为已读
      *
-     * @param source 发起人
+     * @param sender 发起人
      * @param target 目标
      * @param audio  是否包括语音消息
      */
-    public void readAllMessage(WsUser source, WsUser target, boolean audio) {
-        String s = source.getUid(), t = target.getUid();
-        recordService.readAllMessage(s, t, audio);
-        redisManager.setUnreadCount(s, t, 0);
+    public void readAllMessage(WsUser sender, WsUser target, boolean audio) {
+        String suid = sender.getUid(), tuid = target.getUid();
+        recordService.readAllMessage(suid, tuid, audio);
+        redisManager.setUnreadCount(suid, tuid, 0);
     }
 
     /**
