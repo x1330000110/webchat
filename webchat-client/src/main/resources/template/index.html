@@ -757,10 +757,10 @@
                     <span v-if="cache.message.isblob">[{{cache.message.content}}]</span>
                 </el-descriptions-item>
                 <el-descriptions-item label="消息来自:">
-                    {{cache.message.name}}
+                    {{cache.message.user.name}}
                     <span class="pointer" @click="copyText(cache.message.uid)">
-                            [{{cache.message.uid}}]
-                        </span>
+                        [{{cache.message.uid}}]
+                    </span>
                 </el-descriptions-item>
                 <el-descriptions-item label="发送时间:">
                     {{parseTime(cache.message.createTime)}}
