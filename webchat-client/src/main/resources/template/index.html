@@ -4,7 +4,7 @@
     <meta charset="utf-8"/>
     <meta content="no-referrer" name="referrer"/>
     <meta content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport"/>
-    <title>在线聊天室</title>
+    <title>WebChat</title>
     <link path="//gitee.com/mirrors/litewebchat_frame/raw/master/litewebchat.min.css"/>
     <link path="//cdn.jsdelivr.net/npm/element-plus/dist/index.css"/>
     <link random path="/css/webchat.css"/>
@@ -178,7 +178,7 @@
                             <div :class='`cmsg ${wsmsg.position}`' v-else>
         							<span :class="{right: wsmsg.position === 'cleft'}" class="mask">
         							    <!-- 消息头像 -->
-        								<el-avatar :size="38" :src="wsmsg.headimgurl"
+        								<el-avatar :size="38" :src="wsmsg.user.headimgurl"
                                                    @click="switchSession(finduser(wsmsg.uid))"
                                                    @contextmenu="e => openUserMenu(wsmsg.uid, e)" fit="cover">
         								</el-avatar>
@@ -186,11 +186,11 @@
                                 <div class="max-width">
                                     <!-- 消息昵称 -->
                                     <span class="name" v-if="room.user.isgroup">
-        								<span :class="`htitle ${wsmsg.role}`"
-                                              v-if="wsmsg.alias || wsmsg.role !== Ws.user">
-        									{{wsmsg.alias || wsmsg.role}}
+        								<span :class="`htitle ${wsmsg.user.role}`"
+                                              v-if="wsmsg.user.alias || wsmsg.user.role !== Ws.user">
+        									{{wsmsg.user.alias || wsmsg.user.role}}
         								</span>
-        								{{wsmsg.name}}
+        								{{wsmsg.user.name}}
         							</span>
 
                                     <!-- 消息内容 -->
@@ -251,7 +251,7 @@
                                             </div>
                                             <div style="z-index:1">
                                                 <div class="blob-name">{{wsmsg.content}}</div>
-                                                <div class="blob-tips">{{getBlobDescribe(wsmsg)}}</div>
+                                                <div class="blob-tips">{{wsmsg.describe}}</div>
                                             </div>
                                         </div>
 
@@ -410,18 +410,25 @@
                     v-model:visible="popover.message">
             <!-- 消息工具 -->
             <el-menu :ellipsis="!1" class="message-tools" mode="horizontal">
-                <el-menu-item @click="setBackground(cache.message.content)" v-if="cache.message.isimage">
-                    <el-icon><picture-rounded/></el-icon>
-                    设为背景
-                </el-menu-item>
-                <el-menu-item @click="setRingtone(cache.message)" v-if="cache.message.canPlay">
-                    <el-icon><bell/></el-icon>
-                    设为铃声
-                </el-menu-item>
-                <el-menu-item @click="convertAudio()" v-if="cache.message.isaudio">
-                    <el-icon><pointer/></el-icon>
-                    转文字
-                </el-menu-item>
+                <template v-if="!cache.message.expired">
+                    <el-menu-item @click="setBackground(cache.message.content)" v-if="cache.message.isimage">
+                        <el-icon><picture-rounded/></el-icon>
+                        设为背景
+                    </el-menu-item>
+                    <el-menu-item @click="setRingtone(cache.message)" v-if="cache.message.canPlay">
+                        <el-icon><bell/></el-icon>
+                        设为铃声
+                    </el-menu-item>
+                    <el-menu-item @click="convertAudio()" v-if="cache.message.isaudio">
+                        <el-icon><pointer/></el-icon>
+                        转文字
+                    </el-menu-item>
+                    <el-menu-item v-if="!cache.message.expired && [Ws.img,Ws.video,Ws.blob].includes(cache.message.type)"
+                                  @click="saveBlob()">
+                        <el-icon><download/></el-icon>
+                        下载
+                    </el-menu-item>
+                </template>
                 <el-menu-item v-if="isUnreadAudio()" @click="readAudioMsg()">
                     <el-icon><check/></el-icon>
                     已读
@@ -429,11 +436,6 @@
                 <el-menu-item @click="copyText()" v-if="cache.message.istext">
                     <el-icon><copy-document/></el-icon>
                     复制
-                </el-menu-item>
-                <el-menu-item v-if="cache.message.isvideo || cache.message.isblob || cache.message.isimage"
-                              @click="saveBlob()">
-                    <el-icon><download/></el-icon>
-                    保存
                 </el-menu-item>
                 <el-menu-item @click="withdrawMsg()" v-if="canWithdraw()">
                     <el-icon><refresh-left/></el-icon>

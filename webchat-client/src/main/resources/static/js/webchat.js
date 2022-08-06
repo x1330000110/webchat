@@ -342,29 +342,23 @@ const app = Vue.createApp({
         bindmsg(wsmsg) {
             const user = this.finduser(wsmsg.uid)
             if (user == null) return null
-            // 消息是否为自己发送的
-            wsmsg.isself = wsmsg.uid === this.myself.uid
-            // 消息是否来自当前选择的用户
-            wsmsg.istarget = [wsmsg.uid, wsmsg.target].includes(this.setting.target)
-            // 此消息是否来自群组
-            wsmsg.isgroup = wsmsg.target === Ws.group
-            // 消息保存位置
-            wsmsg.savepath = wsmsg.isgroup || wsmsg.isself ? wsmsg.target : wsmsg.uid
-            // 绑定此消息发起者用户信息
-            wsmsg.name = user.name
-            wsmsg.role = user.role
-            wsmsg.alias = user.alias
-            wsmsg.type = wsmsg.type || Ws.info
-            wsmsg.headimgurl = user.headimgurl
-            wsmsg.position = wsmsg.isself ? 'cright' : 'cleft'
-            // 绑定消息类型
+            // 绑定快捷操作
+            wsmsg.isblob = wsmsg.type === Ws.blob
             wsmsg.istext = wsmsg.type === Ws.text
+            wsmsg.isimage = wsmsg.type === Ws.img
             wsmsg.isaudio = wsmsg.type === Ws.audio
             wsmsg.isvideo = wsmsg.type === Ws.video
-            wsmsg.isimage = wsmsg.type === Ws.img
-            wsmsg.isblob = wsmsg.type === Ws.blob
-            // 预览
+            wsmsg.isgroup = wsmsg.target === Ws.group
+            wsmsg.isself = wsmsg.uid === this.myself.uid
+            wsmsg.istarget = [wsmsg.uid, wsmsg.target].includes(this.setting.target)
+            wsmsg.savepath = wsmsg.isgroup || wsmsg.isself ? wsmsg.target : wsmsg.uid
+            // 初始化消息
+            wsmsg.user = user
+            wsmsg.type = wsmsg.type || Ws.info
+            wsmsg.position = wsmsg.isself ? 'cright' : 'cleft'
             wsmsg.preview = wsmsg.istext ? wsmsg.content : `[${this.parseType(wsmsg)}]`
+            wsmsg.createTime = wsmsg.createTime ? new Date(wsmsg.createTime).getTime() : Date.now()
+            typeof wsmsg.data === 'string' && (wsmsg.data = JSON.parse(wsmsg.data))
             // 语音消息
             if (wsmsg.isaudio) {
                 // playing: 播放状态
@@ -374,24 +368,24 @@ const app = Vue.createApp({
                 // 转换的文本
                 wsmsg.text = ''
             }
-            // 文件可执行判断
+            // 过期判断
+            wsmsg.isblob || wsmsg.isvideo && (wsmsg.expired = wsmsg.createTime + 3 * 24 * 60 * 60 * 1000 < Date.now())
+            // 文件消息
             if (wsmsg.isblob) {
-                const index = wsmsg.content.lastIndexOf('.')
-                if (index > -1) {
-                    const ext = wsmsg.content.substr(index + 1)
+                // 音乐类型判断
+                const idx1 = wsmsg.content.lastIndexOf('.')
+                if (idx1 > -1) {
+                    const ext = wsmsg.content.substr(idx1 + 1)
                     if (['mp3', 'wav', 'ogg'].includes(ext)) {
                         wsmsg.canPlay = true
                     }
                 }
+                // 预览数据
+                const data = wsmsg.expired ? '已过期' : wsmsg.data.size
+                const fname = wsmsg.content, idx2 = fname.lastIndexOf('.')
+                const ext = idx2 > -1 ? fname.substr(idx2 + 1) : ''
+                wsmsg.describe = ext.toUpperCase() + '文件 [' + data + ']'
             }
-            // 恢复JSON数据
-            if (typeof wsmsg.data === 'string') {
-                wsmsg.data = JSON.parse(wsmsg.data)
-            }
-            // 消息操作框初始化
-            wsmsg.setting = false
-            // 时间标记
-            wsmsg.createTime = wsmsg.createTime ? new Date(wsmsg.createTime).getTime() : Date.now()
             return wsmsg
         },
 
@@ -405,7 +399,7 @@ const app = Vue.createApp({
                 target: target,
                 type: type || Ws.text,
                 data: data,
-                mid: mid || CryptoJS.MD5(this.myself.uid + content + type + target + Date.now()).toString(),
+                mid: mid || CryptoJS.MD5(uid + content + type + target + Date.now()).toString(),
             }
         },
 
@@ -616,15 +610,6 @@ const app = Vue.createApp({
         filterUser(node, data) {
             const filter = this.input.filter
             return data.name.includes(filter) || data.uid.includes(filter)
-        },
-
-        // 获取文件描述
-        getBlobDescribe(wsmsg) {
-            // 检查过期（3天）
-            const data = (wsmsg.createTime + 3 * 24 * 60 * 60 * 1000) < Date.now() ? '已过期' : wsmsg.data.size
-            const fname = wsmsg.content
-            const index = fname.lastIndexOf('.')
-            return (index > -1 ? fname.substr(index + 1) : '').toUpperCase() + '文件 [' + data + ']'
         },
 
         // 获取当前消息图片预览集合
@@ -1575,15 +1560,15 @@ const app = Vue.createApp({
             // 消息提示
             if (!wsmsg.isself && !wsmsg.sysmsg) {
                 if (wsmsg.isgroup) {
-                    this.setting.g_tips && this.setting.target !== Ws.group && this.showTips(`群组 [${wsmsg.name}]：${wsmsg.preview}`)
+                    this.setting.g_tips && this.setting.target !== Ws.group && this.showTips(`群组 [${wsmsg.user.name}]：${wsmsg.preview}`)
                     this.setting.g_voice && !this.loads.call && this.media.notice.start('/wav/notification.wav')
                     this.setting.g_vibrate && window.navigator.vibrate([200, 100, 200])
-                    this.setting.g_notify && Wss.showNotify(wsmsg.name, wsmsg.preview)
+                    this.setting.g_notify && Wss.showNotify(wsmsg.user.name, wsmsg.preview)
                 } else {
-                    this.setting.tips && !wsmsg.istarget && this.showTips(`${wsmsg.name}：${wsmsg.preview}`)
+                    this.setting.tips && !wsmsg.istarget && this.showTips(`${wsmsg.user.name}：${wsmsg.preview}`)
                     this.setting.voice && !this.loads.call && this.media.notice.start('/wav/notification.wav')
                     this.setting.vibrate && window.navigator.vibrate([200, 100, 200])
-                    this.setting.notify && Wss.showNotify(wsmsg.name, wsmsg.preview)
+                    this.setting.notify && Wss.showNotify(wsmsg.user.name, wsmsg.preview)
                 }
             }
             // 查找消息目标
@@ -1963,7 +1948,6 @@ const app = Vue.createApp({
                 init || this.showTips('设置成功')
                 // 同步bgURL-input
                 this.setting.bgURL = url
-                this.cache.message.setting = false
             }
             this.loads.upload = true
             // 先验证输入框内URL
