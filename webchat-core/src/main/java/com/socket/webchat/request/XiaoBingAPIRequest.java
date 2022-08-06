@@ -63,7 +63,7 @@ public class XiaoBingAPIRequest {
         try {
             return AsyncResult.forValue(JSONUtil.parseObj(body).getStr("content"));
         } catch (JSONException e) {
-            return AsyncResult.forValue(null);
+            return AsyncResult.forExecutionException(e);
         }
     }
 }
