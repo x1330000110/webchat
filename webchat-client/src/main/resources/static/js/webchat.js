@@ -1772,7 +1772,7 @@ const app = Vue.createApp({
             const record = this.media.audioBlob
             const wsmsg = this.pushmsg(this.buildmsg(null, Ws.audio, {time: record.time}))
             axios.post('/resource/audio', JSON.toForm({
-                audio: record.blob,
+                blob: record.blob,
                 mid: wsmsg.mid.encrypt(),
                 sign: await CryptoJS.signBlob(record.blob, wsmsg.mid)
             })).then(response => {
@@ -1809,7 +1809,7 @@ const app = Vue.createApp({
                 const wsmsg = this.pushmsg(this.buildmsg(url, Ws.img, size))
                 // 上传图片
                 axios.post('/resource/image', JSON.toForm({
-                    image: blob,
+                    blob: blob,
                     mid: wsmsg.mid.encrypt(),
                     sign: await CryptoJS.signBlob(blob, wsmsg.mid)
                 }), {
@@ -1852,7 +1852,7 @@ const app = Vue.createApp({
                 wsmsg.progress_number = 0
                 wsmsg.progress = '100%'
                 axios.post('/resource/image', JSON.toForm({
-                    image: video.frame,
+                    blob: video.frame,
                     sign: await CryptoJS.signBlob(video.frame)
                 })).then(async response => {
                     let idata = response.data
@@ -1971,7 +1971,7 @@ const app = Vue.createApp({
             this.loads.upload = true
             image = await Wss.zipImage(image, 3 * 1024 * 1024)
             axios.post('/resource/image', JSON.toForm({
-                image: image,
+                blob: image,
                 sign: await CryptoJS.signBlob(image)
             })).then(response => {
                 const data = response.data

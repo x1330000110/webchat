@@ -1,6 +1,7 @@
 package com.socket.webchat.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.socket.webchat.model.condition.FileCondition;
 import com.socket.webchat.model.enums.FilePath;
 import com.socket.webchat.model.ChatRecordFile;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,12 +18,11 @@ public interface UploadService extends IService<ChatRecordFile> {
     /**
      * 保存文件到FTP服务器
      *
-     * @param file 文件数据
+     * @param condition 文件数据
      * @param path 文件类型
-     * @param mid  消息id（可选）
      * @return 映射位置
      */
-    String upload(MultipartFile file, FilePath path, String mid) throws IOException;
+    String upload(FileCondition condition, FilePath path) throws IOException;
 
     /**
      * 转换语音消息到文字

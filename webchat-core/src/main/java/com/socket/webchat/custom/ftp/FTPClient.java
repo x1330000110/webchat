@@ -61,13 +61,29 @@ public class FTPClient {
     public FTPFile upload(FilePath path, String name, InputStream stream) {
         FTPFile file = new FTPFile(path, name);
         try (stream; Ftp ftp = getClient()) {
-            if (ftp.existFile(file.getMapping()) || ftp.upload(path.getName(), name, stream)) {
+            if (ftp.existFile(file.getPath()) || ftp.upload(path.getName(), name, stream)) {
                 return file;
             }
         } catch (IOException | IORuntimeException e) {
             log.warn(e.getMessage());
         }
         return null;
+    }
+
+    /**
+     * 检查FTP文件是否存在
+     *
+     * @param path 文件类型
+     * @param name 文件名
+     * @return 是否存在
+     */
+    public boolean existFile(FilePath path, String name) {
+        try (Ftp ftp = getClient()) {
+            return ftp.existFile(path.getName() + FTPFile.separator + name);
+        } catch (IOException | IORuntimeException e) {
+            log.warn(e.getMessage());
+        }
+        return false;
     }
 
     /**

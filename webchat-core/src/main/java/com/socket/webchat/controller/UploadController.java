@@ -2,6 +2,7 @@ package com.socket.webchat.controller;
 
 import cn.hutool.core.util.StrUtil;
 import com.socket.secure.filter.anno.Encrypted;
+import com.socket.webchat.model.condition.FileCondition;
 import com.socket.webchat.model.enums.FilePath;
 import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.service.UploadService;
@@ -26,22 +27,22 @@ public class UploadController {
 
     @Encrypted
     @PostMapping("/audio")
-    public HttpStatus uploadAudio(MultipartFile audio, String mid) throws IOException {
-        uploadService.upload(audio, FilePath.AUDIO, mid);
+    public HttpStatus uploadAudio(FileCondition condition) throws IOException {
+        uploadService.upload(condition, FilePath.AUDIO);
         return HttpStatus.SUCCESS.body();
     }
 
     @Encrypted
     @PostMapping("/image")
-    public HttpStatus uploadImage(MultipartFile image, String mid) throws IOException {
-        String path = uploadService.upload(image, FilePath.IMAGE, mid);
+    public HttpStatus uploadImage(FileCondition condition) throws IOException {
+        String path = uploadService.upload(condition, FilePath.IMAGE);
         return HttpStatus.SUCCESS.body(StrUtil.isEmpty(path) ? null : path);
     }
 
     @Encrypted
     @PostMapping("/blob")
-    public HttpStatus uploadBlob(MultipartFile blob, String mid) throws IOException {
-        uploadService.upload(blob, FilePath.BLOB, mid);
+    public HttpStatus uploadBlob(FileCondition condition) throws IOException {
+        uploadService.upload(condition, FilePath.BLOB);
         return HttpStatus.SUCCESS.body();
     }
 

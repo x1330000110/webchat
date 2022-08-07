@@ -14,6 +14,7 @@ import com.socket.webchat.mapper.ChatRecordMapper;
 import com.socket.webchat.model.BaseModel;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.ChatRecordFile;
+import com.socket.webchat.model.condition.FileCondition;
 import com.socket.webchat.model.enums.FilePath;
 import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.request.BaiduSpeechRequest;
@@ -49,15 +50,21 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
     private final FTPClient client;
 
     @Override
-    public String upload(MultipartFile file, FilePath path, String mid) throws IOException {
-        long size = file.getSize();
+    public String upload(FileCondition condition, FilePath path) throws IOException {
+        // 检查散列
+        String digest = condition.getDigest();
+        if (StrUtil.isNotEmpty(digest) && client.existFile(path, digest)) {
+            return new FTPFile(path, digest).getMapping();
+        }
+        MultipartFile blob = condition.getBlob();
+        long size = blob.getSize();
         Assert.isTrue(size != 0, "无效的文件", UploadException::new);
         Assert.isTrue(size < path.getSize(), "文件大小超过限制", UploadException::new);
         // 上传文件获取路径
-        FTPFile save = client.upload(path, file.getBytes());
+        FTPFile file = client.upload(path, blob.getBytes());
         // 记录文件
-        super.save(new ChatRecordFile(mid, save, size));
-        return save.getMapping();
+        super.save(new ChatRecordFile(condition.getMid(), file, size));
+        return file.getMapping();
     }
 
     @Override
