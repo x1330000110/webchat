@@ -918,6 +918,7 @@ const app = Vue.createApp({
 
         // 退出登录
         logout(reason) {
+            this.stopAudio()
             axios.post('/user/logout').then(async response => {
                 if (response.data.success) {
                     this.showTips('您已成功退出')
@@ -1035,7 +1036,7 @@ const app = Vue.createApp({
                             })
                         }
                         this.showTips(data.message, data.success)
-                    }).catch((e) => {
+                    }).catch(() => {
                         this.showTips('服务器繁忙，请稍后再试', Ws.error)
                     }).finally(() => {
                         this.loads.optional = false
@@ -1093,7 +1094,7 @@ const app = Vue.createApp({
                 if (valid) {
                     this.loads.optional = true
                     axios.post('/user/email', CryptoJS.encrypt({
-                        email: this.formData.email,
+                        user: this.formData.email,
                         selfcode: this.formData.code,
                         newcode: this.formData.newcode
                     })).then(response => {
