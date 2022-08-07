@@ -8,7 +8,7 @@ body {
     background-size: cover;
     background-position: center;
     overflow: hidden;
-    font-family: 'Inter', Sans-Serif;
+    font-family: 'Inter', sans-serif;
     transition: background .3s linear;
 }
 
@@ -1568,11 +1568,19 @@ img {
     border: 1px solid var(--theme-boder-color);
     backdrop-filter: blur(var(--global-filter));
     box-shadow: var(--el-box-shadow-lighter);
+    width: 40%;
+    max-width: 320px;
     z-index: 9999 !important;
 }
 
 .el-message--info {
     --el-message-text-color: var(--theme-color);
+}
+
+.el-message__content {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* el-message-box */
@@ -1718,6 +1726,10 @@ img {
 
     .el-header {
         grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .el-message {
+        width: 90%;
     }
 
     .el-message-box {
