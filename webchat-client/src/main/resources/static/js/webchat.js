@@ -1322,6 +1322,8 @@ const app = Vue.createApp({
                     this.room.online--
                     this.setting.exit && this.showTips(content, Ws.warning)
                     this.sortList()
+                    this.parsemsg({uid: uid, type: Ws.leave, data: data})
+                    break
                 // 通话关闭
                 case Ws.leave:
                     // 对比通话用户与退出用户
