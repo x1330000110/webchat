@@ -15,17 +15,17 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.secure.event.entity.InitiatorEvent;
 import com.socket.webchat.constant.Constants;
-import com.socket.webchat.model.enums.FilePath;
-import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.custom.ftp.FTPClient;
-import com.socket.webchat.runtime.AccountException;
-import com.socket.webchat.runtime.UploadException;
 import com.socket.webchat.mapper.SysUserMapper;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.condition.EmailCondition;
 import com.socket.webchat.model.condition.LoginCondition;
 import com.socket.webchat.model.condition.PasswordCondition;
 import com.socket.webchat.model.condition.RegisterCondition;
+import com.socket.webchat.model.enums.FilePath;
+import com.socket.webchat.model.enums.RedisTree;
+import com.socket.webchat.runtime.AccountException;
+import com.socket.webchat.runtime.UploadException;
 import com.socket.webchat.service.SysUserService;
 import com.socket.webchat.util.*;
 import lombok.RequiredArgsConstructor;
@@ -202,7 +202,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     public boolean updateEmail(EmailCondition condition) {
         // 验证原邮箱
-        String selfemail = Wss.getUser().getEmail();
+        SysUser user = Wss.getUser();
+        String selfemail = user.getEmail();
         if (StrUtil.isNotEmpty(selfemail)) {
             RedisValue<Object> selfValue = RedisValue.of(template, RedisTree.EMAIL.getPath(selfemail));
             String selfcode = (String) selfValue.get();
@@ -218,6 +219,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         String newcode = (String) newValue.get();
         Assert.isTrue(Objects.equals(newcode, condition.getNewcode()), "新邮箱验证码不正确", IllegalStateException::new);
         // 更新邮箱
+        wrapper.clear();
+        wrapper.eq(SysUser::getUid, user.getUid());
         wrapper.set(SysUser::getEmail, newemail);
         this.updatePrincipal(Wss.getUser()::setEmail, newemail);
         return super.update(wrapper);
