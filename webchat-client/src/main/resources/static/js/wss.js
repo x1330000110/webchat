@@ -535,6 +535,20 @@ const Wss = {
     },
 
     /**
+     * 生成文件签名
+     */
+    digestBlob(blob) {
+        return new Promise((resolve => {
+            const reader = new FileReader();
+            reader.readAsArrayBuffer(blob);
+            reader.onloadend = function () {
+                const wordArray = CryptoJS.lib.WordArray.create(reader.result);
+                resolve(CryptoJS.HmacMD5(wordArray, String(blob.size << blob.size / 2)).toString())
+            }
+        }))
+    },
+
+    /**
      * 格式化秒
      */
     formatSeconds(value) {

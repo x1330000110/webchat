@@ -6,6 +6,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Data
 public class FileCondition {
     private MultipartFile blob;
-    private  String mid;
+    private String mid;
     private String digest;
 }

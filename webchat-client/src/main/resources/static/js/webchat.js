@@ -597,7 +597,7 @@ const app = Vue.createApp({
                 return
             }
             // 文件保存
-            download(wsmsg.blobURL || '/resource/' + wsmsg.mid, wsmsg.content)
+            download('/resource/' + wsmsg.mid, wsmsg.content)
         },
 
         // 通过uid获取用户信息
@@ -1507,9 +1507,7 @@ const app = Vue.createApp({
             await Wss.sleep(200)
             let dp = this.media.DPlayer
             if (dp) {
-                dp.switchVideo({
-                    url: '/resource/' + wsmsg.mid
-                })
+                dp.switchVideo({url: '/resource/' + wsmsg.mid})
             } else {
                 dp = this.media.DPlayer = new DPlayer({
                     element: $('#dplayer'),
@@ -1773,8 +1771,7 @@ const app = Vue.createApp({
             const wsmsg = this.pushmsg(this.buildmsg(null, Ws.audio, {time: record.time}))
             axios.post('/resource/audio', JSON.toForm({
                 blob: record.blob,
-                mid: wsmsg.mid.encrypt(),
-                sign: await CryptoJS.signBlob(record.blob, wsmsg.mid)
+                mid: wsmsg.mid,
             })).then(response => {
                 const data = response.data
                 if (data.success) {
@@ -1810,8 +1807,7 @@ const app = Vue.createApp({
                 // 上传图片
                 axios.post('/resource/image', JSON.toForm({
                     blob: blob,
-                    mid: wsmsg.mid.encrypt(),
-                    sign: await CryptoJS.signBlob(blob, wsmsg.mid)
+                    mid: wsmsg.mid,
                 }), {
                     onUploadProgress: event => {
                         wsmsg.progress_number = event.loaded / event.total * 100 | 0
@@ -1853,7 +1849,6 @@ const app = Vue.createApp({
                 wsmsg.progress = '100%'
                 axios.post('/resource/image', JSON.toForm({
                     blob: video.frame,
-                    sign: await CryptoJS.signBlob(video.frame)
                 })).then(async response => {
                     let idata = response.data
                     if (!idata.success) throw idata.message
@@ -1863,8 +1858,7 @@ const app = Vue.createApp({
                     try {
                         response = await axios.post('/resource/blob', JSON.toForm({
                             blob: blob,
-                            mid: wsmsg.mid.encrypt(),
-                            sign: await CryptoJS.signBlob(blob, wsmsg.mid)
+                            mid: wsmsg.mid,
                         }), {
                             onUploadProgress: event => {
                                 wsmsg.progress_number = event.loaded / event.total * 100 | 0
@@ -1892,10 +1886,16 @@ const app = Vue.createApp({
             // 上传文件
             const size = {size: (Math.round(blob.size / 1024 / 1024 * 100) / 100 || 0.01) + 'MB'}
             const wsmsg = this.pushmsg(this.buildmsg(blob.name, Ws.blob, size))
+            // 检查服务器文件是否存在
+            const digest = JSON.toForm({digest: await Wss.digestBlob(blob), mid: wsmsg.mid})
+            if ((await axios.post('/resource/blob', digest)).data.success) {
+                this.sendmsg(blob.name, Ws.blob, size, wsmsg.mid)
+                return
+            }
+            // 上传开始
             axios.post('/resource/blob', JSON.toForm({
                 blob: blob,
-                mid: wsmsg.mid.encrypt(),
-                sign: await CryptoJS.signBlob(blob, wsmsg.mid)
+                mid: wsmsg.mid,
             }), {
                 onUploadProgress: event => {
                     wsmsg.progress_number = event.loaded / event.total * 100 | 0
@@ -1904,7 +1904,6 @@ const app = Vue.createApp({
             }).then(response => {
                 const data = response.data
                 if (data.success) {
-                    wsmsg.blobURL = URL.createObjectURL(blob)
                     this.sendmsg(blob.name, Ws.blob, size, wsmsg.mid)
                     return
                 }
@@ -1971,8 +1970,7 @@ const app = Vue.createApp({
             this.loads.upload = true
             image = await Wss.zipImage(image, 3 * 1024 * 1024)
             axios.post('/resource/image', JSON.toForm({
-                blob: image,
-                sign: await CryptoJS.signBlob(image)
+                blob: image
             })).then(response => {
                 const data = response.data
                 data.success && apply(data.data)

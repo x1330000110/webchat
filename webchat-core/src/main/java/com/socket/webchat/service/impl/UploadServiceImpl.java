@@ -53,9 +53,19 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
     public String upload(FileCondition condition, FilePath path) throws IOException {
         // 检查散列
         String digest = condition.getDigest();
-        if (StrUtil.isNotEmpty(digest) && client.existFile(path, digest)) {
-            return new FTPFile(path, digest).getMapping();
+        if (StrUtil.isNotEmpty(digest)) {
+            Assert.isTrue(client.existFile(path, digest), "NOT FOUND", UploadException::new);
+            // 查找文件
+            FTPFile cache = new FTPFile(path, digest);
+            LambdaQueryWrapper<ChatRecordFile> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(ChatRecordFile::getHash, digest);
+            wrapper.last("LIMIT 1");
+            // 转存文件
+            ChatRecordFile file = getOne(wrapper);
+            super.save(new ChatRecordFile(condition.getMid(), cache, file.getSize()));
+            return cache.getMapping();
         }
+        // 上传文件
         MultipartFile blob = condition.getBlob();
         long size = blob.getSize();
         Assert.isTrue(size != 0, "无效的文件", UploadException::new);

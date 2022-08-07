@@ -25,21 +25,18 @@ import java.io.OutputStream;
 public class UploadController {
     private final UploadService uploadService;
 
-    @Encrypted
     @PostMapping("/audio")
     public HttpStatus uploadAudio(FileCondition condition) throws IOException {
         uploadService.upload(condition, FilePath.AUDIO);
         return HttpStatus.SUCCESS.body();
     }
 
-    @Encrypted
     @PostMapping("/image")
     public HttpStatus uploadImage(FileCondition condition) throws IOException {
         String path = uploadService.upload(condition, FilePath.IMAGE);
         return HttpStatus.SUCCESS.body(StrUtil.isEmpty(path) ? null : path);
     }
 
-    @Encrypted
     @PostMapping("/blob")
     public HttpStatus uploadBlob(FileCondition condition) throws IOException {
         uploadService.upload(condition, FilePath.BLOB);
