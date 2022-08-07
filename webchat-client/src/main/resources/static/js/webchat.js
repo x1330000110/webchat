@@ -1100,8 +1100,8 @@ const app = Vue.createApp({
                     })).then(response => {
                         const data = response.data
                         if (data.success) {
-                            this.dialog.password = false
-                            this.myself.email && this.logout()
+                            this.dialog.email = false
+                            this.myself.email = this.formData.email
                         }
                         this.showTips(data.message, data.success)
                     }).catch(() => {
