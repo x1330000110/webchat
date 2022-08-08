@@ -42,17 +42,17 @@ public interface SecureConstant {
     /**
      * HMAC salt
      */
-    String HMAC_SALT = "\u206a\u206e\u206b\u206d\u202a";
+    byte[] HMAC_SALT = {-30, -127, -86, -30, -127, -82, -30, -127, -85, -30, -127, -83, -30, -128, -86};
     /**
      * signature separator salt
      */
-    String SIGN_SPLIT_SALT = "\u206a\u206e\u206b\u206d\u202a";
+    char[] SIGN_SPLIT_SALT = {8298, 8302, 8299, 8301, 8234};
     /**
      * join salt
      */
-    String JOIN_SALT = "\u206d\u202a\u206b\u206a\u206e";
+    char[] JOIN_SALT = {8301, 8234, 8299, 8298, 8302};
     /**
      * public key sign salt
      */
-    String PUBKEY_SIGN_SALT = "\u202a\u206d\u206b\u206a\u206e";
+    byte[] PUBKEY_SIGN_SALT = {-30, -128, -86, -30, -127, -83, -30, -127, -85, -30, -127, -86, -30, -127, -82};
 }

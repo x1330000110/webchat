@@ -149,7 +149,7 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
         // Decryption request body
         body.forEach(this::decrypt);
         // Find signature
-        this.signData = findSignature(signName).split(SecureConstant.SIGN_SPLIT_SALT);
+        this.signData = findSignature(signName).split(String.valueOf(SecureConstant.SIGN_SPLIT_SALT));
     }
 
     /**
@@ -208,7 +208,7 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
      */
     protected boolean matchSignature(boolean vaildPart) throws IOException {
         // Generate signature
-        StringJoiner joiner = new StringJoiner(SecureConstant.JOIN_SALT);
+        StringJoiner joiner = new StringJoiner(String.valueOf(SecureConstant.JOIN_SALT));
         // join form data
         for (String[] value : params.values()) {
             if (value.length == 0) {

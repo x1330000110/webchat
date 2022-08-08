@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.Deflater;
@@ -132,7 +133,7 @@ public class SecureCore {
         String stringtime = String.valueOf(timestamp / 1000);
         String hmacsha224 = new HMac("HmacSHA224", stringtime.getBytes()).digestHex(Base64.encode(bytes));
         String base64time = Base64.encode(stringtime);
-        String hmacsha384 = new HMac("HmacSHA384", SecureConstant.PUBKEY_SIGN_SALT.getBytes()).digestHex(base64time);
+        String hmacsha384 = new HMac("HmacSHA384", SecureConstant.PUBKEY_SIGN_SALT).digestHex(base64time);
         return hmacsha224.concat(hmacsha384);
     }
 
