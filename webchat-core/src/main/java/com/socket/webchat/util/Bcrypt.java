@@ -4,8 +4,6 @@ import cn.hutool.crypto.digest.BCrypt;
 
 /**
  * Bcrypt散列库
- *
- * @date 2021/8/20
  */
 public class Bcrypt {
     private static final String DEFAULT_BCRYPT_PREFIX = "$2a$10$";

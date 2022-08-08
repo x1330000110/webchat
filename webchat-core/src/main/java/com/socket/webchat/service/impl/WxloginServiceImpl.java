@@ -31,8 +31,6 @@ import java.io.IOException;
 
 /**
  * 微信登录服务
- *
- * @date 2021/7/9
  */
 @Slf4j
 @Service

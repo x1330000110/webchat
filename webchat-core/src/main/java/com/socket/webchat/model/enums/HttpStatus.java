@@ -9,8 +9,6 @@ import lombok.Getter;
  * 注：{@link #message(String, Object...)}和{@link #body(Object...)}方法不能一起使用，
  * 请使用提供的{@link #body(String, Object) }方法。<br>
  * 当使用{@link #SUCCESS}枚举时返回{@link #success}参数为true，其他枚举{@link #success}参数为false<br>
- *
- * @date 2021/7/16
  */
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 @Getter

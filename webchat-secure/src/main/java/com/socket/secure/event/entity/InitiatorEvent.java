@@ -5,8 +5,6 @@ import org.springframework.context.ApplicationEvent;
 
 /**
  * Record request originator information
- *
- * @date 2021/11/4
  */
 public class InitiatorEvent extends ApplicationEvent {
     /**

@@ -2,9 +2,6 @@ package com.socket.webchat.model.condition;
 
 import lombok.Data;
 
-/**
- * @date 2021/11/3
- */
 @Data
 public class RegisterCondition {
     /**

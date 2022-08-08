@@ -4,9 +4,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.socket.webchat.model.SysUser;
 import org.springframework.stereotype.Repository;
 
-/**
- * @date 2021/7/13
- */
 @Repository
 public interface SysUserMapper extends BaseMapper<SysUser> {
 }

@@ -8,8 +8,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * 百度语音识别相关功能
- *
- * @date 2022/5/20
  */
 @Component
 public class BaiduSpeechRequest {

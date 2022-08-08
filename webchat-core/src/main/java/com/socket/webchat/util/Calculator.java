@@ -6,8 +6,6 @@ import java.util.Arrays;
 
 /**
  * 计算器基本实用程序
- *
- * @date 2021/11/11
  */
 public class Calculator {
     /**

@@ -23,9 +23,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Map;
 
-/**
- * @date 2021/7/8
- */
 @RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor

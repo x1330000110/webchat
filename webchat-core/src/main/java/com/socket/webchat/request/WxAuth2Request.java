@@ -11,8 +11,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * 微信授权登录管理器
- *
- * @date 2021/7/9
  */
 @Component
 @RequiredArgsConstructor

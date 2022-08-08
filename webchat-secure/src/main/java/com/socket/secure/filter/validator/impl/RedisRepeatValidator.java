@@ -12,7 +12,6 @@ import java.util.concurrent.TimeUnit;
  * Repeated request validation based on {@linkplain RedisTemplate}
  *
  * @see RedisTemplate
- * @date 2021.8.2
  */
 public class RedisRepeatValidator implements RepeatValidator {
     private final ValueOperations<String, String> operations;

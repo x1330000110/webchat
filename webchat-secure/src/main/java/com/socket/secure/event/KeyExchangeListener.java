@@ -17,7 +17,6 @@ import javax.servlet.http.HttpSessionListener;
  * and perform corresponding cleanup operations when the session is invalid
  *
  * @see ApplicationListener
- * @date 2021/10/8
  */
 public interface KeyExchangeListener extends ApplicationListener<KeyEvent>, HttpSessionListener {
     @Override

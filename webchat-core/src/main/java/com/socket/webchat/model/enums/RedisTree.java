@@ -2,8 +2,6 @@ package com.socket.webchat.model.enums;
 
 /**
  * Redis目录树
- *
- * @date 2021/10/27
  */
 public enum RedisTree {
     /**
