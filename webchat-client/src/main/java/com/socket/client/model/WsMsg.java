@@ -7,8 +7,8 @@ import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.enums.MessageType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.util.concurrent.ListenableFuture;
 
+import javax.websocket.Session;
 import java.util.Objects;
 
 /**
@@ -118,7 +118,10 @@ public class WsMsg {
      */
     public void sendTo(WsUser target) {
         if (target.isOnline()) {
-            target.getSocketSession().getAsyncRemote().sendText(target.encrypt(this));
+            Session session = target.getSession();
+            if (session.isOpen()) {
+                session.getAsyncRemote().sendText(target.encrypt(this));
+            }
         }
     }
 }

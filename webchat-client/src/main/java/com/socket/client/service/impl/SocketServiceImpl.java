@@ -12,11 +12,11 @@ import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.request.XiaoBingAPIRequest;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.concurrent.ListenableFuture;
 
 import javax.servlet.http.HttpSession;
 import javax.websocket.*;
@@ -151,7 +151,7 @@ public class SocketServiceImpl implements SocketService {
             case LEAVE:
             case VIDEO:
             case AUDIO:
-                return this.forwardRtc(target, wsmsg);
+                return this.forwardWebRTC(target, wsmsg);
             default:
                 return this.parseAdminSysMsg(wsmsg, target);
         }
@@ -234,7 +234,8 @@ public class SocketServiceImpl implements SocketService {
     /**
      * WebRTC消息处理
      */
-    private WsMsg forwardRtc(WsUser target, WsMsg wsmsg) {
+    @SneakyThrows
+    private WsMsg forwardWebRTC(WsUser target, WsMsg wsmsg) {
         // 你是否屏蔽了目标
         if (socketManager.shield(self, target)) {
             return WsMsg.buildsys(CallbackTips.TARGET_SHIELD.of(), MessageType.INFO);
@@ -243,7 +244,7 @@ public class SocketServiceImpl implements SocketService {
         if (socketManager.shield(target, self)) {
             return WsMsg.buildsys(CallbackTips.SELF_SHIELD.of(), MessageType.VIDEO);
         }
-        wsmsg.sendTo(target);
+        target.getSession().getBasicRemote().sendText(target.encrypt(wsmsg));
         return null;
     }
 

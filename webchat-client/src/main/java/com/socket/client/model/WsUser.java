@@ -7,7 +7,6 @@ import com.socket.client.model.enums.CallbackTips;
 import com.socket.secure.util.AES;
 import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.model.SysUser;
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -37,8 +36,8 @@ public class WsUser extends SysUser {
     /**
      * WebSocket Session
      */
-    @Getter(value = AccessLevel.PACKAGE)
-    private Session socketSession;
+    @Getter
+    private Session session;
     /**
      * Http Session
      */
@@ -71,13 +70,13 @@ public class WsUser extends SysUser {
      * 构建ws用户信息
      *
      * @param subject       shiro subject
-     * @param socketSession Websocket session
+     * @param session Websocket session
      * @param httpSession   Http Session
      */
-    public WsUser(Subject subject, Session socketSession, HttpSession httpSession) {
+    public WsUser(Subject subject, Session session, HttpSession httpSession) {
         this((SysUser) subject.getPrincipal());
         this.subject = subject;
-        this.socketSession = socketSession;
+        this.session = session;
         this.httpSession = httpSession;
         this.online = true;
     }
@@ -89,14 +88,14 @@ public class WsUser extends SysUser {
      */
     public void logout(CallbackTips reason) {
         // 始终清除ws会话
-        if (socketSession != null) {
+        if (session != null) {
             try {
                 String str = Opt.ofNullable(reason).map(CallbackTips::getReason).get();
-                socketSession.close(new CloseReason(CloseCodes.NORMAL_CLOSURE, str));
+                session.close(new CloseReason(CloseCodes.NORMAL_CLOSURE, str));
             } catch (IOException e) {
                 log.warn(e.getMessage());
             }
-            this.socketSession = null;
+            this.session = null;
         }
         // 原因为null为自主退出 无需立即终止session
         if (reason != null && subject != null) {
