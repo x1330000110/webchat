@@ -7,19 +7,19 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.socket.client.model.enums.CallbackTips;
 import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
-import com.socket.webchat.service.RecordService;
+import com.socket.client.model.enums.CallbackTips;
 import com.socket.webchat.constant.Constants;
-import com.socket.webchat.model.enums.MessageType;
-import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.mapper.ShieldUserMapper;
 import com.socket.webchat.mapper.SysUserMapper;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.ShieldUser;
 import com.socket.webchat.model.SysUser;
+import com.socket.webchat.model.enums.MessageType;
+import com.socket.webchat.model.enums.UserRole;
+import com.socket.webchat.service.RecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.subject.Subject;
@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SocketManager {
     private final ConcurrentHashMap<String, WsUser> onlineUsers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, List<String>> shields = new ConcurrentHashMap<>();
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ShieldUserMapper shieldUserMapper;
     private final RecordService recordService;
@@ -266,16 +267,19 @@ public class SocketManager {
      * @param user 用户信息
      */
     private List<String> getShield(WsUser user) {
-        // 初始化屏蔽列表
-        if (user.getShields() == null) {
-            LambdaQueryWrapper<ShieldUser> wrapper = Wrappers.lambdaQuery();
-            wrapper.eq(ShieldUser::getUid, user.getUid());
-            wrapper.eq(ShieldUser::isDeleted, 0);
-            List<ShieldUser> users = shieldUserMapper.selectList(wrapper);
-            List<String> collect = users.stream().map(ShieldUser::getTarget).collect(Collectors.toList());
-            user.setShields(collect);
+        List<String> list = shields.get(user.getUid());
+        // 检查缓存
+        if (list != null) {
+            return list;
         }
-        return user.getShields();
+        // 查询数据库
+        LambdaQueryWrapper<ShieldUser> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(ShieldUser::getUid, user.getUid());
+        wrapper.eq(ShieldUser::isDeleted, 0);
+        List<ShieldUser> users = shieldUserMapper.selectList(wrapper);
+        List<String> collect = users.stream().map(ShieldUser::getTarget).collect(Collectors.toList());
+        shields.put(user.getUid(), collect);
+        return collect;
     }
 
     /**
