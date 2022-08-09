@@ -41,7 +41,7 @@ public class WsUser extends SysUser {
     /**
      * Http Session
      */
-    private HttpSession httpSession;
+    private HttpSession http_session;
     /**
      * Shiro Subject
      */
@@ -71,13 +71,13 @@ public class WsUser extends SysUser {
      *
      * @param subject       shiro subject
      * @param session Websocket session
-     * @param httpSession   Http Session
+     * @param http_session   Http Session
      */
-    public WsUser(Subject subject, Session session, HttpSession httpSession) {
+    public WsUser(Subject subject, Session session, HttpSession http_session) {
         this((SysUser) subject.getPrincipal());
         this.subject = subject;
         this.session = session;
-        this.httpSession = httpSession;
+        this.http_session = http_session;
         this.online = true;
     }
 
@@ -133,7 +133,7 @@ public class WsUser extends SysUser {
      */
     public String encrypt(WsMsg wsmsg) {
         if (wsmsg != null) {
-            return AES.encrypt(JSONUtil.toJsonStr(wsmsg), httpSession);
+            return AES.encrypt(JSONUtil.toJsonStr(wsmsg), http_session);
         }
         return null;
     }
@@ -142,6 +142,6 @@ public class WsUser extends SysUser {
      * 解密消息
      */
     public WsMsg decrypt(String json) {
-        return JSONUtil.toBean(AES.decrypt(json, httpSession), WsMsg.class);
+        return JSONUtil.toBean(AES.decrypt(json, http_session), WsMsg.class);
     }
 }
