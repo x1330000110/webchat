@@ -28,12 +28,6 @@ import static javax.websocket.CloseReason.CloseCodes;
 @Slf4j
 public class WsUser extends SysUser {
     /**
-     * 屏蔽的用户列表
-     */
-    @Getter
-    @Setter
-    private List<String> shields;
-    /**
      * WebSocket Session
      */
     @Getter
