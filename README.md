@@ -8,9 +8,28 @@
 
 内部包含数据安全传输框架，基于SHA，AES，RSA加密交换数据
 
-#### 软件架构
+#### 系统架构
 
-基于JDK11的聊天室系统
+```
+---------------
+webchat-client ------------> SocketManager -----------> RedisManager
+---------------
+
+                       |---> message
+                       |                      | ------> BaiduSpeech
+------------           |---> resource --------| 
+webchat-core ----------|                      | ------> FTP
+------------           |---> user
+                       |
+                       |---> login -----------> wxlogin
+
+
+--------------         | ---> core
+webchat-secure --------|                               | ----> MapRepeatValidator
+--------------         | ---> filter ---> validator ---|
+                                                       | ----> RedisRepeatValidator
+```
+基于JDK11
 * 后端：Spring Boot、Mybatis Plus、Shiro、Mysql、Redis、Kafka、Socket、FTP
 * 前端：HTML5、css3、JavaScript(ES6+)、Vue3(原生)、Element Plus(原生)、WebSocket、WebRTC
 
@@ -49,7 +68,7 @@
 
 #### 消息
 
-* 支持文字，emoji，图片，语音，视频[<=30M]，文件[<=30M]消息
+* 支持文字，emoji，图片，语音，视频(<=30M)，文件(<=30M)消息
 * 聊天记录离线保存
 * 未读消息显示数量（最大99）
 * 已读指定用户的所有消息（包括语音消息）
@@ -76,9 +95,10 @@
 * 修改气泡颜色（本地）
 * 切换主题
 * 桌面消息通知（需要浏览器支持）
+* 消息声音
+* 消息震动（仅手机）
+* 来电铃声
 * 全屏
 * 读取粘贴板图片（复制图片后，在消息输入框粘贴，需要粘贴板权限）
 * 文件拖拽支持（可将文件直接拖拽到消息列表发送，通过扩展名识别文件类型）
 * 所有者接入小冰机器人（仅在所有者离线时，发送文字消息将由小冰接管）
-
-
