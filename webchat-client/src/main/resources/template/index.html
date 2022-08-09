@@ -75,9 +75,10 @@
                             <!-- 用户信息 -->
                             <div class="flex-center">
                                 <div class="relative">
-                                    <el-avatar :class="{gray: !data.online, group: data.isgroup}"
+                                    <el-avatar :class="{group: data.isgroup}"
                                                :size="35" fit="cover"
                                                :src="data.headimgurl">
+                                        {{data.name[0]}}
                                     </el-avatar>
                                     <div :class="{online: data.online}"></div>
                                 </div>
@@ -109,6 +110,7 @@
                     </div>
                     <div class="room-info">
                         <el-avatar :class="{gray: !room.user.online}" :size="30" :src="room.user.headimgurl" fit="cover">
+                            {{room.user.name?.substr(0, 1)}}
                         </el-avatar>
                         <div class="room-name">{{room.user.name}}
                             <div v-if="loads.page">
@@ -181,6 +183,7 @@
         								<el-avatar :size="38" :src="wsmsg.user.headimgurl"
                                                    @click="switchSession(finduser(wsmsg.uid))"
                                                    @contextmenu="e => openUserMenu(wsmsg.uid, e)" fit="cover">
+        								    {{wsmsg.user.name[0]}}
         								</el-avatar>
         							</span>
                                 <div class="max-width">
@@ -204,7 +207,6 @@
                                              class="relative" v-if="wsmsg.isimage || wsmsg.isvideo">
                                             <el-image :src="wsmsg.content" @load="imageLoaded"
                                                       :type="wsmsg.isimage ? 'image' : 'video'"
-                                                      scroll-container='.el-scrollbar__wrap'
                                                       :style="{height: getScaleHeight(wsmsg.data), '--upload-progress': wsmsg.progress}"
                                                       fit="cover" loading="lazy" :key="wsmsg.mid">
                                                 <template #placeholder>
@@ -301,6 +303,7 @@
                                             <el-avatar :class="{gray: !data.online, group: data.isgroup}"
                                                        :size="30" fit="cover"
                                                        :src="data.headimgurl">
+                                                {{data.name[0]}}
                                             </el-avatar>
                                             <div class="data-name">{{data.name}}</div>
                                         </div>
@@ -467,6 +470,7 @@
         <el-drawer title="用户资料" v-model="dialog.material" size="400px" custom-class="material">
             <el-avatar :size="70" :src="cache.user.headimgurl"
                        @click="updateAvatar()" class="pointer" fit="cover">
+                {{cache.user.name[0]}}
             </el-avatar>
             <div class="uid" @click="copyText(cache.user.uid)">{{cache.user.name}} [{{cache.user.uid}}]</div>
             <div class="tips">当前权限：{{parseRole(cache.user)}}</div>
@@ -618,7 +622,7 @@
                    title="语音通话" width="300px"
                    :close-on-press-escape="!1"
                    :show-close="!1" center>
-            <el-avatar :size="120" :src="webrtc.user.headimgurl" fit="cover"></el-avatar>
+            <el-avatar :size="120" :src="webrtc.user.headimgurl" fit="cover">{{webrtc.user.name[0]}}</el-avatar>
             <div class="bold" style="margin: 1rem 0;">{{webrtc.user.name}} [{{webrtc.user.uid}}]</div>
             <div class="connect-time">连接时长：{{webrtc.connectionTime}}</div>
             <div style="margin: 2rem 0;">
@@ -678,7 +682,7 @@
                    @close="media.phone.stop()"
                    v-model="webrtc.dialog.phone" width="550px">
             <div class="center">
-                <el-avatar :size="120" :src="webrtc.user.headimgurl" fit="cover"></el-avatar>
+                <el-avatar :size="120" :src="webrtc.user.headimgurl" fit="cover">{{webrtc.user.name[0]}}</el-avatar>
                 <div class="bold" style="margin: 1rem 0;">来自 {{webrtc.user.name}} [{{webrtc.user.uid}}]</div>
                 <div style="margin: 1rem 0;">
                     <el-icon class="phone-icon" v-show="webrtc.type === Ws.audio"><phone/></el-icon>
@@ -759,8 +763,8 @@
                 <el-descriptions-item label="消息来自:">
                     {{cache.message.user.name}}
                     <span class="pointer" @click="copyText(cache.message.uid)">
-                        [{{cache.message.uid}}]
-                    </span>
+                            [{{cache.message.uid}}]
+                        </span>
                 </el-descriptions-item>
                 <el-descriptions-item label="发送时间:">
                     {{parseTime(cache.message.createTime)}}

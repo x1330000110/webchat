@@ -8,7 +8,7 @@ body {
     background-size: cover;
     background-position: center;
     overflow: hidden;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', Sans-Serif;
     transition: background .3s linear;
 }
 
@@ -1058,9 +1058,9 @@ img {
 /* el-avatar */
 .el-avatar {
     vertical-align: top;
-    background-image: url(../image/default.png);
     background-size: cover;
     position: relative;
+    background: #9fa9bd;
 }
 
 .el-avatar::before {
@@ -1579,7 +1579,7 @@ img {
 
 .el-message__content {
     overflow: hidden;
-    text-overflow: ellipsis;
+    text-overflow:ellipsis;
     white-space: nowrap;
 }
 
