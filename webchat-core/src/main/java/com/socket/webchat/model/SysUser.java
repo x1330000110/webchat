@@ -74,6 +74,7 @@ public class SysUser extends BaseModel implements Serializable {
     /**
      * 登录时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+8")
     private Date loginTime;
     /**
      * 头衔
