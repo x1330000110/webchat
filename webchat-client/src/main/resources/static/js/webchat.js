@@ -925,11 +925,11 @@ const app = Vue.createApp({
                     await Wss.sleep(500)
                 }
             }).then(() => {
+                this.room.client?.close()
+                CryptoJS.exchange({always: true})
+            }).catch(() => null).finally(() => {
                 this.input.placeholder = reason
                 this.input.disabled = this.dialog.login = true
-                this.room.client?.close()
-                CryptoJS.exchange({always:true})
-                // 清除页面数据
                 this.room.user = this.myself = {}
                 this.userList = []
                 this.room.online = 0
