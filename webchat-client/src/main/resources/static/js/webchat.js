@@ -924,11 +924,11 @@ const app = Vue.createApp({
                     this.showTips('您已成功退出')
                     await Wss.sleep(500)
                 }
-            }).catch(_ => null).finally(() => {
+            }).then(() => {
                 this.input.placeholder = reason
                 this.input.disabled = this.dialog.login = true
                 this.room.client?.close()
-                CryptoJS.exchange()
+                CryptoJS.exchange({always:true})
                 // 清除页面数据
                 this.room.user = this.myself = {}
                 this.userList = []
@@ -1262,9 +1262,9 @@ const app = Vue.createApp({
         parsemsg({uid, data, content, type, target}) {
             // 角色判定快接入口
             const initRole = user => {
-                user.isowner = () => user.role === Ws.owner
-                user.isadmin = () => user.role === Ws.admin || user.isowner()
-                user.isuser = () => user.role === Ws.user
+                user.isowner = () => user?.role === Ws.owner
+                user.isadmin = () => user?.role === Ws.admin || user.isowner()
+                user.isuser = () => user?.role === Ws.user
             }
             // 命令类型
             switch (type) {
