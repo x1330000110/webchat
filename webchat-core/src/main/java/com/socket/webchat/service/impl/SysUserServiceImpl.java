@@ -15,7 +15,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.secure.event.entity.InitiatorEvent;
 import com.socket.webchat.constant.Constants;
-import com.socket.webchat.custom.ftp.FTPClient;
+import com.socket.webchat.custom.FTPClient;
 import com.socket.webchat.mapper.SysUserMapper;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.condition.EmailCondition;

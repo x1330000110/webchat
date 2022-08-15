@@ -1,6 +1,5 @@
 package com.socket.webchat.model;
 
-import com.socket.webchat.custom.ftp.FTPFile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;

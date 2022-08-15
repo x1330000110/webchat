@@ -1,4 +1,4 @@
-package com.socket.webchat.custom.ftp;
+package com.socket.webchat.model;
 
 import com.socket.webchat.model.enums.FilePath;
 import com.socket.webchat.service.UploadService;
