@@ -60,7 +60,7 @@ public class FTPClient {
      */
     public FTPFile upload(FilePath path, String name, InputStream stream) {
         FTPFile file = new FTPFile(path, name);
-        try (stream; Ftp ftp = getClient()) {
+        try (Ftp ftp = getClient()) {
             if (ftp.existFile(file.getPath()) || ftp.upload(path.getName(), name, stream)) {
                 return file;
             }
@@ -107,7 +107,7 @@ public class FTPClient {
      * @param stream 输出流
      */
     public <T extends OutputStream> T download(String path, String name, T stream) {
-        try (stream; Ftp ftp = getClient()) {
+        try (Ftp ftp = getClient()) {
             if (!ftp.existFile(path + FTPFile.separator + name)) {
                 return null;
             }
