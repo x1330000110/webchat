@@ -96,6 +96,6 @@ public class WxloginServiceImpl implements WxloginService {
     public String getWxFastUrl(String uuid) {
         RedisValue<String> redisUuid = RedisValue.of(redisTemplate, RedisTree.WX_UUID.getPath(uuid));
         redisUuid.set(StrUtil.EMPTY, Constants.QR_CODE_EXPIRATION_TIME);
-        return wxAuth2Request.getAuthorize(uuid);
+        return wxAuth2Request.getWxLoginURL(uuid);
     }
 }

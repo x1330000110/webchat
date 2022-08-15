@@ -21,7 +21,7 @@ public class WxAuth2Request {
     private static final String USER_INFO_URL = "https://api.weixin.qq.com/cgi-bin/user/info?access_token={}&openid={}";
     private final WxProperties properties;
 
-    public String getAuthorize(String uuid) {
+    public String getWxLoginURL(String uuid) {
         return StrUtil.format(AUTHORIZE, properties.getAppid(), properties.getRedirect(), uuid);
     }
 
