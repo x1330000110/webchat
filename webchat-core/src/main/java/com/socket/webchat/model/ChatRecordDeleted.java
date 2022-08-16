@@ -22,6 +22,10 @@ public class ChatRecordDeleted extends BaseModel {
      */
     private String mid;
     /**
+     * 目标uid
+     */
+    private String target;
+    /**
      * 消息创建时间
      */
     private Date recordTime;

@@ -86,6 +86,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         // 排除已删除的消息id
         LambdaQueryWrapper<ChatRecordDeleted> w2 = Wrappers.lambdaQuery();
         w2.eq(ChatRecordDeleted::getUid, userId);
+        w2.eq(BaseModel::isDeleted, 0);
         Optional.ofNullable(offset).ifPresent(m -> w2.lt(ChatRecordDeleted::getRecordTime, m.getCreateTime()));
         List<String> deleted = chatRecordDeletedMapper.selectList(w2)
                 .stream()
@@ -134,13 +135,13 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
             lambda.eq(ChatRecord::getUid, target);
             lambda.eq(ChatRecord::getTarget, uid);
         }
-        ChatRecord last = getOne(lambda);
+        ChatRecord last = super.getOne(lambda);
         if (last != null) {
-            LambdaUpdateWrapper<ChatRecordOffset> offsetWrapper = Wrappers.lambdaUpdate();
-            offsetWrapper.eq(ChatRecordOffset::getUid, uid);
-            offsetWrapper.eq(ChatRecordOffset::getTarget, target);
-            offsetWrapper.set(ChatRecordOffset::getOffset, last.getId());
-            int update = chatRecordOffsetMapper.update(null, offsetWrapper);
+            LambdaUpdateWrapper<ChatRecordOffset> w1 = Wrappers.lambdaUpdate();
+            w1.eq(ChatRecordOffset::getUid, uid);
+            w1.eq(ChatRecordOffset::getTarget, target);
+            w1.set(ChatRecordOffset::getOffset, last.getId());
+            int update = chatRecordOffsetMapper.update(null, w1);
             if (update == 0) {
                 ChatRecordOffset offset = new ChatRecordOffset();
                 offset.setUid(uid);
@@ -148,6 +149,12 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
                 offset.setOffset(last.getId());
                 chatRecordOffsetMapper.insert(offset);
             }
+            // 单条消息设置失效
+            LambdaUpdateWrapper<ChatRecordDeleted> w2 = Wrappers.lambdaUpdate();
+            w2.eq(ChatRecordDeleted::getTarget, target);
+            w2.eq(BaseModel::isDeleted, 0);
+            w2.set(BaseModel::isDeleted, 1);
+            chatRecordDeletedMapper.update(null, w2);
         }
     }
 
@@ -213,7 +220,11 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         }
         // 添加删除标记
         ChatRecordDeleted deleted = new ChatRecordDeleted();
-        deleted.setUid(Wss.getUserId());
+        String userId = Wss.getUserId();
+        deleted.setUid(userId);
+        // 确保移除的目标不是自己（自己可能是发起者或目标）
+        String uid = record.getUid(), target = record.getTarget();
+        deleted.setTarget(Constants.GROUP.equals(target) ? Constants.GROUP : uid.equals(userId) ? target : uid);
         deleted.setMid(record.getMid());
         deleted.setRecordTime(record.getCreateTime());
         return chatRecordDeletedMapper.insert(deleted) == 1;
