@@ -9,15 +9,18 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.enums.SqlKeyword;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.socket.webchat.service.RecordService;
 import com.socket.webchat.constant.Constants;
-import com.socket.webchat.model.enums.RedisTree;
-import com.socket.webchat.model.enums.MessageType;
+import com.socket.webchat.mapper.ChatRecordDeletedMapper;
 import com.socket.webchat.mapper.ChatRecordMapper;
 import com.socket.webchat.mapper.ChatRecordOffsetMapper;
 import com.socket.webchat.model.BaseModel;
 import com.socket.webchat.model.ChatRecord;
+import com.socket.webchat.model.ChatRecordDeleted;
 import com.socket.webchat.model.ChatRecordOffset;
+import com.socket.webchat.model.enums.MessageType;
+import com.socket.webchat.model.enums.RedisTree;
+import com.socket.webchat.service.RecordService;
+import com.socket.webchat.util.Assert;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,11 +30,13 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord> implements RecordService {
+    private final ChatRecordDeletedMapper chatRecordDeletedMapper;
     private final ChatRecordOffsetMapper chatRecordOffsetMapper;
     private final RedisTemplate<String, Object> template;
 
@@ -69,14 +74,26 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         ChatRecordOffset limit = chatRecordOffsetMapper.selectOne(wrapper1);
         Opt.ofNullable(limit).ifPresent(e -> wrapper.gt(BaseModel::getId, e.getOffset()));
         // 限制结束边界id
+        ChatRecord offset = null;
         if (mid != null) {
             // 通过mid查询id
-            LambdaQueryWrapper<ChatRecord> eq = Wrappers.lambdaQuery(ChatRecord.class).eq(ChatRecord::getMid, mid);
-            ChatRecord offset = Opt.ofNullable(getOne(eq)).orElseThrow(() -> new IllegalStateException("无效的mid"));
+            LambdaQueryWrapper<ChatRecord> w1 = Wrappers.lambdaQuery();
+            w1.eq(ChatRecord::getMid, mid);
+            offset = getOne(w1);
+            Assert.notNull(offset, "无效的MID", IllegalStateException::new);
             wrapper.lt(BaseModel::getId, offset.getId());
         }
-        wrapper.orderByDesc(ChatRecord::getCreateTime);
+        // 排除已删除的消息id
+        LambdaQueryWrapper<ChatRecordDeleted> w2 = Wrappers.lambdaQuery();
+        w2.eq(ChatRecordDeleted::getUid, userId);
+        Optional.ofNullable(offset).ifPresent(m -> w2.lt(ChatRecordDeleted::getRecordTime, m.getCreateTime()));
+        List<String> deleted = chatRecordDeletedMapper.selectList(w2)
+                .stream()
+                .map(ChatRecordDeleted::getMid)
+                .collect(Collectors.toList());
+        wrapper.notIn(!deleted.isEmpty(), ChatRecord::getMid, deleted);
         // 限制结果
+        wrapper.orderByDesc(ChatRecord::getCreateTime);
         wrapper.last(StrUtil.format("LIMIT {}", Constants.SYNC_RECORDS_NUMS));
         return list(wrapper);
     }
@@ -183,5 +200,22 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
             }
         }
         return mss;
+    }
+
+    @Override
+    public boolean removeMessageWithSelf(String mid) {
+        LambdaUpdateWrapper<ChatRecord> wrapper = Wrappers.lambdaUpdate();
+        wrapper.eq(ChatRecord::getMid, mid);
+        ChatRecord record = getOne(wrapper);
+        // 检查消息权限
+        if (!Wss.checkMessagePermissions(record)) {
+            return false;
+        }
+        // 添加删除标记
+        ChatRecordDeleted deleted = new ChatRecordDeleted();
+        deleted.setUid(Wss.getUserId());
+        deleted.setMid(record.getMid());
+        deleted.setRecordTime(record.getCreateTime());
+        return chatRecordDeletedMapper.insert(deleted) == 1;
     }
 }

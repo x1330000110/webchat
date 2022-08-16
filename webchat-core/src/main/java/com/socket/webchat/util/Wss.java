@@ -12,6 +12,8 @@ import cn.hutool.http.useragent.UserAgentParser;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.LambdaUtils;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
+import com.socket.webchat.constant.Constants;
+import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
 import org.apache.ibatis.reflection.property.PropertyNamer;
 import org.apache.shiro.SecurityUtils;
@@ -130,5 +132,16 @@ public class Wss {
     public static String getPlatform(String userAgent) {
         Platform platform = UserAgentParser.parse(userAgent).getPlatform();
         return platform.isAndroid() ? "手机在线" : platform.isIos() ? "iPhone在线" : "PC在线";
+    }
+
+    /**
+     * 检查消息是否有操作权限（目标是群组，发起者是自己或目标是自己）
+     */
+    public static boolean checkMessagePermissions(ChatRecord record) {
+        String userId = getUserId();
+        if (userId == null) {
+            return false;
+        }
+        return Constants.GROUP.equals(record.getTarget()) || userId.equals(record.getUid()) || userId.equals(record.getTarget());
     }
 }

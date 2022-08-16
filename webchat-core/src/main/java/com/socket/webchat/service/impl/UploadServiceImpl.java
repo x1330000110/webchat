@@ -1,5 +1,6 @@
 package com.socket.webchat.service.impl;
 
+import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -8,12 +9,12 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.FTPClient;
-import com.socket.webchat.model.FTPFile;
 import com.socket.webchat.mapper.ChatRecordFileMapper;
 import com.socket.webchat.mapper.ChatRecordMapper;
 import com.socket.webchat.model.BaseModel;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.ChatRecordFile;
+import com.socket.webchat.model.FTPFile;
 import com.socket.webchat.model.condition.FileCondition;
 import com.socket.webchat.model.enums.FilePath;
 import com.socket.webchat.model.enums.MessageType;
@@ -32,7 +33,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -91,12 +91,10 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         w2.eq(ChatRecord::getMid, mid);
         w2.eq(BaseModel::isDeleted, 0);
         ChatRecord record = chatRecordMapper.selectOne(w2);
-        // 当前用户UID
-        String userId = Wss.getUserId();
         // 检查来源
-        if (Constants.GROUP.equals(record.getTarget()) || userId.equals(record.getUid()) || userId.equals(record.getTarget())) {
+        if (Wss.checkMessagePermissions(record)) {
             // 检查文件类型过期时间
-            LocalDateTime create = LocalDateTime.ofInstant(file.getCreateTime().toInstant(), ZoneId.systemDefault());
+            LocalDateTime create = LocalDateTimeUtil.of(file.getCreateTime());
             MessageType type = record.getType();
             if (type != MessageType.BLOB || create.plusDays(Constants.FILE_EXPIRED_DAYS).isAfter(LocalDateTime.now())) {
                 return writeStream(FilePath.of(type), file.getHash(), stream);

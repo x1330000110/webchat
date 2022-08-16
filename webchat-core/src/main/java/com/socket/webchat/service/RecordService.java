@@ -58,4 +58,11 @@ public interface RecordService extends IService<ChatRecord> {
      * @return 关联未读消息表
      */
     Map<String, SortedSet<ChatRecord>> getUnreadMessages(String uid);
+
+    /**
+     * 移除消息（只能移除消息目标是自己或自己发送的消息）
+     * @param mid 消息id
+     * @return 是否成功
+     */
+    boolean removeMessageWithSelf(String mid);
 }
