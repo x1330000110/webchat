@@ -63,7 +63,7 @@ public final class SecureRequestFilter implements Filter {
             try {
                 SecureRequestWrapper wrapper = new SecureRequestWrapper(_request);
                 // Decryption request
-                wrapper.decryptData(anno.sign());
+                wrapper.decryptRequset(anno.sign());
                 // Expired request validation
                 long time = wrapper.getTimestamp();
                 if (validator.isExpired(time, properties.getLinkValidTime())) {

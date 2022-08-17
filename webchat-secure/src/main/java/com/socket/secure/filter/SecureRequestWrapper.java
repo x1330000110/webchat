@@ -143,7 +143,7 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
      * @param signName request signature name
      * @throws InvalidRequestException decryption error
      */
-    protected void decryptData(String signName) {
+    protected void decryptRequset(String signName) {
         // Decrypt FormData
         params.forEach(this::decrypt);
         // Decryption request body
