@@ -25,12 +25,12 @@ public class AnnotationSyntaxValidator implements BeanPostProcessor {
             if (isSupportClass(clazz)) {
                 return bean;
             }
-            throw new BeanCreationException(beanName, "You can only mark @Encrypted on @Controller or @RestController");
+            throw new BeanCreationException(beanName, "You should be mark @Encrypted on @Controller or @RestController");
         }
         // CHECK METHOD
         for (Method method : clazz.getDeclaredMethods()) {
             if (method.getAnnotation(Encrypted.class) != null && !isSupportMethod(method)) {
-                throw new BeanCreationException(beanName, "You can only mark @Encrypted on @RequestMapping or derived annotations [method: " + method.getName() + "()]");
+                throw new BeanCreationException(beanName, "You should be mark @Encrypted on @RequestMapping or derived annotations [method: " + method.getName() + "()]");
             }
         }
         return bean;
