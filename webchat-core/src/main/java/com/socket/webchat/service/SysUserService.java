@@ -9,7 +9,7 @@ import com.socket.webchat.model.condition.LoginCondition;
 import com.socket.webchat.model.condition.PasswordCondition;
 import com.socket.webchat.model.condition.RegisterCondition;
 
-public interface SysUserService extends IService<SysUser>, SecureRecordListener {
+public interface SysUserService extends IService<SysUser> {
     /**
      * 登录（如果没有抛出异常，则登录成功）
      *

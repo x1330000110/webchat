@@ -31,7 +31,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.Optional;
 
 /**
  * All requests used to decrypt and authenticate token {@link Encrypted} controller methods
@@ -48,16 +47,28 @@ public final class SecureRequestFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest _request = (HttpServletRequest) request;
-        // Get the execution method of the corresponding URI mapping
-        Method method = this.getRequestMethod(_request);
-        Encrypted anno = Optional.ofNullable(method).map(e -> e.getAnnotation(Encrypted.class)).orElse(null);
-        if (anno != null && isSupport(method)) {
-            // Parse request
+        // Get the handler that executes this URI
+        HandlerMethod handler = this.getHandlerMethod(_request);
+        if (handler == null) {
+            chain.doFilter(request, response);
+            return;
+        }
+        // Check the class tag first
+        Encrypted anno = null;
+        if (isSupportClass(handler.getBeanType())) {
+            anno = handler.getBeanType().getAnnotation(Encrypted.class);
+        }
+        // check method tag if null
+        if (anno == null && isSupportMethod(handler.getMethod())) {
+            anno = handler.getMethod().getAnnotation(Encrypted.class);
+        }
+        // Decrypt request
+        if (anno != null) {
             try {
                 request = this.decrypt(_request, anno.sign());
             } catch (InvalidRequestException | CryptoException | IllegalArgumentException e) {
-                this.setForbidden(response);
-                this.pushEvent(_request, method, e.getMessage());
+                ((HttpServletResponse) response).setStatus(HttpStatus.BAD_REQUEST.value());
+                this.pushEvent(_request, handler, e.getMessage());
                 log.warn(e.getMessage());
                 return;
             }
@@ -71,16 +82,15 @@ public final class SecureRequestFilter implements Filter {
      * @param request {@link ServletRequest}
      * @return If no matching controller is found or no annotation is specified, null is returned
      */
-    private Method getRequestMethod(HttpServletRequest request) {
+    private HandlerMethod getHandlerMethod(HttpServletRequest request) {
         try {
             ServletRequestPathUtils.parseAndCache(request);
             HandlerExecutionChain chain = mapping.getHandler(request);
             if (chain != null) {
-                HandlerMethod handler = (HandlerMethod) chain.getHandler();
-                return handler.getMethod();
+                return (HandlerMethod) chain.getHandler();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            // ignore
         } finally {
             ServletRequestPathUtils.clearParsedRequestPath(request);
         }
@@ -118,17 +128,15 @@ public final class SecureRequestFilter implements Filter {
     /**
      * Check if this method is protected by encryption
      */
-    private boolean isSupport(Method method) {
-        return SecureConstant.SUPPORT_REQUEST_ANNOS.stream().anyMatch(e -> method.getAnnotation(e) != null);
+    private boolean isSupportMethod(Method method) {
+        return SecureConstant.SUPPORT_METHOD_ANNOS.stream().anyMatch(e -> method.getAnnotation(e) != null);
     }
 
     /**
-     * Set 403 status code
-     *
-     * @param response {@link HttpServletResponse}
+     * Check if this controller is protected by encryption
      */
-    private void setForbidden(ServletResponse response) {
-        ((HttpServletResponse) response).setStatus(HttpStatus.BAD_REQUEST.value());
+    private boolean isSupportClass(Class<?> clazz) {
+        return SecureConstant.SUPPORT_METHOD_ANNOS.stream().anyMatch(e -> clazz.getAnnotation(e) != null);
     }
 
     /**
@@ -137,13 +145,14 @@ public final class SecureRequestFilter implements Filter {
      * @param request {@link HttpServletRequest}
      * @param reason  Authentication failure reason
      */
-    private void pushEvent(HttpServletRequest request, Method method, String reason) {
+    private void pushEvent(HttpServletRequest request, HandlerMethod hander, String reason) {
         InitiatorEvent event = new InitiatorEvent(publisher);
         UserAgent userAgent = UserAgentParser.parse(request.getHeader(Header.USER_AGENT.getValue()));
         event.setUserAgent(userAgent);
         event.setRemote(ServletUtil.getClientIP(request));
         event.setSession(request.getSession());
-        event.setMethod(method);
+        event.setMethod(hander.getMethod());
+        event.setController(hander.getBeanType());
         event.setReason(reason);
         publisher.publishEvent(event);
     }

@@ -266,9 +266,4 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         String realm = principals.getRealmNames().iterator().next();
         subject.runAs(new SimplePrincipalCollection(user, realm));
     }
-
-    @Override
-    public void onInterceptEvent(InitiatorEvent event) {
-        log.warn(event.getDescription());
-    }
 }

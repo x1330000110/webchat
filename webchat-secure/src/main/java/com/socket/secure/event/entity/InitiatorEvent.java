@@ -11,7 +11,11 @@ import java.lang.reflect.Method;
  */
 public class InitiatorEvent extends ApplicationEvent {
     /**
-     * method
+     * target controller
+     */
+    private Class<?> controller;
+    /**
+     * method for handling URI
      */
     private Method method;
     /**
@@ -73,5 +77,13 @@ public class InitiatorEvent extends ApplicationEvent {
 
     public void setReason(String reason) {
         this.reason = reason;
+    }
+
+    public Class<?> getController() {
+        return controller;
+    }
+
+    public void setController(Class<?> type) {
+        this.controller = type;
     }
 }

@@ -9,7 +9,7 @@ import java.lang.annotation.*;
  * Dynamic interface decryption operations are not supported. <br>
  * Note: this annotation is not valid on non mapping methods.
  */
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Encrypted {

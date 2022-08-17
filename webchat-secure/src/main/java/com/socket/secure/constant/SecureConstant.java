@@ -1,6 +1,7 @@
 package com.socket.secure.constant;
 
 import cn.hutool.core.codec.Base64;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.lang.annotation.Annotation;
@@ -12,9 +13,13 @@ import java.util.List;
  */
 public interface SecureConstant {
     /**
-     * Supported Controller Flags
+     * Supported mathod flags
      */
-    List<Class<? extends Annotation>> SUPPORT_REQUEST_ANNOS = Arrays.asList(RequestMapping.class, GetMapping.class, PostMapping.class, PutMapping.class, DeleteMapping.class);
+    List<Class<? extends Annotation>> SUPPORT_METHOD_ANNOS = Arrays.asList(RequestMapping.class, GetMapping.class, PostMapping.class, PutMapping.class, DeleteMapping.class);
+    /**
+     * Supported controller flags
+     */
+    List<Class<? extends Annotation>> SUPPORT_CONTROLLER_ANNOS = Arrays.asList(Controller.class, RestController.class);
     /**
      * Camouflage picture Base64 format
      */
