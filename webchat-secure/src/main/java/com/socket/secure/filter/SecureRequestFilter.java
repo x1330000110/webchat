@@ -5,7 +5,6 @@ import cn.hutool.extra.servlet.ServletUtil;
 import cn.hutool.http.Header;
 import cn.hutool.http.useragent.UserAgent;
 import cn.hutool.http.useragent.UserAgentParser;
-import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.constant.SecureProperties;
 import com.socket.secure.event.entity.InitiatorEvent;
 import com.socket.secure.filter.anno.Encrypted;
@@ -54,12 +53,9 @@ public final class SecureRequestFilter implements Filter {
             return;
         }
         // Check the class tag first
-        Encrypted anno = null;
-        if (isSupportClass(handler.getBeanType())) {
-            anno = handler.getBeanType().getAnnotation(Encrypted.class);
-        }
+        Encrypted anno = handler.getBeanType().getAnnotation(Encrypted.class);
         // check method tag if null
-        if (anno == null && isSupportMethod(handler.getMethod())) {
+        if (anno == null) {
             anno = handler.getMethod().getAnnotation(Encrypted.class);
         }
         // Decrypt request
@@ -125,19 +121,6 @@ public final class SecureRequestFilter implements Filter {
         return wrapper;
     }
 
-    /**
-     * Check if this method is protected by encryption
-     */
-    private boolean isSupportMethod(Method method) {
-        return SecureConstant.SUPPORT_METHOD_ANNOS.stream().anyMatch(e -> method.getAnnotation(e) != null);
-    }
-
-    /**
-     * Check if this controller is protected by encryption
-     */
-    private boolean isSupportClass(Class<?> clazz) {
-        return SecureConstant.SUPPORT_METHOD_ANNOS.stream().anyMatch(e -> clazz.getAnnotation(e) != null);
-    }
 
     /**
      * Spring event push

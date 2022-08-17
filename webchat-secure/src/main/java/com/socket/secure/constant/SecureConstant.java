@@ -13,13 +13,13 @@ import java.util.List;
  */
 public interface SecureConstant {
     /**
-     * Supported mathod flags
-     */
-    List<Class<? extends Annotation>> SUPPORT_METHOD_ANNOS = Arrays.asList(RequestMapping.class, GetMapping.class, PostMapping.class, PutMapping.class, DeleteMapping.class);
-    /**
      * Supported controller flags
      */
-    List<Class<? extends Annotation>> SUPPORT_CONTROLLER_ANNOS = Arrays.asList(Controller.class, RestController.class);
+    List<Class<? extends Annotation>> SUPPORT_CLASS_ANNOS = Arrays.asList(Controller.class, RestController.class);
+    /**
+     * Supported mathod flags
+     */
+    List<Class<? extends Annotation>> SUPPORT_METHOD_ANNOS = Arrays.asList(RequestMapping.class, GetMapping.class, PostMapping.class, PutMapping.class, DeleteMapping.class, PatchMapping.class);
     /**
      * Camouflage picture Base64 format
      */
