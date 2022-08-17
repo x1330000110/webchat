@@ -24,7 +24,7 @@ public class ValidatorAutoConfig {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnClass(RedisTemplate.class)
-    public RepeatValidator repeatValidator(StringRedisTemplate template) {
+    public RepeatValidator redisRepeatValidator(StringRedisTemplate template) {
         return new RedisRepeatValidator(template, properties);
     }
 

@@ -3,14 +3,17 @@ package com.socket.secure.event.entity;
 import cn.hutool.http.useragent.UserAgent;
 import org.springframework.context.ApplicationEvent;
 
+import javax.servlet.http.HttpSession;
+import java.lang.reflect.Method;
+
 /**
  * Record request originator information
  */
 public class InitiatorEvent extends ApplicationEvent {
     /**
-     * Browser information
+     * method
      */
-    private UserAgent userAgent;
+    private Method method;
     /**
      * IP address
      */
@@ -18,11 +21,15 @@ public class InitiatorEvent extends ApplicationEvent {
     /**
      * Session ID
      */
-    private String sessionId;
+    private HttpSession session;
     /**
      * Interception reason
      */
-    private String description;
+    private String reason;
+    /**
+     * Browser information
+     */
+    private UserAgent userAgent;
 
     public InitiatorEvent(Object source) {
         super(source);
@@ -40,23 +47,31 @@ public class InitiatorEvent extends ApplicationEvent {
         return remote;
     }
 
+    public Method getMethod() {
+        return method;
+    }
+
+    public void setMethod(Method method) {
+        this.method = method;
+    }
+
     public void setRemote(String remote) {
         this.remote = remote;
     }
 
-    public String getSessionId() {
-        return sessionId;
+    public HttpSession getSession() {
+        return session;
     }
 
-    public void setSessionId(String sessionId) {
-        this.sessionId = sessionId;
+    public void setSession(HttpSession session) {
+        this.session = session;
     }
 
-    public String getDescription() {
-        return description;
+    public String getReason() {
+        return reason;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 }

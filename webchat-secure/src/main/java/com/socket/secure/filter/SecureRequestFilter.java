@@ -30,8 +30,8 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Optional;
 
 /**
  * All requests used to decrypt and authenticate token {@link Encrypted} controller methods
@@ -49,14 +49,15 @@ public final class SecureRequestFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest _request = (HttpServletRequest) request;
         // Get the execution method of the corresponding URI mapping
-        Encrypted annotation = this.getMethodAnnotation(_request, Encrypted.class);
-        if (annotation != null) {
+        Method method = this.getRequestMethod(_request);
+        Encrypted anno = Optional.ofNullable(method).map(e -> e.getAnnotation(Encrypted.class)).orElse(null);
+        if (anno != null && isSupport(method)) {
             // Parse request
             try {
-                request = this.decrypt(_request, annotation.sign());
+                request = this.decrypt(_request, anno.sign());
             } catch (InvalidRequestException | CryptoException | IllegalArgumentException e) {
                 this.setForbidden(response);
-                this.pushEvent(_request, e.getMessage());
+                this.pushEvent(_request, method, e.getMessage());
                 log.warn(e.getMessage());
                 return;
             }
@@ -70,17 +71,13 @@ public final class SecureRequestFilter implements Filter {
      * @param request {@link ServletRequest}
      * @return If no matching controller is found or no annotation is specified, null is returned
      */
-    @SuppressWarnings("SameParameterValue")
-    private <A extends Annotation> A getMethodAnnotation(HttpServletRequest request, Class<A> clazz) {
+    private Method getRequestMethod(HttpServletRequest request) {
         try {
             ServletRequestPathUtils.parseAndCache(request);
             HandlerExecutionChain chain = mapping.getHandler(request);
             if (chain != null) {
                 HandlerMethod handler = (HandlerMethod) chain.getHandler();
-                A annotation = handler.getMethodAnnotation(clazz);
-                if (annotation != null && isSupport(handler)) {
-                    return annotation;
-                }
+                return handler.getMethod();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -121,8 +118,8 @@ public final class SecureRequestFilter implements Filter {
     /**
      * Check if this method is protected by encryption
      */
-    private boolean isSupport(HandlerMethod handler) {
-        return SecureConstant.SUPPORT_REQUEST_ANNOS.stream().anyMatch(e -> handler.getMethodAnnotation(e) != null);
+    private boolean isSupport(Method method) {
+        return SecureConstant.SUPPORT_REQUEST_ANNOS.stream().anyMatch(e -> method.getAnnotation(e) != null);
     }
 
     /**
@@ -140,13 +137,14 @@ public final class SecureRequestFilter implements Filter {
      * @param request {@link HttpServletRequest}
      * @param reason  Authentication failure reason
      */
-    private void pushEvent(HttpServletRequest request, String reason) {
+    private void pushEvent(HttpServletRequest request, Method method, String reason) {
         InitiatorEvent event = new InitiatorEvent(publisher);
         UserAgent userAgent = UserAgentParser.parse(request.getHeader(Header.USER_AGENT.getValue()));
         event.setUserAgent(userAgent);
         event.setRemote(ServletUtil.getClientIP(request));
-        event.setSessionId(request.getSession().getId());
-        event.setDescription(reason);
+        event.setSession(request.getSession());
+        event.setMethod(method);
+        event.setReason(reason);
         publisher.publishEvent(event);
     }
 
@@ -166,7 +164,7 @@ public final class SecureRequestFilter implements Filter {
     }
 
     @Autowired
-    public void setValidator(RepeatValidator validator) {
-        this.validator = validator;
+    public void setValidator(RepeatValidator repeatValidator) {
+        this.validator = repeatValidator;
     }
 }
