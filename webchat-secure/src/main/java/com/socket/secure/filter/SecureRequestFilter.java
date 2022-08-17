@@ -61,7 +61,24 @@ public final class SecureRequestFilter implements Filter {
         // Decrypt request
         if (anno != null) {
             try {
-                request = this.decrypt(_request, anno.sign());
+                SecureRequestWrapper wrapper = new SecureRequestWrapper(_request);
+                // Decryption request
+                wrapper.decryptData(anno.sign());
+                // Expired request validation
+                long time = wrapper.getTimestamp();
+                if (validator.isExpired(time, properties.getLinkValidTime())) {
+                    throw new ExpiredRequestException("URL expired request interception");
+                }
+                // Repeat request validation
+                time = properties.isExactRequestTime() ? time : time / 1000;
+                if (validator.isRepeated(time, wrapper.sign())) {
+                    throw new RepeatedRequestException("URL repeated request interception");
+                }
+                // Signature verification
+                if (!wrapper.matchSignature(properties.isVerifyFileSignature())) {
+                    throw new InvalidRequestException("Signature verification failed");
+                }
+                request = wrapper;
             } catch (InvalidRequestException | CryptoException | IllegalArgumentException e) {
                 ((HttpServletResponse) response).setStatus(HttpStatus.BAD_REQUEST.value());
                 this.pushEvent(_request, handler, e.getMessage());
@@ -92,35 +109,6 @@ public final class SecureRequestFilter implements Filter {
         }
         return null;
     }
-
-    /**
-     * Decrypt and verify the security of this request
-     *
-     * @param request  {@link HttpServletRequest}
-     * @param signName Request signature key name
-     * @return decrypted request
-     */
-    public HttpServletRequest decrypt(HttpServletRequest request, String signName) throws IOException, ServletException {
-        SecureRequestWrapper wrapper = new SecureRequestWrapper(request);
-        // Decryption request
-        wrapper.decryptData(signName);
-        // Expired request validation
-        long time = wrapper.getTimestamp();
-        if (validator.isExpired(time, properties.getLinkValidTime())) {
-            throw new ExpiredRequestException("URL expired request interception");
-        }
-        // Repeat request validation
-        time = properties.isExactRequestTime() ? time : time / 1000;
-        if (validator.isRepeated(time, wrapper.sign())) {
-            throw new RepeatedRequestException("URL repeated request interception");
-        }
-        // Signature verification
-        if (!wrapper.matchSignature(properties.isVerifyFileSignature())) {
-            throw new InvalidRequestException("Signature verification failed");
-        }
-        return wrapper;
-    }
-
 
     /**
      * Spring event push
