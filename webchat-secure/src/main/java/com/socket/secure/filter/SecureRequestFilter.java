@@ -13,6 +13,8 @@ import com.socket.secure.filter.validator.RepeatValidator;
 import com.socket.secure.runtime.ExpiredRequestException;
 import com.socket.secure.runtime.InvalidRequestException;
 import com.socket.secure.runtime.RepeatedRequestException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
@@ -37,6 +39,7 @@ import java.lang.reflect.Method;
 @WebFilter
 @Component
 public final class SecureRequestFilter implements Filter {
+    private static final Logger log = LoggerFactory.getLogger(SecureRequestFilter.class);
     private ApplicationEventPublisher publisher;
     private SecureProperties properties;
     private RepeatValidator validator;
@@ -51,9 +54,10 @@ public final class SecureRequestFilter implements Filter {
             // Parse request
             try {
                 request = this.decrypt(_request, annotation.sign());
-            } catch (InvalidRequestException | CryptoException | IllegalArgumentException exception) {
+            } catch (InvalidRequestException | CryptoException | IllegalArgumentException e) {
                 this.setForbidden(response);
-                this.pushEvent(_request, exception.getMessage());
+                this.pushEvent(_request, e.getMessage());
+                log.warn(e.getMessage());
                 return;
             }
         }

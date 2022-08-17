@@ -2,6 +2,8 @@ package com.socket.secure.core;
 
 import cn.hutool.crypto.CryptoException;
 import com.socket.secure.runtime.InvalidRequestException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,7 @@ import java.io.IOException;
 @RestController
 @RestControllerAdvice
 public class SecureHandler {
+    private static final Logger log = LoggerFactory.getLogger(SecureHandler.class);
     private final SecureCore core;
 
     SecureHandler(SecureCore core) {
@@ -32,7 +35,8 @@ public class SecureHandler {
     }
 
     @ExceptionHandler({InvalidRequestException.class, CryptoException.class})
-    private ResponseEntity<Object> isValidationFailedException() {
+    private ResponseEntity<Object> isValidationFailedException(Exception e) {
+        log.warn(e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
     }
 }

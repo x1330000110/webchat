@@ -2,22 +2,26 @@ package com.socket.secure.util;
 
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.util.HexUtil;
-import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.CryptoException;
-import cn.hutool.crypto.KeyUtil;
-import cn.hutool.crypto.Mode;
-import cn.hutool.crypto.Padding;
 import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.runtime.InvalidRequestException;
 
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpSession;
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
 import java.util.stream.IntStream;
 
 /**
  * AES decryption tool
  */
 public class AES {
+    private static final String ALGORITHM = "AES/CBC/PKCS5Padding";
     private static final int RANDOM_PREFIX_LENGTH = 10;
 
     /**
@@ -26,7 +30,14 @@ public class AES {
      * @return AES key
      */
     public static String generateAesKey() {
-        return HexUtil.encodeHexStr(KeyUtil.generateKey(AES.class.getSimpleName()).getEncoded());
+        KeyGenerator generator;
+        try {
+            generator = KeyGenerator.getInstance("AES");
+        } catch (NoSuchAlgorithmException e) {
+            throw new CryptoException(e.getMessage());
+        }
+        generator.init(128);
+        return HexUtil.encodeHexStr(generator.generateKey().getEncoded());
     }
 
     /**
@@ -68,11 +79,12 @@ public class AES {
         if (key == null) {
             throw new InvalidRequestException("AES key is invalid");
         }
-        byte[] _key = StrUtil.bytes(key);
-        cn.hutool.crypto.symmetric.AES aes = new cn.hutool.crypto.symmetric.AES(Mode.CBC, Padding.PKCS5Padding, _key, getIv(key));
-        // Insert random number encryption to prevent reverse push
-        byte[] ciphertext = aes.encrypt(RandomUtil.randomString(SecureConstant.BASE_HEX, RANDOM_PREFIX_LENGTH).concat(plaintext));
-        return Base64.encode(ciphertext);
+        try {
+            Cipher cipher = getCipher(Cipher.ENCRYPT_MODE, key);
+            return Base64.encode(cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8)));
+        } catch (GeneralSecurityException e) {
+            throw new CryptoException("AES encrypt failure: " + e.getMessage());
+        }
     }
 
     /**
@@ -85,26 +97,29 @@ public class AES {
         if (key == null) {
             throw new InvalidRequestException("AES key is invalid");
         }
-        if (StrUtil.isNotEmpty(ciphertext) && StrUtil.isWrap(ciphertext, '<', '>')) {
-            byte[] _key = StrUtil.bytes(key);
-            byte[] bytes = Base64.decode(StrUtil.unWrap(ciphertext, '<', '>'));
-            try {
-                byte[] decrypt = new cn.hutool.crypto.symmetric.AES(Mode.CBC, Padding.PKCS5Padding, _key, getIv(key)).decrypt(bytes);
-                // 截取字符串
-                return new String(decrypt).substring(RANDOM_PREFIX_LENGTH);
-            } catch (Exception e) {
-                throw new CryptoException("AES decrypt error");
-            }
+        if (StrUtil.isEmpty(ciphertext)) {
+            return "";
         }
-        return ciphertext;
+        // check mark
+        if (!(ciphertext.startsWith("<") && ciphertext.endsWith(">"))) {
+            return ciphertext;
+        }
+        byte[] bytes = Base64.decode(ciphertext.substring(1, ciphertext.length() - 1));
+        try {
+            Cipher cipher = getCipher(Cipher.DECRYPT_MODE, key);
+            return new String(cipher.doFinal(bytes)).substring(RANDOM_PREFIX_LENGTH);
+        } catch (GeneralSecurityException e) {
+            throw new CryptoException("AES decrypt failure: " + e.getMessage());
+        }
     }
 
-    /**
-     * Get AES offset
-     */
-    private static byte[] getIv(String key) {
+    private static Cipher getCipher(int mode, String key) throws GeneralSecurityException {
+        SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
         StringBuilder sb = new StringBuilder();
         IntStream.range(0, key.length() / 2).forEach(i -> sb.append(Integer.toString(key.charAt(i), 16)));
-        return HexUtil.decodeHex(sb.toString());
+        IvParameterSpec paramSpec = new IvParameterSpec(HexUtil.decodeHex(sb.toString()));
+        Cipher cipher = Cipher.getInstance(ALGORITHM);
+        cipher.init(mode, keySpec, paramSpec);
+        return cipher;
     }
 }

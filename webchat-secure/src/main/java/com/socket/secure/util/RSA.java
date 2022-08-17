@@ -1,52 +1,72 @@
 package com.socket.secure.util;
 
 import cn.hutool.core.codec.Base64;
+import cn.hutool.core.util.HexUtil;
 import cn.hutool.crypto.CryptoException;
-import cn.hutool.crypto.KeyUtil;
-import cn.hutool.crypto.asymmetric.KeyType;
 import com.socket.secure.constant.SecureConstant;
 
+import javax.crypto.Cipher;
 import javax.servlet.http.HttpSession;
-import java.security.KeyPair;
+import java.nio.charset.StandardCharsets;
+import java.security.*;
 
 /**
  * RSA encryption tool
  */
 public class RSA {
+    private static final String ALGORITHM = "RSA/ECB/PKCS1Padding";
+
     /**
-     * 生成RSA公钥，同时将私钥保存到会话中
+     * Generate RSA public key while saving private key to session
      *
-     * @return RSA公钥
+     * @return rsa Public Key
      */
     public static byte[] generateRsaPublicKey(HttpSession session) {
-        KeyPair keypair = KeyUtil.generateKeyPair(RSA.class.getSimpleName());
+        KeyPairGenerator generator;
+        try {
+            generator = KeyPairGenerator.getInstance("RSA");
+        } catch (NoSuchAlgorithmException e) {
+            throw new CryptoException(e.getMessage());
+        }
+        generator.initialize(1024);
+        KeyPair keypair = generator.generateKeyPair();
         session.setAttribute(SecureConstant.PRIVATE_KEY, Base64.encode(keypair.getPrivate().getEncoded()));
         return keypair.getPublic().getEncoded();
     }
 
     /**
-     * RSA加密
+     * RSA encrypt
      *
-     * @param plaintext 明文
-     * @param pubkey    公钥
-     * @return 密文
+     * @param plaintext plaintext
+     * @param pubkey    public key
+     * @return ciphertext
      */
     public static String encrypt(String plaintext, String pubkey) {
-        return new cn.hutool.crypto.asymmetric.RSA(null, pubkey).encryptHex(plaintext, KeyType.PublicKey);
+        try {
+            Cipher cipher = Cipher.getInstance(ALGORITHM);
+            PublicKey key = RsaKey.PUBLIC_KEY.generatePublic(Base64.decode(pubkey));
+            cipher.init(Cipher.ENCRYPT_MODE, key);
+            return HexUtil.encodeHexStr(cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8)));
+        } catch (GeneralSecurityException e) {
+            throw new CryptoException("RSA encrypt failure: " + e.getMessage());
+        }
     }
 
     /**
-     * RSA解密
+     * RSA decrypt
      *
-     * @param ciphertext 密文
-     * @param prikey     私钥
-     * @return 明文
+     * @param ciphertext ciphertext
+     * @param prikey     private key
+     * @return plaintext
      */
     public static String decrypt(String ciphertext, String prikey) {
         try {
-            return new cn.hutool.crypto.asymmetric.RSA(prikey, null).decryptStr(ciphertext, KeyType.PrivateKey);
-        } catch (Exception e) {
-            throw new CryptoException("RSA decrypt error");
+            Cipher cipher = Cipher.getInstance(ALGORITHM);
+            PrivateKey key = RsaKey.PRIVATE_KEY.generatePrivate(Base64.decode(prikey));
+            cipher.init(Cipher.DECRYPT_MODE, key);
+            return new String(cipher.doFinal(Base64.decode(ciphertext)));
+        } catch (GeneralSecurityException e) {
+            throw new CryptoException("RSA decrypt failure: " + e.getMessage());
         }
     }
 }
