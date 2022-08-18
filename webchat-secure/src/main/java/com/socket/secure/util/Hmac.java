@@ -69,7 +69,6 @@ public class Hmac {
     public String digestHex(InputStream stream) {
         final int size = DEFAULT_BUFFER_SIZE;
         final byte[] buffer = new byte[size];
-        byte[] result;
         try {
             int read = stream.read(buffer, 0, size);
             while (read > -1) {
