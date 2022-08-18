@@ -76,13 +76,12 @@ public class Hmac {
                 engine.update(buffer, 0, read);
                 read = stream.read(buffer, 0, size);
             }
-            result = engine.doFinal();
+            return HexUtils.toHexString(engine.doFinal());
         } catch (IOException e) {
             throw new InvalidRequestException(e.getMessage());
         } finally {
             engine.reset();
         }
-        return HexUtils.toHexString(result);
     }
 
     public enum Algorithm {
