@@ -33,7 +33,7 @@ public class RSA {
         }
         generator.initialize(1024);
         KeyPair keypair = generator.generateKeyPair();
-        session.setAttribute(SecureConstant.PRIVATE_KEY, Base64Utils.encode(keypair.getPrivate().getEncoded()));
+        session.setAttribute(SecureConstant.PRIVATE_KEY, Base64Utils.encodeToString(keypair.getPrivate().getEncoded()));
         return keypair.getPublic().getEncoded();
     }
 

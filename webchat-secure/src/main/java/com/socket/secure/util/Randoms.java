@@ -15,7 +15,10 @@ public class Randoms {
     public static String randomHex(int length) {
         ThreadLocalRandom current = ThreadLocalRandom.current();
         StringBuilder sb = new StringBuilder();
-        current.ints(length).forEach(i -> sb.append(BASE_HEX.charAt(i)));
+        int baselen = BASE_HEX.length();
+        for (int i = 0; i < length; i++) {
+            sb.append(BASE_HEX.charAt(current.nextInt(baselen)));
+        }
         return sb.toString();
     }
 }
