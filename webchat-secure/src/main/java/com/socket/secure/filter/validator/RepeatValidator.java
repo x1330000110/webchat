@@ -10,9 +10,9 @@ import org.slf4j.LoggerFactory;
 /**
  * Repeated request validator
  *
+ * @date 2021.8.2
  * @see MapRepeatValidator
  * @see RedisRepeatValidator
- * @date 2021.8.2
  */
 public interface RepeatValidator {
     Logger log = LoggerFactory.getLogger(RepeatValidator.class);

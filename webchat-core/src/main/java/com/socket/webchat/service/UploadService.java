@@ -1,10 +1,9 @@
 package com.socket.webchat.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.socket.webchat.model.ChatRecordFile;
 import com.socket.webchat.model.condition.FileCondition;
 import com.socket.webchat.model.enums.FilePath;
-import com.socket.webchat.model.ChatRecordFile;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -19,7 +18,7 @@ public interface UploadService extends IService<ChatRecordFile> {
      * 保存文件到FTP服务器
      *
      * @param condition 文件数据
-     * @param path 文件类型
+     * @param path      文件类型
      * @return 映射位置
      */
     String upload(FileCondition condition, FilePath path) throws IOException;

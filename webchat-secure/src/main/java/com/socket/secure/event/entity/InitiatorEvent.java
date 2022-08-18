@@ -51,16 +51,16 @@ public class InitiatorEvent extends ApplicationEvent {
         return remote;
     }
 
+    public void setRemote(String remote) {
+        this.remote = remote;
+    }
+
     public Method getMethod() {
         return method;
     }
 
     public void setMethod(Method method) {
         this.method = method;
-    }
-
-    public void setRemote(String remote) {
-        this.remote = remote;
     }
 
     public HttpSession getSession() {

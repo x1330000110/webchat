@@ -13,7 +13,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.socket.secure.event.entity.InitiatorEvent;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.FTPClient;
 import com.socket.webchat.mapper.SysUserMapper;

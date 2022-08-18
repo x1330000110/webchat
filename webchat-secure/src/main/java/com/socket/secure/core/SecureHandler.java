@@ -1,6 +1,5 @@
 package com.socket.secure.core;
 
-import cn.hutool.crypto.CryptoException;
 import com.socket.secure.runtime.InvalidRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +33,7 @@ public class SecureHandler {
         return core.syncAeskey(certificate, request.getHeader("SHA-512"));
     }
 
-    @ExceptionHandler({InvalidRequestException.class, CryptoException.class})
+    @ExceptionHandler(InvalidRequestException.class)
     private ResponseEntity<Object> isValidationFailedException(Exception e) {
         log.warn(e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);

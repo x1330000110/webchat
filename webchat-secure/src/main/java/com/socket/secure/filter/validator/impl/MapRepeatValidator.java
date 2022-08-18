@@ -1,9 +1,7 @@
 package com.socket.secure.filter.validator.impl;
 
-import cn.hutool.core.lang.Assert;
 import com.socket.secure.constant.SecureProperties;
 import com.socket.secure.filter.validator.RepeatValidator;
-import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 
@@ -89,7 +87,7 @@ public class MapRepeatValidator extends ConcurrentHashMap<String, Long> implemen
                 }
             }
             this.clearExpiredData();
-            Assert.isTrue(cacheFile.delete(), () -> new BeanInitializationException("Serialized file is occupied"));
+            cacheFile.delete();
         }
     }
 

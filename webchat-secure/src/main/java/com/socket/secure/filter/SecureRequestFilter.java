@@ -1,7 +1,5 @@
 package com.socket.secure.filter;
 
-import cn.hutool.crypto.CryptoException;
-import cn.hutool.extra.servlet.ServletUtil;
 import cn.hutool.http.Header;
 import cn.hutool.http.useragent.UserAgent;
 import cn.hutool.http.useragent.UserAgentParser;
@@ -18,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.HandlerMapping;
@@ -30,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 /**
  * All requests used to decrypt and authenticate token {@link Encrypted} controller methods
@@ -79,7 +79,7 @@ public final class SecureRequestFilter implements Filter {
                     throw new InvalidRequestException("Signature verification failed");
                 }
                 request = wrapper;
-            } catch (InvalidRequestException | CryptoException | IllegalArgumentException e) {
+            } catch (InvalidRequestException | IllegalArgumentException e) {
                 ((HttpServletResponse) response).setStatus(HttpStatus.BAD_REQUEST.value());
                 this.pushEvent(_request, handler, e.getMessage());
                 log.warn(e.getMessage());
@@ -120,12 +120,40 @@ public final class SecureRequestFilter implements Filter {
         InitiatorEvent event = new InitiatorEvent(publisher);
         UserAgent userAgent = UserAgentParser.parse(request.getHeader(Header.USER_AGENT.getValue()));
         event.setUserAgent(userAgent);
-        event.setRemote(ServletUtil.getClientIP(request));
+        event.setRemote(getClientIP(request));
         event.setSession(request.getSession());
         event.setMethod(hander.getMethod());
         event.setController(hander.getBeanType());
         event.setReason(reason);
         publisher.publishEvent(event);
+    }
+
+    private String getClientIP(HttpServletRequest request) {
+        String[] headers = {
+                "X-Forwarded-For",
+                "X-Real-IP",
+                "Proxy-Client-IP",
+                "WL-Proxy-Client-IP",
+                "HTTP_CLIENT_IP",
+                "HTTP_X_FORWARDED_FOR"
+        };
+        for (String header : headers) {
+            String ip = request.getHeader(header);
+            if (isEffectiveIP(ip)) {
+                String find = Arrays.stream(ip.trim().split(","))
+                        .filter(this::isEffectiveIP)
+                        .findFirst()
+                        .orElse(null);
+                if (find != null) {
+                    return find;
+                }
+            }
+        }
+        return request.getRemoteAddr();
+    }
+
+    private boolean isEffectiveIP(String ip) {
+        return StringUtils.hasText(ip) && !"unknown".equalsIgnoreCase(ip);
     }
 
     @Autowired

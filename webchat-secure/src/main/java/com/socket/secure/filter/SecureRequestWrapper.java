@@ -1,9 +1,5 @@
 package com.socket.secure.filter;
 
-import cn.hutool.core.io.IoUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.crypto.SecureUtil;
-import cn.hutool.crypto.digest.HMac;
 import cn.hutool.http.ContentType;
 import cn.hutool.json.JSONConfig;
 import cn.hutool.json.JSONObject;
@@ -11,6 +7,7 @@ import cn.hutool.json.JSONUtil;
 import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.runtime.InvalidRequestException;
 import com.socket.secure.util.AES;
+import com.socket.secure.util.Hmac;
 
 import javax.servlet.ReadListener;
 import javax.servlet.ServletException;
@@ -21,8 +18,8 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.Part;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -81,7 +78,7 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
      * Check if this request include file
      */
     private boolean isFileRequest() {
-        return StrUtil.startWith(super.getContentType(), ContentType.MULTIPART.getValue());
+        return getContentType().startsWith(ContentType.MULTIPART.getValue());
     }
 
     @Override
@@ -134,7 +131,9 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
 
     @Override
     public BufferedReader getReader() {
-        return IoUtil.getReader(getInputStream(), StandardCharsets.UTF_8);
+        ServletInputStream stream = getInputStream();
+        InputStreamReader isr = new InputStreamReader(stream);
+        return new BufferedReader(isr);
     }
 
     /**
@@ -235,15 +234,13 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
         if (vaildPart) {
             for (Part part : part) {
                 if (part.getSubmittedFileName() != null) {
-                    HMac hMac = SecureUtil.hmacMd5(SecureConstant.HMAC_SALT);
-                    String md5 = hMac.digestHex(part.getInputStream(), IoUtil.DEFAULT_BUFFER_SIZE);
-                    joiner.add(md5);
+                    joiner.add(Hmac.MD5(SecureConstant.HMAC_SALT).digestHex(part.getInputStream()));
                 }
             }
         }
         // check sign
-        String digest = SecureUtil.hmacMd5(signData[0]).digestHex(joiner.toString());
-        return StrUtil.equalsIgnoreCase(digest, signData[1]);
+        String digest = Hmac.MD5(signData[0]).digestHex(joiner.toString());
+        return digest.equalsIgnoreCase(signData[1]);
     }
 
     /**

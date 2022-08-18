@@ -1,21 +1,19 @@
 package com.socket.secure.core;
 
-import cn.hutool.core.codec.Base64;
-import cn.hutool.core.util.RandomUtil;
-import cn.hutool.crypto.SecureUtil;
-import cn.hutool.crypto.digest.HMac;
-import cn.hutool.crypto.digest.HmacAlgorithm;
 import cn.hutool.http.Header;
 import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.constant.SecureProperties;
 import com.socket.secure.event.entity.KeyEvent;
 import com.socket.secure.runtime.InvalidRequestException;
 import com.socket.secure.util.AES;
+import com.socket.secure.util.Hmac;
 import com.socket.secure.util.RSA;
+import com.socket.secure.util.Randoms;
 import org.apache.tomcat.util.http.FastHttpDateFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Base64Utils;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -69,8 +67,8 @@ public class SecureCore {
         data.put(signature, pubkey);
         // Write random data
         for (int i = 0; i < count; i++) {
-            String name = RandomUtil.randomString(SecureConstant.BASE_HEX, signature.length());
-            byte[] bytes = RandomUtil.randomBytes(pubkey.length);
+            String name = Randoms.randomHex(signature.length());
+            byte[] bytes = Randoms.randomBytes(pubkey.length);
             data.put(name, bytes);
         }
         // Write compressed file
@@ -108,7 +106,7 @@ public class SecureCore {
         }
         String pubkey = sb.toString();
         // Verify signature
-        HMac hmac = SecureUtil.hmac(HmacAlgorithm.HmacSHA512, SecureConstant.HMAC_SALT);
+        Hmac hmac = new Hmac(Hmac.Algorithm.SHA512, SecureConstant.HMAC_SALT);
         if (!hmac.digestHex(pubkey).toUpperCase().equals(digest)) {
             throw new InvalidRequestException("Incorrect public key signature");
         }
@@ -130,9 +128,9 @@ public class SecureCore {
      */
     private String generateSignature(byte[] bytes, long timestamp) {
         String stringtime = String.valueOf(timestamp / 1000);
-        String hmacsha224 = new HMac("HmacSHA224", stringtime.getBytes()).digestHex(Base64.encode(bytes));
-        String base64time = Base64.encode(stringtime);
-        String hmacsha384 = new HMac("HmacSHA384", SecureConstant.PUBKEY_SIGN_SALT).digestHex(base64time);
+        String hmacsha224 = new Hmac(Hmac.Algorithm.SHA224, stringtime.getBytes()).digestHex(Base64Utils.encode(bytes));
+        String base64time = Base64Utils.encodeToString(stringtime.getBytes());
+        String hmacsha384 = new Hmac(Hmac.Algorithm.SHA384, SecureConstant.PUBKEY_SIGN_SALT).digestHex(base64time);
         return hmacsha224.concat(hmacsha384);
     }
 

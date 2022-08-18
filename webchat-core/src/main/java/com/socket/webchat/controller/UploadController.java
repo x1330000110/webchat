@@ -1,7 +1,6 @@
 package com.socket.webchat.controller;
 
 import cn.hutool.core.util.StrUtil;
-import com.socket.secure.filter.anno.Encrypted;
 import com.socket.webchat.model.condition.FileCondition;
 import com.socket.webchat.model.enums.FilePath;
 import com.socket.webchat.model.enums.HttpStatus;
@@ -10,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;

@@ -1,11 +1,10 @@
 package com.socket.secure.util;
 
-import cn.hutool.core.codec.Base64;
-import cn.hutool.core.util.HexUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.crypto.CryptoException;
 import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.runtime.InvalidRequestException;
+import org.apache.tomcat.util.buf.HexUtils;
+import org.springframework.util.Base64Utils;
+import org.springframework.util.StringUtils;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -34,10 +33,10 @@ public class AES {
         try {
             generator = KeyGenerator.getInstance("AES");
         } catch (NoSuchAlgorithmException e) {
-            throw new CryptoException(e.getMessage());
+            throw new InvalidRequestException(e.getMessage());
         }
         generator.init(128);
-        return HexUtil.encodeHexStr(generator.generateKey().getEncoded());
+        return HexUtils.toHexString(generator.generateKey().getEncoded());
     }
 
     /**
@@ -81,9 +80,9 @@ public class AES {
         }
         try {
             Cipher cipher = getCipher(Cipher.ENCRYPT_MODE, key);
-            return Base64.encode(cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8)));
+            return Base64Utils.encodeToString(cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8)));
         } catch (GeneralSecurityException e) {
-            throw new CryptoException("AES encrypt failure: " + e.getMessage());
+            throw new InvalidRequestException("AES encrypt failure: " + e.getMessage());
         }
     }
 
@@ -97,19 +96,19 @@ public class AES {
         if (key == null) {
             throw new InvalidRequestException("AES key is invalid");
         }
-        if (StrUtil.isEmpty(ciphertext)) {
+        if (!StringUtils.hasLength(ciphertext)) {
             return "";
         }
         // check mark
         if (!(ciphertext.startsWith("<") && ciphertext.endsWith(">"))) {
             return ciphertext;
         }
-        byte[] bytes = Base64.decode(ciphertext.substring(1, ciphertext.length() - 1));
+        byte[] bytes = Base64Utils.decodeFromString(ciphertext.substring(1, ciphertext.length() - 1));
         try {
             Cipher cipher = getCipher(Cipher.DECRYPT_MODE, key);
             return new String(cipher.doFinal(bytes)).substring(RANDOM_PREFIX_LENGTH);
         } catch (GeneralSecurityException e) {
-            throw new CryptoException("AES decrypt failure: " + e.getMessage());
+            throw new InvalidRequestException("AES decrypt failure: " + e.getMessage());
         }
     }
 
@@ -117,7 +116,7 @@ public class AES {
         SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
         StringBuilder sb = new StringBuilder();
         IntStream.range(0, key.length() / 2).forEach(i -> sb.append(Integer.toString(key.charAt(i), 16)));
-        IvParameterSpec paramSpec = new IvParameterSpec(HexUtil.decodeHex(sb.toString()));
+        IvParameterSpec paramSpec = new IvParameterSpec(HexUtils.fromHexString(sb.toString()));
         Cipher cipher = Cipher.getInstance(ALGORITHM);
         cipher.init(mode, keySpec, paramSpec);
         return cipher;

@@ -1,7 +1,7 @@
 package com.socket.secure.constant;
 
-import cn.hutool.core.codec.Base64;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.*;
 
 import java.lang.annotation.Annotation;
@@ -23,7 +23,7 @@ public interface SecureConstant {
     /**
      * Camouflage picture Base64 format
      */
-    byte[] CAMOUFLAGE_PICTURE_BYTES = Base64.decode("R0lGODlhAQABAIAAAP///wAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQEAAAAACwAAAAAAQABAAACAkQBADs=");
+    byte[] CAMOUFLAGE_PICTURE_BYTES = Base64Utils.decodeFromString("R0lGODlhAQABAIAAAP///wAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQEAAAAACwAAAAAAQABAAACAkQBADs=");
     /**
      * Session private key ID
      */
@@ -37,15 +37,11 @@ public interface SecureConstant {
      */
     String ENCRYPT_PUBKEY_SPLIT = "Z";
     /**
-     * List of hexadecimal strings
-     */
-    String BASE_HEX = "0123456789abcdef";
-    /**
      * array identifier
      */
     String ARRAY_MARK = "\u1000";
     /**
-     * HMAC salt
+     * Hmac salt
      */
     byte[] HMAC_SALT = {-30, -127, -86, -30, -127, -82, -30, -127, -85, -30, -127, -83, -30, -128, -86};
     /**

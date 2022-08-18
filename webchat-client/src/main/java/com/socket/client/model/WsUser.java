@@ -5,8 +5,8 @@ import cn.hutool.core.lang.Opt;
 import cn.hutool.json.JSONUtil;
 import com.socket.client.model.enums.CallbackTips;
 import com.socket.secure.util.AES;
-import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.model.SysUser;
+import com.socket.webchat.model.enums.UserRole;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +16,6 @@ import javax.servlet.http.HttpSession;
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
 import java.io.IOException;
-import java.util.List;
 import java.util.Objects;
 
 import static javax.websocket.CloseReason.CloseCodes;
@@ -63,9 +62,9 @@ public class WsUser extends SysUser {
     /**
      * 构建ws用户信息
      *
-     * @param subject       shiro subject
-     * @param session Websocket session
-     * @param http_session   Http Session
+     * @param subject      shiro subject
+     * @param session      Websocket session
+     * @param http_session Http Session
      */
     public WsUser(Subject subject, Session session, HttpSession http_session) {
         this((SysUser) subject.getPrincipal());
