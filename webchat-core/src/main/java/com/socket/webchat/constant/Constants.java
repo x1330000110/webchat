@@ -15,7 +15,7 @@ public interface Constants {
     /**
      * 邮箱验证码有效时间（单位：分钟）
      */
-    int EMAIL_CODE_VALID_TIME = 10;
+    int EMAIL_CODE_VALID_TIME = 5;
     /**
      * 微信登录二维码过期时间
      */

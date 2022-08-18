@@ -1,5 +1,6 @@
 package com.socket.secure.filter;
 
+import cn.hutool.extra.servlet.ServletUtil;
 import cn.hutool.http.Header;
 import cn.hutool.http.useragent.UserAgent;
 import cn.hutool.http.useragent.UserAgentParser;
@@ -120,40 +121,12 @@ public final class SecureRequestFilter implements Filter {
         InitiatorEvent event = new InitiatorEvent(publisher);
         UserAgent userAgent = UserAgentParser.parse(request.getHeader(Header.USER_AGENT.getValue()));
         event.setUserAgent(userAgent);
-        event.setRemote(getClientIP(request));
+        event.setRemote(ServletUtil.getClientIP(request));
         event.setSession(request.getSession());
         event.setMethod(hander.getMethod());
         event.setController(hander.getBeanType());
         event.setReason(reason);
         publisher.publishEvent(event);
-    }
-
-    private String getClientIP(HttpServletRequest request) {
-        String[] headers = {
-                "X-Forwarded-For",
-                "X-Real-IP",
-                "Proxy-Client-IP",
-                "WL-Proxy-Client-IP",
-                "HTTP_CLIENT_IP",
-                "HTTP_X_FORWARDED_FOR"
-        };
-        for (String header : headers) {
-            String ip = request.getHeader(header);
-            if (isEffectiveIP(ip)) {
-                String find = Arrays.stream(ip.trim().split(","))
-                        .filter(this::isEffectiveIP)
-                        .findFirst()
-                        .orElse(null);
-                if (find != null) {
-                    return find;
-                }
-            }
-        }
-        return request.getRemoteAddr();
-    }
-
-    private boolean isEffectiveIP(String ip) {
-        return StringUtils.hasText(ip) && !"unknown".equalsIgnoreCase(ip);
     }
 
     @Autowired
