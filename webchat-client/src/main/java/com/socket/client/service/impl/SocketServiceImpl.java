@@ -244,7 +244,9 @@ public class SocketServiceImpl implements SocketService {
         if (socketManager.shield(target, self)) {
             return WsMsg.buildsys(CallbackTips.SELF_SHIELD.of(), MessageType.VIDEO);
         }
-        target.getSession().getBasicRemote().sendText(target.encrypt(wsmsg));
+        if (target.isOnline()) {
+            target.getSession().getBasicRemote().sendText(target.encrypt(wsmsg));
+        }
         return null;
     }
 
