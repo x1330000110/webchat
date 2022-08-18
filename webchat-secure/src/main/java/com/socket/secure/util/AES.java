@@ -103,7 +103,7 @@ public class AES {
         if (!(ciphertext.startsWith("<") && ciphertext.endsWith(">"))) {
             return ciphertext;
         }
-        byte[] bytes = Base64Utils.decodeFromString(ciphertext.substring(1, ciphertext.length() - 1));
+        byte[] bytes = Base64Utils.decodeFromUrlSafeString(ciphertext.substring(1, ciphertext.length() - 1));
         try {
             Cipher cipher = getCipher(Cipher.DECRYPT_MODE, key);
             return new String(cipher.doFinal(bytes)).substring(RANDOM_PREFIX_LENGTH);

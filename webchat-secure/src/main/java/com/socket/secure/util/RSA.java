@@ -69,7 +69,7 @@ public class RSA {
             KeySpec keySpec = new PKCS8EncodedKeySpec(Base64Utils.decodeFromString(prikey));
             Key key = KeyFactory.getInstance("RSA").generatePrivate(keySpec);
             cipher.init(Cipher.DECRYPT_MODE, key);
-            return new String(cipher.doFinal(Base64Utils.decodeFromUrlSafeString(ciphertext)));
+            return new String(cipher.doFinal(Base64Utils.decodeFromString(ciphertext)));
         } catch (GeneralSecurityException e) {
             throw new InvalidRequestException("RSA decrypt failure: " + e.getMessage());
         }

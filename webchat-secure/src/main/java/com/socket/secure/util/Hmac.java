@@ -86,7 +86,7 @@ public class Hmac {
     }
 
     public enum Algorithm {
-        MD5("MD5"),
+        MD5("HmacMD5"),
         SHA1("HmacSHA1"),
         SHA224("HmacSHA224"),
         SHA256("HmacSHA256"),

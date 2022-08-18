@@ -8,6 +8,7 @@ import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.runtime.InvalidRequestException;
 import com.socket.secure.util.AES;
 import com.socket.secure.util.Hmac;
+import org.springframework.util.StringUtils;
 
 import javax.servlet.ReadListener;
 import javax.servlet.ServletException;
@@ -78,7 +79,8 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
      * Check if this request include file
      */
     private boolean isFileRequest() {
-        return getContentType().startsWith(ContentType.MULTIPART.getValue());
+        String type = getContentType();
+        return StringUtils.hasLength(type) && type.startsWith(ContentType.MULTIPART.getValue());
     }
 
     @Override
