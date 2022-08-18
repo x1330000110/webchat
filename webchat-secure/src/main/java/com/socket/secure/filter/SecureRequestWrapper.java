@@ -21,6 +21,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -134,7 +135,7 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
     @Override
     public BufferedReader getReader() {
         ServletInputStream stream = getInputStream();
-        InputStreamReader isr = new InputStreamReader(stream);
+        InputStreamReader isr = new InputStreamReader(stream, StandardCharsets.UTF_8);
         return new BufferedReader(isr);
     }
 
