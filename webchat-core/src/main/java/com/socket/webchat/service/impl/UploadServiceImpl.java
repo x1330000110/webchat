@@ -27,8 +27,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.PostConstruct;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -118,6 +120,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         return baiduSpeechRequest.convertText(bytes);
     }
 
+    @PostConstruct
     @Scheduled(cron = "0 0 0 * * ?")
     public void clearExpiredResources() {
         LambdaQueryWrapper<ChatRecordFile> wrapper = Wrappers.lambdaQuery();
@@ -128,6 +131,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         String column = Wss.columnToString(ChatRecord::getCreateTime);
         wrapper.getExpression().add(() -> column, SqlKeyword.LT, () -> condition);
         List<String> paths = list(wrapper).stream().map(ChatRecordFile::getPath).collect(Collectors.toList());
-        client.deleteFiles(paths);
+//        client.deleteFiles(paths);
+        paths.forEach(System.out::println);
     }
 }

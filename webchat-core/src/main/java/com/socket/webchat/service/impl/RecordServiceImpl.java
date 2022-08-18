@@ -68,27 +68,27 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
             );
         }
         // 限制起始边界id
-        LambdaQueryWrapper<ChatRecordOffset> wrapper1 = Wrappers.lambdaQuery();
-        wrapper1.eq(ChatRecordOffset::getUid, userId);
-        wrapper1.eq(ChatRecordOffset::getTarget, target);
-        ChatRecordOffset limit = chatRecordOffsetMapper.selectOne(wrapper1);
+        LambdaQueryWrapper<ChatRecordOffset> w1 = Wrappers.lambdaQuery();
+        w1.eq(ChatRecordOffset::getUid, userId);
+        w1.eq(ChatRecordOffset::getTarget, target);
+        ChatRecordOffset limit = chatRecordOffsetMapper.selectOne(w1);
         Opt.ofNullable(limit).ifPresent(e -> wrapper.gt(BaseModel::getId, e.getOffset()));
         // 限制结束边界id
         ChatRecord offset = null;
         if (mid != null) {
             // 通过mid查询id
-            LambdaQueryWrapper<ChatRecord> w1 = Wrappers.lambdaQuery();
-            w1.eq(ChatRecord::getMid, mid);
-            offset = getOne(w1);
+            LambdaQueryWrapper<ChatRecord> w2 = Wrappers.lambdaQuery();
+            w2.eq(ChatRecord::getMid, mid);
+            offset = getOne(w2);
             Assert.notNull(offset, "无效的MID", IllegalStateException::new);
             wrapper.lt(BaseModel::getId, offset.getId());
         }
         // 排除已删除的消息id
-        LambdaQueryWrapper<ChatRecordDeleted> w2 = Wrappers.lambdaQuery();
-        w2.eq(ChatRecordDeleted::getUid, userId);
-        w2.eq(BaseModel::isDeleted, 0);
-        Optional.ofNullable(offset).ifPresent(m -> w2.lt(ChatRecordDeleted::getRecordTime, m.getCreateTime()));
-        List<String> deleted = chatRecordDeletedMapper.selectList(w2)
+        LambdaQueryWrapper<ChatRecordDeleted> w3 = Wrappers.lambdaQuery();
+        w3.eq(ChatRecordDeleted::getUid, userId);
+        w3.eq(BaseModel::isDeleted, 0);
+        Optional.ofNullable(offset).ifPresent(m -> w3.lt(ChatRecordDeleted::getRecordTime, m.getCreateTime()));
+        List<String> deleted = chatRecordDeletedMapper.selectList(w3)
                 .stream()
                 .map(ChatRecordDeleted::getMid)
                 .collect(Collectors.toList());

@@ -32,7 +32,7 @@ public class ChatRecordFile extends BaseModel {
 
     public ChatRecordFile(String mid, FTPFile file, long size) {
         this.mid = mid;
-        this.path = file.getParent();
+        this.path = file.getPath();
         this.hash = file.getName();
         this.size = size;
     }
