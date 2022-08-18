@@ -234,12 +234,12 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
         if (vaildPart) {
             for (Part part : part) {
                 if (part.getSubmittedFileName() != null) {
-                    joiner.add(Hmac.MD5(SecureConstant.HMAC_SALT).digestHex(part.getInputStream()));
+                    joiner.add(new Hmac(Hmac.Algorithm.MD5, SecureConstant.HMAC_SALT).digestHex(part.getInputStream()));
                 }
             }
         }
         // check sign
-        String digest = Hmac.MD5(signData[0]).digestHex(joiner.toString());
+        String digest = new Hmac(Hmac.Algorithm.MD5, signData[0]).digestHex(joiner.toString());
         return digest.equalsIgnoreCase(signData[1]);
     }
 
