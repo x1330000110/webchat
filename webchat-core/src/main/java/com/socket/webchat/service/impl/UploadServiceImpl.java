@@ -131,7 +131,6 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         String column = Wss.columnToString(ChatRecord::getCreateTime);
         wrapper.getExpression().add(() -> column, SqlKeyword.LT, () -> condition);
         List<String> paths = list(wrapper).stream().map(ChatRecordFile::getPath).collect(Collectors.toList());
-//        client.deleteFiles(paths);
-        paths.forEach(System.out::println);
+        client.deleteFiles(paths);
     }
 }
