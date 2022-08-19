@@ -39,7 +39,7 @@ public enum CallbackTips {
     GLOBA_USERS("{} 已被所有者取消管理员权限"),
     // ------ 屏蔽和检查 --------//
     TARGET_SHIELD("您已屏蔽当前用户，发送消息请先解除"),
-    SELF_SHIELD("您已被目标用户屏蔽"),
+    SELF_SHIELD("消息未能送达，您已被目标用户屏蔽"),
     SHIELD_USER("您已将 {} 消息屏蔽"),
     CANCEL_SHIELD("您已取消屏蔽 {} 消息"),
     // 手动设置消息

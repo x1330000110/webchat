@@ -7,6 +7,7 @@ import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.enums.MessageType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 
 import javax.websocket.Session;
 import java.util.Objects;
@@ -112,15 +113,31 @@ public class WsMsg {
     }
 
     /**
-     * 将消息发送至目标用户（目标不在线调用此方法没有任何效果）
+     * 将消息异步发送至目标用户（目标不在线调用此方法没有任何效果）
      *
      * @param target 目标用户
      */
-    public void sendTo(WsUser target) {
+    public void asyncSend(WsUser target) {
         if (target.isOnline()) {
             Session session = target.getSession();
             if (session.isOpen()) {
                 session.getAsyncRemote().sendText(target.encrypt(this));
+            }
+        }
+    }
+
+    /**
+     * 将消息同步发送至目标用户（目标不在线调用此方法没有任何效果）<br>
+     * 如果异步消息发送出错可尝试使用此方法
+     *
+     * @param target 目标用户
+     */
+    @SneakyThrows
+    public void basicSend(WsUser target) {
+        if (target.isOnline()) {
+            Session session = target.getSession();
+            if (session.isOpen()) {
+                session.getBasicRemote().sendText(target.encrypt(this));
             }
         }
     }
