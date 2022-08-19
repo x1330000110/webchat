@@ -94,26 +94,29 @@ public class SocketServiceImpl implements SocketService {
         wsmsg.checkMessage();
         // AI消息智能回复
         this.parseAiMessage(wsmsg);
-        // 保存消息（已读条件：消息未能送达 || 消息来自群组 || 目标会话正在选择你）
-        socketManager.cacheRecord(wsmsg, wsmsg.isReject() || wsmsg.isGroup() || target.chooseTarget(self));
         // 发言标记
         socketManager.operateMark(self);
-        // 群组消息
-        if (wsmsg.isGroup()) {
-            socketManager.sendAll(wsmsg, self);
-            return wsmsg;
+        try {
+            // 群组消息
+            if (wsmsg.isGroup()) {
+                socketManager.sendAll(wsmsg, self);
+                return wsmsg;
+            }
+            // 检查屏蔽
+            if (socketManager.shield(self, target)) {
+                return WsMsg.buildsys(CallbackTips.TARGET_SHIELD.of(), MessageType.INFO);
+            }
+            if (socketManager.shield(target, self)) {
+                wsmsg.setReject(true);
+                wsmsg.basicSend(self);
+                return WsMsg.buildsys(CallbackTips.SELF_SHIELD.of(), MessageType.WARNING);
+            }
+            // 发送至目标
+            wsmsg.asyncSend(target);
+        } finally {
+            // 保存消息（已读条件：消息未能送达 || 消息来自群组 || 目标会话正在选择你）
+            socketManager.cacheRecord(wsmsg, wsmsg.isReject() || wsmsg.isGroup() || target.chooseTarget(self));
         }
-        // 检查屏蔽
-        if (socketManager.shield(self, target)) {
-            return WsMsg.buildsys(CallbackTips.TARGET_SHIELD.of(), MessageType.INFO);
-        }
-        if (socketManager.shield(target, self)) {
-            wsmsg.setReject(true);
-            wsmsg.basicSend(self);
-            return WsMsg.buildsys(CallbackTips.SELF_SHIELD.of(), MessageType.WARNING);
-        }
-        // 发送至目标hppt
-        wsmsg.asyncSend(target);
         return wsmsg;
     }
 
