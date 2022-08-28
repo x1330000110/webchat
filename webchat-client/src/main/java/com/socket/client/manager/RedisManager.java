@@ -2,7 +2,7 @@ package com.socket.client.manager;
 
 import cn.hutool.crypto.digest.MD5;
 import com.socket.client.model.enums.SocketTree;
-import com.socket.webchat.model.enums.Announce;
+import com.socket.webchat.constant.Announce;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.util.RedisValue;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,8 +111,8 @@ public class RedisManager {
             map.clear();
             return;
         }
-        map.put(Announce.content.string(), content);
-        map.put(Announce.digest.string(), MD5.create().digestHex(content));
-        map.put(Announce.time.string(), System.currentTimeMillis());
+        map.put(Announce.content, content);
+        map.put(Announce.digest, MD5.create().digestHex(content));
+        map.put(Announce.time, System.currentTimeMillis());
     }
 }

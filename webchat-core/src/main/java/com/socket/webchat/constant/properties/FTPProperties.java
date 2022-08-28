@@ -1,4 +1,4 @@
-package com.socket.webchat.constant;
+package com.socket.webchat.constant.properties;
 
 import cn.hutool.extra.ftp.FtpConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -11,5 +11,5 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @ConfigurationProperties("webchat.ftp")
-public class FtpProperties extends FtpConfig {
+public class FTPProperties extends FtpConfig {
 }

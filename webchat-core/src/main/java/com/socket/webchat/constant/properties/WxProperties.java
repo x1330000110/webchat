@@ -1,4 +1,4 @@
-package com.socket.webchat.constant;
+package com.socket.webchat.constant.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

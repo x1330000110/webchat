@@ -4,7 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.socket.webchat.constant.WxProperties;
+import com.socket.webchat.constant.properties.WxProperties;
 import com.socket.webchat.model.WxUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

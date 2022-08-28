@@ -6,7 +6,7 @@ import com.socket.secure.filter.anno.Encrypted;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.condition.EmailCondition;
 import com.socket.webchat.model.condition.UserCondition;
-import com.socket.webchat.model.enums.Announce;
+import com.socket.webchat.constant.Announce;
 import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.model.enums.UserRole;
@@ -79,12 +79,11 @@ public class UserController {
     @GetMapping("/notice")
     public HttpStatus getNotice(String digest) {
         RedisMap<String, Object> map = RedisValue.ofMap(template, RedisTree.ANNOUNCEMENT.getPath());
-        Object dg = map.get(Announce.digest.string());
+        Object dg = map.get(Announce.digest);
         // 散列id不同 表示发布新内容
         if (dg != null && !dg.equals(digest)) {
-            String kc = Announce.content.string();
-            String kt = Announce.time.string();
-            Map<String, Object> json = Map.of(kc, map.get(kc), kt, map.get(kt));
+            String content = Announce.content, time = Announce.time;
+            Map<String, Object> json = Map.of(content, map.get(content), time, map.get(time));
             return HttpStatus.SUCCESS.body(json);
         }
         return HttpStatus.FAILURE.body();
