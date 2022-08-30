@@ -9,7 +9,7 @@ public enum Remote {
     /**
      * 同步发送
      */
-    BASIC,
+    SYNC,
     /**
      * 异步发送
      */

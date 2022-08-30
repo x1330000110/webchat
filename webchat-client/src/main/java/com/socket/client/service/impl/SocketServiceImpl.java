@@ -109,7 +109,7 @@ public class SocketServiceImpl implements SocketService {
             }
             if (socketManager.shield(target, self)) {
                 wsmsg.setReject(true);
-                wsmsg.send(self, Remote.BASIC);
+                wsmsg.send(self, Remote.SYNC);
                 return WsMsg.buildsys(CallbackTips.SELF_SHIELD.of(), MessageType.WARNING);
             }
             // 发送至目标
@@ -249,7 +249,7 @@ public class SocketServiceImpl implements SocketService {
         if (socketManager.shield(target, self)) {
             return WsMsg.buildsys(CallbackTips.SELF_SHIELD.of(), MessageType.VIDEO);
         }
-        wsmsg.send(target, Remote.BASIC);
+        wsmsg.send(target, Remote.SYNC);
         return null;
     }
 

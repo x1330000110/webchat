@@ -136,7 +136,7 @@ public class WsMsg {
             case ASYNC:
                 session.getAsyncRemote().sendText(encrypt);
                 break;
-            case BASIC:
+            case SYNC:
                 session.getBasicRemote().sendText(target.encrypt(this));
             default:
                 // ignore
