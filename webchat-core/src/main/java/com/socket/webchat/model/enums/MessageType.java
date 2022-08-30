@@ -70,10 +70,6 @@ public enum MessageType implements EnumItem<MessageType>, IEnum<String> {
      */
     VIDEO("视频文件"),
     /**
-     * 消息接收
-     */
-    MESSAGE,
-    /**
      * 公告
      */
     ANNOUNCE,
