@@ -3,7 +3,7 @@ package com.socket.client.model;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Opt;
 import cn.hutool.json.JSONUtil;
-import com.socket.client.model.enums.CallbackTips;
+import com.socket.client.model.enums.Callback;
 import com.socket.secure.util.AES;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.enums.UserRole;
@@ -79,11 +79,11 @@ public class WsUser extends SysUser {
      *
      * @param reason 原因（强制退出时填写）
      */
-    public void logout(CallbackTips reason) {
+    public void logout(Callback reason) {
         // 始终清除ws会话
         if (session != null) {
             try {
-                String str = Opt.ofNullable(reason).map(CallbackTips::getReason).get();
+                String str = Opt.ofNullable(reason).map(Callback::getReason).get();
                 session.close(new CloseReason(CloseCodes.NORMAL_CLOSURE, str));
             } catch (IOException e) {
                 log.warn(e.getMessage());

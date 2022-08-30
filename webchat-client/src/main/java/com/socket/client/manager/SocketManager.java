@@ -10,7 +10,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
-import com.socket.client.model.enums.CallbackTips;
+import com.socket.client.model.enums.Callback;
 import com.socket.client.model.enums.Remote;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.mapper.ShieldUserMapper;
@@ -57,13 +57,13 @@ public class SocketManager {
         // 检查登录限制（会话缓存检查）
         long time = redisManager.getLockTime(user.getUid());
         if (time > 0) {
-            user.logout(CallbackTips.LOGIN_LIMIT.of(time));
+            user.logout(Callback.LOGIN_LIMIT.of(time));
             return null;
         }
         // 检查重复登录
         WsUser repeat = onlineUsers.get(user.getUid());
         if (repeat != null) {
-            repeat.logout(CallbackTips.REPEAT_LOGIN.of());
+            repeat.logout(Callback.REPEAT_LOGIN.of());
         }
         // 登录到聊天室
         onlineUsers.put(user.getUid(), user);
@@ -94,7 +94,7 @@ public class SocketManager {
      * @param type   消息类型
      * @param sender 发起者信息
      */
-    public void sendAll(CallbackTips tips, MessageType type, SysUser sender) {
+    public void sendAll(Callback tips, MessageType type, SysUser sender) {
         WsMsg sysmsg = WsMsg.buildsys(tips, type, sender);
         for (WsUser wsuser : onlineUsers.values()) {
             if (!wsuser.getUid().equals(sender.getUid())) {
@@ -236,7 +236,7 @@ public class SocketManager {
         int time = Constants.FREQUENT_SPEECHES_MUTE_TIME;
         if (redisManager.incrSpeak(user.getUid()) > Constants.FREQUENT_SPEECH_THRESHOLD) {
             redisManager.setMute(user.getUid(), time);
-            WsMsg.buildsys(CallbackTips.MALICIOUS_SPEAK.of(time), MessageType.MUTE, time).send(user, Remote.ASYNC);
+            WsMsg.buildsys(Callback.MALICIOUS_SPEAK.of(time), MessageType.MUTE, time).send(user, Remote.ASYNC);
         }
     }
 
@@ -375,7 +375,7 @@ public class SocketManager {
     public void checkMute(WsUser user) {
         long muteTime = redisManager.getMuteTime(user.getUid());
         if (muteTime > 0) {
-            CallbackTips tips = CallbackTips.MUTE_LIMIT.of(muteTime);
+            Callback tips = Callback.MUTE_LIMIT.of(muteTime);
             WsMsg.buildsys(tips, MessageType.MUTE, muteTime).send(user, Remote.ASYNC);
         }
     }
@@ -399,7 +399,7 @@ public class SocketManager {
         String content = wsMsg.getContent();
         redisManager.pushNotice(content);
         if (StrUtil.isNotEmpty(content)) {
-            this.sendAll(CallbackTips.MANUAL.of(content), MessageType.ANNOUNCE, sender);
+            this.sendAll(Callback.MANUAL.of(content), MessageType.ANNOUNCE, sender);
         }
     }
 }

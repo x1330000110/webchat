@@ -2,7 +2,7 @@ package com.socket.client.model;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.MD5;
-import com.socket.client.model.enums.CallbackTips;
+import com.socket.client.model.enums.Callback;
 import com.socket.client.model.enums.Remote;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.enums.MessageType;
@@ -81,7 +81,7 @@ public class WsMsg {
      * @param tips 内容
      * @param type 消息类型
      */
-    public static WsMsg buildsys(CallbackTips tips, MessageType type) {
+    public static WsMsg buildsys(Callback tips, MessageType type) {
         return buildsys(tips, type, null);
     }
 
@@ -92,7 +92,7 @@ public class WsMsg {
      * @param type 消息类型
      * @param data 额外数据
      */
-    public static WsMsg buildsys(CallbackTips tips, MessageType type, Object data) {
+    public static WsMsg buildsys(Callback tips, MessageType type, Object data) {
         return new WsMsg(tips.getReason(), type, data);
     }
 

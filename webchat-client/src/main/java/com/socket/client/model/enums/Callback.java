@@ -8,7 +8,7 @@ import lombok.Getter;
 /**
  * 服务器回调消息枚举
  */
-public enum CallbackTips {
+public enum Callback {
     // ------ 安全检查 ---------//
     REPEAT_LOGIN("您的账号已在别处登录"),
     SELF_IS_MUTE("您已被禁言，请稍后再试"),
@@ -49,7 +49,7 @@ public enum CallbackTips {
     @Getter
     private String reason;
 
-    CallbackTips(String tips) {
+    Callback(String tips) {
         this.tips = tips;
     }
 
@@ -59,7 +59,7 @@ public enum CallbackTips {
      * 传入{@link WsUser}时消息指定用户<br>
      * 也可同时传入，但{@link WsUser}必须在前面<br>
      */
-    public CallbackTips of(Object... obj) {
+    public Callback of(Object... obj) {
         if (obj.length > 1 && obj[0] instanceof WsUser && obj[1] instanceof Number) {
             WsUser user = (WsUser) obj[0];
             long time = ((Number) obj[1]).longValue();
