@@ -6,6 +6,7 @@ import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
 import com.socket.client.model.enums.CallbackTips;
+import com.socket.client.model.enums.Remote;
 import com.socket.client.service.SocketService;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.ChatRecord;
@@ -52,7 +53,7 @@ public class SocketServiceImpl implements SocketService {
         self.setPlatform((String) properties.get(Constants.PLATFORM));
         if (self != null) {
             Collection<UserPreview> userList = socketManager.getUserList(self);
-            WsMsg.buildsys(CallbackTips.JOIN_INIT.of(), MessageType.INIT, userList).asyncSend(self);
+            WsMsg.buildsys(CallbackTips.JOIN_INIT.of(), MessageType.INIT, userList).send(self, Remote.ASYNC);
             socketManager.sendAll(CallbackTips.USER_LOGIN.of(self), MessageType.JOIN, self);
             socketManager.checkMute(self);
         }
@@ -108,11 +109,11 @@ public class SocketServiceImpl implements SocketService {
             }
             if (socketManager.shield(target, self)) {
                 wsmsg.setReject(true);
-                wsmsg.basicSend(self);
+                wsmsg.send(self, Remote.BASIC);
                 return WsMsg.buildsys(CallbackTips.SELF_SHIELD.of(), MessageType.WARNING);
             }
             // 发送至目标
-            wsmsg.asyncSend(target);
+            wsmsg.send(target, Remote.ASYNC);
         } finally {
             // 保存消息（已读条件：消息未能送达 || 消息来自群组 || 目标会话正在选择你）
             socketManager.cacheRecord(wsmsg, wsmsg.isReject() || wsmsg.isGroup() || target.chooseTarget(self));
@@ -132,7 +133,7 @@ public class SocketServiceImpl implements SocketService {
                 if (result != null) {
                     // AI消息
                     WsMsg aimsg = WsMsg.buildmsg(Constants.SYSTEM_UID, wsmsg.getUid(), result, MessageType.TEXT);
-                    aimsg.asyncSend(self);
+                    aimsg.send(self, Remote.ASYNC);
                     socketManager.cacheRecord(aimsg, true);
                 }
             }, exception -> log.warn(exception.getMessage()));
@@ -208,7 +209,7 @@ public class SocketServiceImpl implements SocketService {
     private WsMsg shield(WsUser target) {
         boolean shield = socketManager.shieldTarget(self, target);
         CallbackTips tips = shield ? CallbackTips.SHIELD_USER.of(target) : CallbackTips.CANCEL_SHIELD.of(target);
-        WsMsg.buildsys(tips, MessageType.SHIELD, target).asyncSend(self);
+        WsMsg.buildsys(tips, MessageType.SHIELD, target).send(self, Remote.ASYNC);
         return null;
     }
 
@@ -223,7 +224,7 @@ public class SocketServiceImpl implements SocketService {
                 socketManager.sendAll(wsmsg, self);
             } else if (!socketManager.shield(target, self)) {
                 // 反之 仅通知目标撤回此消息（若目标已将此用户屏蔽，则忽略此撤回消息）
-                wsmsg.asyncSend(target);
+                wsmsg.send(target, Remote.ASYNC);
             }
             // 若这是一条未能送达是消息 则不提示任何回调
             if (record.isReject()) {
@@ -248,7 +249,7 @@ public class SocketServiceImpl implements SocketService {
         if (socketManager.shield(target, self)) {
             return WsMsg.buildsys(CallbackTips.SELF_SHIELD.of(), MessageType.VIDEO);
         }
-        wsmsg.basicSend(target);
+        wsmsg.send(target, Remote.BASIC);
         return null;
     }
 
@@ -269,12 +270,12 @@ public class SocketServiceImpl implements SocketService {
         long time = socketManager.addMute(wsmsg);
         // 禁言
         if (time > 0) {
-            WsMsg.buildsys(CallbackTips.MUTE_LIMIT.of(time), MessageType.MUTE, time).asyncSend(target);
+            WsMsg.buildsys(CallbackTips.MUTE_LIMIT.of(time), MessageType.MUTE, time).send(target, Remote.ASYNC);
             socketManager.sendAll(CallbackTips.GLOBAL_MUTE_LIMIT.of(target, time), MessageType.PRIMARY, target);
             return;
         }
         // 取消禁言
-        WsMsg.buildsys(CallbackTips.CANCEL_MUTE_LIMIT.of(), MessageType.MUTE, time).asyncSend(target);
+        WsMsg.buildsys(CallbackTips.CANCEL_MUTE_LIMIT.of(), MessageType.MUTE, time).send(target, Remote.ASYNC);
         socketManager.sendAll(CallbackTips.GLOBAL_CANCEL_MUTE_LIMIT.of(target, time), MessageType.PRIMARY, target);
     }
 
@@ -305,7 +306,7 @@ public class SocketServiceImpl implements SocketService {
         socketManager.updateRole(target, target.isAdmin() ? UserRole.USER : UserRole.ADMIN);
         // 通知目标
         CallbackTips selfTips = (target.isAdmin() ? CallbackTips.ADMIN : CallbackTips.USERS).of();
-        WsMsg.buildsys(selfTips, MessageType.ROLE, target).asyncSend(target);
+        WsMsg.buildsys(selfTips, MessageType.ROLE, target).send(target, Remote.ASYNC);
         // 广播消息
         CallbackTips globalTips = (target.isAdmin() ? CallbackTips.GLOBAL_ADMIN : CallbackTips.GLOBA_USERS).of(target);
         socketManager.sendAll(globalTips, MessageType.ROLE, target);
@@ -317,7 +318,7 @@ public class SocketServiceImpl implements SocketService {
     private void setAlias(WsUser target, WsMsg wsmsg) {
         String alias = wsmsg.getContent();
         if (socketManager.updateAlias(target, alias)) {
-            wsmsg.asyncSend(self);
+            wsmsg.send(self, Remote.ASYNC);
             socketManager.sendAll(wsmsg, self);
         }
     }

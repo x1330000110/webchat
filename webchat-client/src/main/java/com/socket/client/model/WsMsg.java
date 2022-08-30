@@ -3,6 +3,7 @@ package com.socket.client.model;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.MD5;
 import com.socket.client.model.enums.CallbackTips;
+import com.socket.client.model.enums.Remote;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.enums.MessageType;
 import lombok.Data;
@@ -113,32 +114,32 @@ public class WsMsg {
     }
 
     /**
-     * 将消息异步发送至目标用户（目标不在线调用此方法没有任何效果）
+     * 将消息发送至目标用户（目标不在线调用此方法没有任何效果）
      *
      * @param target 目标用户
-     */
-    public void asyncSend(WsUser target) {
-        if (target.isOnline()) {
-            Session session = target.getSession();
-            if (session.isOpen()) {
-                session.getAsyncRemote().sendText(target.encrypt(this));
-            }
-        }
-    }
-
-    /**
-     * 将消息同步发送至目标用户（目标不在线调用此方法没有任何效果）<br>
-     * 如果异步消息发送出错可尝试使用此方法
-     *
-     * @param target 目标用户
+     * @param type   发送方式
      */
     @SneakyThrows
-    public void basicSend(WsUser target) {
-        if (target.isOnline()) {
-            Session session = target.getSession();
-            if (session.isOpen()) {
+    public void send(WsUser target, Remote type) {
+        // 目标不在线
+        if (!target.isOnline()) {
+            return;
+        }
+        Session session = target.getSession();
+        // 会话已关闭
+        if (!session.isOpen()) {
+            return;
+        }
+        // 发送消息
+        String encrypt = target.encrypt(this);
+        switch (type) {
+            case ASYNC:
+                session.getAsyncRemote().sendText(encrypt);
+                break;
+            case BASIC:
                 session.getBasicRemote().sendText(target.encrypt(this));
-            }
+            default:
+                // ignore
         }
     }
 }

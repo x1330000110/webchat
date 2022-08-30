@@ -11,6 +11,7 @@ import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
 import com.socket.client.model.enums.CallbackTips;
+import com.socket.client.model.enums.Remote;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.mapper.ShieldUserMapper;
 import com.socket.webchat.mapper.SysUserMapper;
@@ -82,7 +83,7 @@ public class SocketManager {
         for (WsUser wsuser : onlineUsers.values()) {
             String target = wsuser.getUid();
             if (exclude.stream().noneMatch(target::equals)) {
-                wsmsg.asyncSend(wsuser);
+                wsmsg.send(wsuser, Remote.ASYNC);
             }
         }
     }
@@ -98,11 +99,10 @@ public class SocketManager {
         WsMsg sysmsg = WsMsg.buildsys(tips, type, sender);
         for (WsUser wsuser : onlineUsers.values()) {
             if (!wsuser.getUid().equals(sender.getUid())) {
-                sysmsg.asyncSend(wsuser);
+                sysmsg.send(wsuser, Remote.ASYNC);
             }
         }
     }
-
 
     /**
      * 通过uid获取在线用户
@@ -237,7 +237,7 @@ public class SocketManager {
         int time = Constants.FREQUENT_SPEECHES_MUTE_TIME;
         if (redisManager.incrSpeak(user.getUid()) > Constants.FREQUENT_SPEECH_THRESHOLD) {
             redisManager.setMute(user.getUid(), time);
-            WsMsg.buildsys(CallbackTips.MALICIOUS_SPEAK.of(time), MessageType.MUTE, time).asyncSend(user);
+            WsMsg.buildsys(CallbackTips.MALICIOUS_SPEAK.of(time), MessageType.MUTE, time).send(user, Remote.ASYNC);
         }
     }
 
@@ -389,7 +389,7 @@ public class SocketManager {
         long muteTime = redisManager.getMuteTime(user.getUid());
         if (muteTime > 0) {
             CallbackTips tips = CallbackTips.MUTE_LIMIT.of(muteTime);
-            WsMsg.buildsys(tips, MessageType.MUTE, muteTime).asyncSend(user);
+            WsMsg.buildsys(tips, MessageType.MUTE, muteTime).send(user, Remote.ASYNC);
         }
     }
 
