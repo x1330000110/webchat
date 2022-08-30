@@ -182,7 +182,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         wrapper.set(ChatRecord::isUnread, false);
         super.update(wrapper);
         // 清空redis计数器
-        template.delete(RedisTree.UNREAD.getPath(uid));
+        template.delete(RedisTree.UNREAD.concat(uid));
     }
 
     @Override

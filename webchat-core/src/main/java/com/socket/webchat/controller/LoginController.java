@@ -71,7 +71,7 @@ public class LoginController {
                     return;
                 }
                 // 临时限制登录
-                long time = RedisValue.of(template, RedisTree.LOCK.getPath(user.getUid())).getExpired();
+                long time = RedisValue.of(template, RedisTree.LOCK.concat(user.getUid())).getExpired();
                 if (time > 0) {
                     response.sendRedirect(LOCK + "&time=" + time);
                     return;

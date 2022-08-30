@@ -85,7 +85,7 @@ public interface Constants {
      */
     int MAX_MESSAGE_LENGTH = 300;
     /**
-     * 文件消息标记
+     * 缓存屏蔽列表的时间（单位：小时）
      */
-    String BLOB = "blob";
+    long SHIELD_CACHE_TIME = 24;
 }

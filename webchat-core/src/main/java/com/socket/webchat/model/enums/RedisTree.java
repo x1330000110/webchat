@@ -27,7 +27,7 @@ public enum RedisTree {
     /**
      * 公告信息
      */
-    ANNOUNCEMENT("announce"),
+    ANNOUNCE("announce"),
     /**
      * 临时限制登录
      */
@@ -39,11 +39,11 @@ public enum RedisTree {
         this.dir = dir;
     }
 
-    public String getPath() {
+    public String concat() {
         return dir;
     }
 
-    public String getPath(String end) {
+    public String concat(String end) {
         return dir + end;
     }
 }

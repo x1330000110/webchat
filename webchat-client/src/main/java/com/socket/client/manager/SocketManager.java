@@ -31,7 +31,6 @@ import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * 在线用户信息管理
@@ -41,7 +40,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SocketManager {
     private final ConcurrentHashMap<String, WsUser> onlineUsers = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, List<String>> shields = new ConcurrentHashMap<>();
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ShieldUserMapper shieldUserMapper;
     private final RecordService recordService;
@@ -63,9 +61,9 @@ public class SocketManager {
             return null;
         }
         // 检查重复登录
-        WsUser varuser = onlineUsers.get(user.getUid());
-        if (varuser != null) {
-            varuser.logout(CallbackTips.REPEAT_LOGIN.of());
+        WsUser repeat = onlineUsers.get(user.getUid());
+        if (repeat != null) {
+            repeat.logout(CallbackTips.REPEAT_LOGIN.of());
         }
         // 登录到聊天室
         onlineUsers.put(user.getUid(), user);
@@ -79,10 +77,11 @@ public class SocketManager {
      * @param sender 发起者
      */
     public void sendAll(WsMsg wsmsg, WsUser sender) {
-        List<Object> exclude = Arrays.asList(getShield(sender).toArray(), wsmsg.getUid());
+        List<String> exclude = this.getShieldList(sender);
+        String uid = sender.getUid();
         for (WsUser wsuser : onlineUsers.values()) {
             String target = wsuser.getUid();
-            if (exclude.stream().noneMatch(target::equals)) {
+            if (!target.equals(uid) && exclude.stream().noneMatch(target::equals)) {
                 wsmsg.send(wsuser, Remote.ASYNC);
             }
         }
@@ -154,7 +153,7 @@ public class SocketManager {
             String uid = preview.getUid();
             // 用户为自己 添加屏蔽列表
             if (uid.equals(senderUid)) {
-                preview.setShields(this.getShield(sender));
+                preview.setShields(this.getShieldList(sender));
                 collect.add(preview);
                 continue;
             }
@@ -266,27 +265,15 @@ public class SocketManager {
      *
      * @param user 用户信息
      */
-    private List<String> getShield(WsUser user) {
-        List<String> list = shields.get(user.getUid());
-        // 检查缓存
-        if (list != null) {
-            return list;
-        }
-        // 查询数据库
-        LambdaQueryWrapper<ShieldUser> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(ShieldUser::getUid, user.getUid());
-        wrapper.eq(ShieldUser::isDeleted, 0);
-        List<ShieldUser> users = shieldUserMapper.selectList(wrapper);
-        List<String> collect = users.stream().map(ShieldUser::getTarget).collect(Collectors.toList());
-        shields.put(user.getUid(), collect);
-        return collect;
+    private List<String> getShieldList(WsUser user) {
+        return redisManager.getShield(user.getUid());
     }
 
     /**
      * 检查指定用户是否被目标屏蔽（优先通过缓存加载）
      */
     public boolean shield(WsUser secure, WsUser target) {
-        return getShield(secure).contains(target.getUid());
+        return this.getShieldList(secure).contains(target.getUid());
     }
 
     /**
@@ -297,7 +284,7 @@ public class SocketManager {
      * @return 若成功屏蔽返回true, 取消屏蔽返回false
      */
     public boolean shieldTarget(WsUser user, WsUser target) {
-        List<String> shields = getShield(user);
+        List<String> shields = this.getShieldList(user);
         String tuid = target.getUid();
         LambdaUpdateWrapper<ShieldUser> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(ShieldUser::getUid, user.getUid());

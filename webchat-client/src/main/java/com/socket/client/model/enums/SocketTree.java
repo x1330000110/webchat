@@ -17,7 +17,11 @@ public enum SocketTree {
     /**
      * 发言标记
      */
-    SPEAK("speak:");
+    SPEAK("speak:"),
+    /**
+     * 屏蔽列表
+     */
+    SHIELD("shield:");
 
     private final String prefix;
 
@@ -25,7 +29,7 @@ public enum SocketTree {
         this.prefix = prefix;
     }
 
-    public String getPath(String suffix) {
+    public String concat(String suffix) {
         return prefix + suffix;
     }
 }

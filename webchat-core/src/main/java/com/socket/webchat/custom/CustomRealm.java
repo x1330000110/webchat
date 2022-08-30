@@ -129,7 +129,7 @@ public class CustomRealm extends AuthorizingRealm {
      * 验证登录限制
      */
     private void checkLimit(String uid) {
-        long time = RedisValue.of(template, RedisTree.LOCK.getPath(uid)).getExpired();
+        long time = RedisValue.of(template, RedisTree.LOCK.concat(uid)).getExpired();
         Assert.isTrue(time <= 0, () -> new AccountException("您已被限制登录，预计剩余" + Wss.universal(time)));
     }
 }

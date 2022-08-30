@@ -3,10 +3,10 @@ package com.socket.webchat.controller;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.secure.filter.anno.Encrypted;
+import com.socket.webchat.constant.Announce;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.condition.EmailCondition;
 import com.socket.webchat.model.condition.UserCondition;
-import com.socket.webchat.constant.Announce;
 import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.model.enums.UserRole;
@@ -78,7 +78,7 @@ public class UserController {
 
     @GetMapping("/notice")
     public HttpStatus getNotice(String digest) {
-        RedisMap<String, Object> map = RedisValue.ofMap(template, RedisTree.ANNOUNCEMENT.getPath());
+        RedisMap<String, Object> map = RedisValue.ofMap(template, RedisTree.ANNOUNCE.concat());
         Object dg = map.get(Announce.digest);
         // 散列id不同 表示发布新内容
         if (dg != null && !dg.equals(digest)) {
