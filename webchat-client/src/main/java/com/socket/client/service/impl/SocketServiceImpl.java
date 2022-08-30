@@ -164,9 +164,9 @@ public class SocketServiceImpl implements SocketService {
 
     @Override
     public WsMsg parseAdminSysMsg(WsMsg wsmsg, WsUser target) {
-        WsMsg check = checkAdmin(target);
-        if (check != null) {
-            return check;
+        // 发起者不是管理员 || 发起者是管理员目标是所有者
+        if (!self.isAdmin() || !self.isOwner() && target.isAdmin()) {
+            return WsMsg.buildsys(CallbackTips.REJECT_EXECUTE.of(), MessageType.DANGER);
         }
         switch (wsmsg.getType()) {
             case MUTE:
@@ -183,9 +183,8 @@ public class SocketServiceImpl implements SocketService {
 
     @Override
     public WsMsg parseOwnerSysMsg(WsMsg wsmsg, WsUser target) {
-        WsMsg check = checkOwner();
-        if (check != null) {
-            return check;
+        if (!self.isOwner()) {
+            return WsMsg.buildsys(CallbackTips.REJECT_EXECUTE.of(), MessageType.WARNING);
         }
         switch (wsmsg.getType()) {
             case ROLE:
@@ -322,26 +321,4 @@ public class SocketServiceImpl implements SocketService {
             socketManager.sendAll(wsmsg, self);
         }
     }
-
-    /**
-     * 检查管理员执行权限
-     */
-    private WsMsg checkAdmin(WsUser target) {
-        // 发起者不是管理员 || 发起者是管理员目标是所有者
-        if (!self.isAdmin() || !self.isOwner() && target.isAdmin()) {
-            return WsMsg.buildsys(CallbackTips.REJECT_EXECUTE.of(), MessageType.DANGER);
-        }
-        return null;
-    }
-
-    /**
-     * 检查所有者权限
-     */
-    private WsMsg checkOwner() {
-        if (!self.isOwner()) {
-            return WsMsg.buildsys(CallbackTips.REJECT_EXECUTE.of(), MessageType.WARNING);
-        }
-        return null;
-    }
-
 }
