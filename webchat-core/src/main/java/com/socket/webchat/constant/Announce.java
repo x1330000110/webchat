@@ -9,7 +9,7 @@ public interface Announce {
     /**
      * 公告内容
      */
-    String content = "";
+    String content = "content";
     /**
      * 散列签名
      */
