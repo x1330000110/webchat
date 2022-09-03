@@ -69,7 +69,7 @@ public final class SecureRequestFilter implements Filter {
                     throw new ExpiredRequestException("URL expired request interception");
                 }
                 // Repeat request validation
-                time = properties.isExactRequestTime() ? time : time / 1000;
+                time = properties.isExactRequestTime() ? time : (time / 1000) * 1000;
                 if (validator.isRepeated(time, wrapper.sign())) {
                     throw new RepeatedRequestException("URL repeated request interception");
                 }

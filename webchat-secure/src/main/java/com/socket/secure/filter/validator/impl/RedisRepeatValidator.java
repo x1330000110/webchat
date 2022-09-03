@@ -20,7 +20,7 @@ public class RedisRepeatValidator implements RepeatValidator {
     public RedisRepeatValidator(StringRedisTemplate template, SecureProperties properties) {
         this.operations = template.opsForValue();
         this.properties = properties;
-        log.info("Redis repeat validator is enable");
+        log.debug("Redis repeat validator is enable");
     }
 
     @Override

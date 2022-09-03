@@ -1,7 +1,5 @@
 package com.socket.secure.filter.validator;
 
-
-import com.socket.secure.constant.SecureProperties;
 import com.socket.secure.filter.validator.impl.MapRepeatValidator;
 import com.socket.secure.filter.validator.impl.RedisRepeatValidator;
 import org.slf4j.Logger;
@@ -29,9 +27,7 @@ public interface RepeatValidator {
     }
 
     /**
-     * Verify this request is repeated <br>
-     * Note: If {@linkplain SecureProperties#isExactRequestTime()} is False,
-     * the parameter time is a second unit timestamp
+     * Verify this request is repeated
      *
      * @param timestamp request timestamp
      * @param sign      request link signature
