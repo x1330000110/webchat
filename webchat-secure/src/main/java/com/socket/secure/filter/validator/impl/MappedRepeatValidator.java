@@ -47,7 +47,7 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
      */
     private static final int QUERY_OVERFLOW = 1000;
     /**
-     * Request data block size
+     * Request data block size（8 bit long + 16 bit digest）
      */
     private static final int BLOCK_SIZE = 24;
     /**
@@ -188,7 +188,6 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
             // clear buffer
             buffer.clear();
             buffer.put(cache.array());
-            // 8 bit long + 16 bit digest
             buffer.position(map.size() * BLOCK_SIZE);
             // find vaild pointer
             force.set(true);
