@@ -2,7 +2,7 @@ package com.socket.secure.config;
 
 import com.socket.secure.constant.SecureProperties;
 import com.socket.secure.filter.validator.RepeatValidator;
-import com.socket.secure.filter.validator.impl.MapRepeatValidator;
+import com.socket.secure.filter.validator.impl.MappedRepeatValidator;
 import com.socket.secure.filter.validator.impl.RedisRepeatValidator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -32,6 +32,6 @@ public class ValidatorAutoConfig {
     @ConditionalOnMissingBean
     public RepeatValidator repeatValidator() {
         File cache = new File(System.getProperty("java.io.tmpdir"), "MapRepeatValidatorData");
-        return new MapRepeatValidator(cache, properties.getLinkValidTime());
+        return new MappedRepeatValidator(cache, properties.getLinkValidTime(), properties.getMaximumConcurrencyPerSecond());
     }
 }
