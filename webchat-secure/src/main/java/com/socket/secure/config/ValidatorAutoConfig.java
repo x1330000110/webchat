@@ -31,7 +31,7 @@ public class ValidatorAutoConfig {
     @Bean
     @ConditionalOnMissingBean
     public RepeatValidator repeatValidator() {
-        String tempDir = System.getProperty("java.io.tmpdir");
-        return new MapRepeatValidator(new File(tempDir, "MapRepeatDataSerialized"), properties);
+        File cache = new File(System.getProperty("java.io.tmpdir"), "MapRepeatValidatorData");
+        return new MapRepeatValidator(cache, properties.getLinkValidTime());
     }
 }
