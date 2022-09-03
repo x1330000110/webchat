@@ -189,7 +189,6 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
             buffer.clear();
             buffer.put(cache.array());
             buffer.position(map.size() * BLOCK_SIZE);
-            // find vaild pointer
             force.set(true);
         } finally {
             lock.unlock();
