@@ -172,7 +172,7 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
     /**
      * Clean up expired data
      */
-    public void clearExpiredData() {
+    private void clearExpiredData() {
         // clear map
         ByteBuffer cache = ByteBuffer.allocate(buffer.capacity());
         map.forEach((sign, time) -> {
