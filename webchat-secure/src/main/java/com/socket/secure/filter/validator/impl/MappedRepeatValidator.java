@@ -8,6 +8,7 @@ import org.springframework.beans.factory.InitializingBean;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -20,23 +21,35 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * <b>Repeated request validator based on {@link ConcurrentHashMap}</b> <br>
- * This validator contains data protection policies,
- * serialize the data to the file when the server is actively shut down, and restore when the server is restarted <br>
- * <b>Note:</b> When the server is passively shut down (kill task or unexpected downtime),
- * at least wait for the link expiration time before restarting,
- * otherwise you may be at risk of <b>replay attack</b>. <br>
- * <b>Note:</b> This implementation is based on JVM memory preservation,
- * and there may be risk of <b>{@link OutOfMemoryError}</b> when the instantaneous request is too large.
+ * Repeated request validator based on {@link ConcurrentHashMap}+{@link MappedByteBuffer} <br>
+ * The underlying implementation depends on the NIO module,
+ * and the concurrency capability will not be affected.
+ * Internally contains periodic memory mapping area and device file synchronization tasks.
+ * When the memory mapping area changes, the file information is modified synchronously.
+ * However, there may be some problems:
+ * when the request is successfully authenticated but not synchronized to the local file in time,
+ * the server is passively shut down (terminated tasks or down) some data may be lost,
+ * leading to the risk of replay attacks. <br>
+ * When this interceptor is started, the cache directory will generate files for data storage.
+ * The file size is calculated according to the valid time of the request,
+ * The maximum number of accepted requests per second can be configured
+ * {@link SecureProperties#getMaximumConcurrencyPerSecond()},
+ * When the request exceeds the critical point,
+ * it possible thrown {@link BufferOverflowException} exception.
  *
- * @see SecureProperties#getLinkValidTime()
- * @see <a href="https://www.geeksforgeeks.org/replay-attack/">replay attack</a>
+ * @see RedisRepeatValidator
+ * @see ConcurrentHashMap
+ * @see MappedByteBuffer
  */
-public class MapRepeatValidator implements RepeatValidator, InitializingBean {
+public class MappedRepeatValidator implements RepeatValidator, InitializingBean {
     /**
      * Expired element cleanup threshold
      */
     private static final int QUERY_OVERFLOW = 1000;
+    /**
+     * Request data block size
+     */
+    private static final int BLOCK_SIZE = 24;
     /**
      * internal map
      */
@@ -60,15 +73,20 @@ public class MapRepeatValidator implements RepeatValidator, InitializingBean {
     /**
      * Link effective time
      */
-    private final int effectiveTime;
+    private final int effective;
+    /**
+     * Maximum number of concurrent
+     */
+    private final int maximum;
     /**
      * Memory mapped file
      */
     private MappedByteBuffer buffer;
 
-    public MapRepeatValidator(File cache, int effectiveTime) {
+    public MappedRepeatValidator(File cache, int effective, int maximum) {
         this.cache = cache;
-        this.effectiveTime = effectiveTime;
+        this.maximum = maximum;
+        this.effective = effective;
         log.debug("Map repeat validator is enable");
     }
 
@@ -105,7 +123,7 @@ public class MapRepeatValidator implements RepeatValidator, InitializingBean {
     private void initByteBuffer() throws IOException {
         try (RandomAccessFile raf = new RandomAccessFile(cache, "rw")) {
             try (FileChannel channel = raf.getChannel()) {
-                this.buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, effectiveTime * 102400);
+                this.buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, effective * maximum * BLOCK_SIZE);
             }
         }
     }
@@ -138,7 +156,7 @@ public class MapRepeatValidator implements RepeatValidator, InitializingBean {
                 break;
             }
             // expired data
-            if (this.isExpired(time, effectiveTime)) {
+            if (this.isExpired(time, effective)) {
                 buffer.position(pos + (2 << 3));
                 continue;
             }
@@ -158,7 +176,7 @@ public class MapRepeatValidator implements RepeatValidator, InitializingBean {
         // clear map
         ByteBuffer cache = ByteBuffer.allocate(buffer.capacity());
         map.forEach((sign, time) -> {
-            if (isExpired(time, effectiveTime)) {
+            if (isExpired(time, effective)) {
                 map.remove(sign);
             } else {
                 cache.putLong(time);
@@ -171,7 +189,7 @@ public class MapRepeatValidator implements RepeatValidator, InitializingBean {
             buffer.clear();
             buffer.put(cache.array());
             // 8 bit long + 16 bit digest
-            buffer.position(map.size() * 24);
+            buffer.position(map.size() * BLOCK_SIZE);
             // find vaild pointer
             force.set(true);
         } finally {

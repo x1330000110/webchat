@@ -1,9 +1,11 @@
 package com.socket.secure.constant;
 
-import com.socket.secure.filter.validator.impl.MapRepeatValidator;
+import com.socket.secure.filter.validator.impl.MappedRepeatValidator;
 import com.socket.secure.filter.validator.impl.RedisRepeatValidator;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+
+import java.nio.BufferOverflowException;
 
 /**
  * Security constants configuration mapping
@@ -25,12 +27,12 @@ public class SecureProperties {
      * otherwise there may be a problem of interception of expired requests. <br>
      * <b>Note:</b> Change this value, restart the server after waiting at least this configured time,
      * otherwise there may be a risk of replay attacks. <br>
-     * <b>Note:</b> If {@linkplain MapRepeatValidator} is used as a repeat request interceptor,
+     * <b>Note:</b> If {@linkplain MappedRepeatValidator} is used as a repeat request interceptor,
      * when the server is passively shut down, restart at least after this configuration time,
      * otherwise there may be a risk of replay attacks. <br>
      *
      * @see RedisRepeatValidator
-     * @see MapRepeatValidator
+     * @see MappedRepeatValidator
      * @see <a href="https://www.geeksforgeeks.org/replay-attack/">replay attack</a>
      */
     private int linkValidTime = 60;
@@ -53,6 +55,12 @@ public class SecureProperties {
      * and the corresponding client should also skip the generation of file signatures
      */
     private boolean verifyFileSignature = true;
+    /**
+     * The maximum number of concurrent events per second. If this number is exceeded,
+     * a {@link BufferOverflowException} exception may occur.
+     * This configuration is only valid for {@link MappedRepeatValidator}
+     */
+    private int maximumConcurrencyPerSecond = 1000;
 
     public int getDisguiseFilesCount() {
         return disguiseFilesCount;
@@ -92,5 +100,13 @@ public class SecureProperties {
 
     public void setVerifyFileSignature(boolean verify) {
         this.verifyFileSignature = verify;
+    }
+
+    public int getMaximumConcurrencyPerSecond() {
+        return maximumConcurrencyPerSecond;
+    }
+
+    public void setMaximumConcurrencyPerSecond(int maximumConcurrencyPerSecond) {
+        this.maximumConcurrencyPerSecond = maximumConcurrencyPerSecond;
     }
 }

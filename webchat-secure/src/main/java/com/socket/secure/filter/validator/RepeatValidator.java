@@ -1,6 +1,6 @@
 package com.socket.secure.filter.validator;
 
-import com.socket.secure.filter.validator.impl.MapRepeatValidator;
+import com.socket.secure.filter.validator.impl.MappedRepeatValidator;
 import com.socket.secure.filter.validator.impl.RedisRepeatValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
  * Repeated request validator
  *
  * @date 2021.8.2
- * @see MapRepeatValidator
+ * @see MappedRepeatValidator
  * @see RedisRepeatValidator
  */
 public interface RepeatValidator {
