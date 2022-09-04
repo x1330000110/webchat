@@ -25,10 +25,7 @@ public class SecureProperties {
      * The general request time will not exceed one minute, but in special scenarios (such as transferring large files),
      * the valid time verification can be appropriately extended,
      * otherwise there may be a problem of interception of expired requests. <br>
-     * <b>Note:</b> Change this value, restart the server after waiting at least this configured time,
-     * otherwise there may be a risk of replay attacks. <br>
-     * <b>Note:</b> If {@linkplain MappedRepeatValidator} is used as a repeat request interceptor,
-     * when the server is passively shut down, restart at least after this configuration time,
+     * <b>Note:</b> lower this value, restart the server after waiting at least original configured time,
      * otherwise there may be a risk of replay attacks. <br>
      *
      * @see RedisRepeatValidator
