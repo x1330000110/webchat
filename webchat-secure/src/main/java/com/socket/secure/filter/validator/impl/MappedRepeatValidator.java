@@ -1,8 +1,8 @@
 package com.socket.secure.filter.validator.impl;
 
-import cn.hutool.core.util.HexUtil;
 import com.socket.secure.constant.SecureProperties;
 import com.socket.secure.filter.validator.RepeatValidator;
+import org.apache.tomcat.util.buf.HexUtils;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.io.File;
@@ -21,9 +21,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Repeated request validator based on {@link ConcurrentHashMap}+{@link MappedByteBuffer} <br>
- * The underlying implementation depends on the NIO module,
- * and the concurrency capability will not be affected.
+ * This is a repeat request validator based on {@link ConcurrentHashMap} as storage
+ * and {@link MappedByteBuffer}+{@linkplain ReentrantLock} as NIO concurrent synchronization <br>
  * Internally contains periodic memory mapping area and device file synchronization tasks.
  * When the memory mapping area changes, the file information is modified synchronously.
  * However, there may be some problems:
@@ -37,9 +36,9 @@ import java.util.concurrent.locks.ReentrantLock;
  * When the request exceeds the critical point,
  * it possible thrown {@link BufferOverflowException} exception.
  *
- * @see RedisRepeatValidator
  * @see ConcurrentHashMap
  * @see MappedByteBuffer
+ * @see ReentrantLock
  */
 public class MappedRepeatValidator implements RepeatValidator, InitializingBean {
     /**
@@ -104,7 +103,7 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
             lock.lock();
             try {
                 buffer.putLong(time);
-                buffer.put(HexUtil.decodeHex(sign));
+                buffer.put(HexUtils.fromHexString(sign));
                 force.set(true);
             } finally {
                 lock.unlock();
@@ -163,7 +162,7 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
             byte[] signBytes = new byte[16];
             buffer.get(signBytes);
             // save data
-            map.put(HexUtil.encodeHexStr(signBytes), time);
+            map.put(HexUtils.toHexString(signBytes), time);
         }
         log.debug("Read {} pieces of data", map.size());
         clearExpiredData();
@@ -180,7 +179,7 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
                 map.remove(sign);
             } else {
                 cache.putLong(time);
-                cache.put(HexUtil.decodeHex(sign));
+                cache.put(HexUtils.fromHexString(sign));
             }
         });
         lock.lock();
