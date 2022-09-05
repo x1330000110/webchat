@@ -13,14 +13,6 @@ import java.util.List;
  */
 public interface SecureConstant {
     /**
-     * Supported controller flags
-     */
-    List<Class<? extends Annotation>> SUPPORT_CLASS_ANNOS = Arrays.asList(Controller.class, RestController.class);
-    /**
-     * Supported mathod flags
-     */
-    List<Class<? extends Annotation>> SUPPORT_METHOD_ANNOS = Arrays.asList(RequestMapping.class, GetMapping.class, PostMapping.class, PutMapping.class, DeleteMapping.class, PatchMapping.class);
-    /**
      * Camouflage picture Base64 format
      */
     byte[] CAMOUFLAGE_PICTURE_BYTES = Base64Utils.decodeFromString("R0lGODlhAQABAIAAAP///wAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQEAAAAACwAAAAAAQABAAACAkQBADs=");
