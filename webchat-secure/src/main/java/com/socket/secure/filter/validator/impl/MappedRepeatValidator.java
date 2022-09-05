@@ -86,7 +86,7 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
         this.cache = cache;
         this.maximum = maximum;
         this.effective = effective;
-        log.debug("Map repeat validator is enable");
+        log.debug("Mapped repeat validator is enable");
     }
 
     @Override
