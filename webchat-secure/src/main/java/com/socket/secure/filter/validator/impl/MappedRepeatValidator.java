@@ -102,8 +102,7 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
         if (value == null) {
             lock.lock();
             try {
-                buffer.putLong(time);
-                buffer.put(HexUtils.fromHexString(sign));
+                bufferPut(buffer, time, sign);
                 force.set(true);
             } finally {
                 lock.unlock();
@@ -119,6 +118,9 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
         restoreMapData();
     }
 
+    /**
+     * Initialize the file memory map area
+     */
     private void initByteBuffer() throws IOException {
         try (RandomAccessFile raf = new RandomAccessFile(cache, "rw")) {
             try (FileChannel channel = raf.getChannel()) {
@@ -127,6 +129,9 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
         }
     }
 
+    /**
+     * Initialize Memory Timing Mapped File Task
+     */
     private void initSyncMappedThread() {
         Executors.newSingleThreadScheduledExecutor(runnable -> {
             Thread thread = new Thread(runnable, "MappedByteBuffer Task");
@@ -145,6 +150,9 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
         }, 500, 500, TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * Restore Map data
+     */
     private void restoreMapData() {
         while (buffer.hasRemaining()) {
             long time = buffer.getLong();
@@ -178,8 +186,7 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
             if (isExpired(time, effective)) {
                 map.remove(sign);
             } else {
-                cache.putLong(time);
-                cache.put(HexUtils.fromHexString(sign));
+                bufferPut(cache, time, sign);
             }
         });
         lock.lock();
@@ -192,5 +199,13 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
         } finally {
             lock.unlock();
         }
+    }
+
+    /**
+     * write to buffer
+     */
+    private void bufferPut(ByteBuffer buffer, long time, String sign) {
+        buffer.putLong(time);
+        buffer.put(HexUtils.fromHexString(sign));
     }
 }
