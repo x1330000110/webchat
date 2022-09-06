@@ -9,10 +9,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -35,7 +34,8 @@ public class AnnotationSyntax implements BeanPostProcessor {
         // CHECK METHOD
         for (Method method : clazz.getDeclaredMethods()) {
             if (method.getAnnotation(Encrypted.class) != null && !isSupportMethod(method)) {
-                throw new BeanCreationException(beanName, "You should be mark @Encrypted on @RequestMapping or derived annotations [method: " + method.getName() + "()]");
+                String params = Arrays.stream(method.getParameterTypes()).map(Class::getSimpleName).collect(Collectors.joining(", "));
+                throw new BeanCreationException(beanName, "You should be mark @Encrypted on @RequestMapping or derived annotations [method: " + method.getName() + "(" + params + ")]");
             }
         }
         return bean;
