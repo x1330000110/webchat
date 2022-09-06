@@ -22,7 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * This is a repeat request validator based on {@link ConcurrentHashMap} as storage
- * and {@link MappedByteBuffer}+{@linkplain ReentrantLock} as NIO concurrent synchronization <br>
+ * and {@link MappedByteBuffer}+{@linkplain ReentrantLock} as NIO concurrent asynchronization <br>
  * Internally contains periodic memory mapping area and device file synchronization tasks.
  * When the memory mapping area changes, the file information is modified synchronously.
  * However, there may be some problems:
