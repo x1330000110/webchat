@@ -34,7 +34,7 @@ public class SecureHandler {
     }
 
     @ExceptionHandler(InvalidRequestException.class)
-    private ResponseEntity<Object> isValidationFailedException(Exception e) {
+    private ResponseEntity<Object> isInvalidRequestException(Exception e) {
         log.warn(e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
     }
