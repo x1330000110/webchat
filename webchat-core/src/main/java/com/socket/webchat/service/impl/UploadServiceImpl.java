@@ -123,10 +123,10 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
     @Scheduled(cron = "0 0 0 * * ?")
     public void clearExpiredResources() {
         LambdaQueryWrapper<ChatRecordFile> wrapper = Wrappers.lambdaQuery();
-        wrapper.likeLeft(ChatRecordFile::getPath, FilePath.BLOB.getName());
+        wrapper.likeRight(ChatRecordFile::getPath, FilePath.BLOB.getName());
         // 清理4天前的数据（第三天的文件还没有过期）
         int days = Constants.FILE_EXPIRED_DAYS + 1;
-        String condition = StrUtil.format("NOW() - INTERVAL {} SECOND", days);
+        String condition = StrUtil.format("NOW() - INTERVAL {} DAY", days);
         String column = Wss.columnToString(ChatRecord::getCreateTime);
         wrapper.getExpression().add(() -> column, SqlKeyword.LT, () -> condition);
         List<String> paths = list(wrapper).stream().map(ChatRecordFile::getPath).collect(Collectors.toList());
