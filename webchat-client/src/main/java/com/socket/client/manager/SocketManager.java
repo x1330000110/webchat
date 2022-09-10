@@ -29,8 +29,12 @@ import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * 在线用户信息管理
@@ -39,7 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 @RequiredArgsConstructor
 public class SocketManager {
-    private final ConcurrentHashMap<String, WsUser> onlineUsers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, WsUser> onlines = new ConcurrentHashMap<>();
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ShieldUserMapper shieldUserMapper;
     private final RecordService recordService;
@@ -61,12 +65,12 @@ public class SocketManager {
             return null;
         }
         // 检查重复登录
-        WsUser repeat = onlineUsers.get(user.getUid());
+        WsUser repeat = onlines.get(user.getUid());
         if (repeat != null) {
             repeat.logout(Callback.REPEAT_LOGIN.of());
         }
         // 登录到聊天室
-        onlineUsers.put(user.getUid(), user);
+        onlines.put(user.getUid(), user);
         return user;
     }
 
@@ -77,9 +81,9 @@ public class SocketManager {
      * @param sender 发起者
      */
     public void sendAll(WsMsg wsmsg, WsUser sender) {
-        List<String> exclude = this.getShieldList(sender);
+        List<String> exclude = redisManager.getShield(sender.getUid());
         String uid = sender.getUid();
-        for (WsUser wsuser : onlineUsers.values()) {
+        for (WsUser wsuser : onlines.values()) {
             String target = wsuser.getUid();
             if (!target.equals(uid) && exclude.stream().noneMatch(target::equals)) {
                 wsmsg.send(wsuser, Remote.ASYNC);
@@ -96,7 +100,7 @@ public class SocketManager {
      */
     public void sendAll(Callback tips, MessageType type, SysUser sender) {
         WsMsg sysmsg = WsMsg.buildsys(tips, type, sender);
-        for (WsUser wsuser : onlineUsers.values()) {
+        for (WsUser wsuser : onlines.values()) {
             if (!wsuser.getUid().equals(sender.getUid())) {
                 sysmsg.send(wsuser, Remote.ASYNC);
             }
@@ -110,7 +114,7 @@ public class SocketManager {
      * @return {@link WsUser}
      */
     public WsUser getOnline(String uid) {
-        return onlineUsers.get(uid);
+        return onlines.get(uid);
     }
 
     /**
@@ -144,49 +148,47 @@ public class SocketManager {
         // 消息发起者
         String suid = self.getUid();
         // 与此用户关联的所有未读消息
-        Map<String, SortedSet<ChatRecord>> messagesMap = recordService.getUnreadMessages(suid);
+        Map<String, SortedSet<ChatRecord>> messages = recordService.getUnreadMessages(suid);
         // 链接数据
-        List<UserPreview> collect = new ArrayList<>();
-        for (SysUser sysUser : userList) {
-            UserPreview preview = new UserPreview(sysUser);
-            preview.setOnline(onlineUsers.get(preview.getUid()) != null);
-            String uid = preview.getUid();
-            // 用户为自己 添加屏蔽列表
-            if (uid.equals(suid)) {
-                preview.setShields(this.getShieldList(self));
-                collect.add(preview);
-                continue;
-            }
-            // 从Redis获取未读消息（Redis统计里忽略了语音消息）
-            int count = redisManager.getUnreadCount(suid, uid);
-            if (count > 0) {
-                SortedSet<ChatRecord> records = messagesMap.get(uid);
-                ChatRecord first;
-                if (records != null && (first = records.first()) != null) {
-                    preview.setPreview(this.parseMessage(first));
-                    preview.setLastTime(first.getCreateTime().getTime());
-                    preview.setUnreadCount(Math.min(records.size(), 99));
-                }
-            }
-            // 清除敏感信息
-            preview.setIp(null).setHash(null).setPlatform(preview.isOnline() ? preview.getPlatform() : null);
-            collect.add(preview);
-        }
-        // 如果是游客 添加到列表（数据库找不到信息）
-        if (self.isGuest()) {
-            UserPreview preview = new UserPreview(self);
-            preview.setShields(Collections.emptyList());
-            collect.add(preview);
-        }
+        List<UserPreview> collect = userList.stream()
+                .map(UserPreview::new)
+                // 在线状态
+                .peek(e -> e.setOnline(onlines.containsKey(e.getUid())))
+                // 脱敏信息
+                .peek(UserPreview::desensit)
+                // 同步未读消息
+                .peek(preview -> syncUnreadMessage(preview, messages, suid))
+                // 转为List
+                .collect(Collectors.toList());
+        // 添加游客到列表（数据库不包含游客信息）
+        onlines.values().stream()
+                .filter(WsUser::isGuest)
+                .map(UserPreview::new)
+                .forEach(collect::add);
+        // 查找自己并设置屏蔽列表
+        collect.stream()
+                .filter(e -> e.getUid().equals(suid))
+                .findFirst()
+                .ifPresent(e -> e.setShields(redisManager.getShield(e.getUid())));
         return collect;
     }
 
     /**
-     * parse preview message
+     * 同步未读消息
      */
-    private String parseMessage(ChatRecord record) {
-        MessageType type = record.getType();
-        return type == MessageType.TEXT ? record.getContent() : '[' + type.getPreview() + ']';
+    private void syncUnreadMessage(UserPreview preview, Map<String, SortedSet<ChatRecord>> message, String sender) {
+        String target = preview.getUid();
+        int count = redisManager.getUnreadCount(sender, target);
+        if (count > 0) {
+            SortedSet<ChatRecord> records = message.get(target);
+            ChatRecord first;
+            if (records != null && (first = records.first()) != null) {
+                MessageType type = first.getType();
+                preview.setPreview(type == MessageType.TEXT ? first.getContent() : '[' + type.getPreview() + ']');
+                preview.setLastTime(first.getCreateTime().getTime());
+                preview.setUnreadCount(Math.min(records.size(), 99));
+            }
+        }
     }
 
     /**
@@ -267,19 +269,10 @@ public class SocketManager {
     }
 
     /**
-     * 获取指定用户的屏蔽列表（优先从缓存加载）<br>
-     *
-     * @param user 用户信息
-     */
-    private List<String> getShieldList(WsUser user) {
-        return redisManager.getShield(user.getUid());
-    }
-
-    /**
      * 检查指定用户是否被目标屏蔽（优先通过缓存加载）
      */
     public boolean shield(WsUser secure, WsUser target) {
-        return this.getShieldList(secure).contains(target.getUid());
+        return redisManager.getShield(secure.getUid()).contains(target.getUid());
     }
 
     /**
@@ -290,10 +283,11 @@ public class SocketManager {
      * @return 若成功屏蔽返回true, 取消屏蔽返回false
      */
     public boolean shieldTarget(WsUser user, WsUser target) {
-        List<String> shields = this.getShieldList(user);
+        String uid = user.getUid();
+        List<String> shields = redisManager.getShield(uid);
         String tuid = target.getUid();
         LambdaUpdateWrapper<ShieldUser> wrapper = Wrappers.lambdaUpdate();
-        wrapper.eq(ShieldUser::getUid, user.getUid());
+        wrapper.eq(ShieldUser::getUid, uid);
         wrapper.eq(ShieldUser::getTarget, tuid);
         // 包含此目标uid，取消屏蔽
         if (shields.contains(tuid)) {
@@ -307,7 +301,7 @@ public class SocketManager {
         // 更新失败则添加
         if (shieldUserMapper.update(null, wrapper) == 0) {
             ShieldUser suser = new ShieldUser();
-            suser.setUid(user.getUid());
+            suser.setUid(uid);
             suser.setTarget(tuid);
             shieldUserMapper.insert(suser);
         }
@@ -393,7 +387,7 @@ public class SocketManager {
      */
     public void remove(WsUser user) {
         user.logout(null);
-        onlineUsers.remove(user.getUid());
+        onlines.remove(user.getUid());
     }
 
     /**

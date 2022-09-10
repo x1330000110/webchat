@@ -39,4 +39,13 @@ public class UserPreview extends SysUser {
     public UserPreview(SysUser sysUser) {
         BeanUtil.copyProperties(sysUser, this);
     }
+
+    /**
+     * 脱敏信息处理
+     */
+    public void desensit() {
+        setIp(null);
+        setHash(null);
+        this.preview = online ? preview : null;
+    }
 }

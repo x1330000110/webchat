@@ -166,10 +166,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             sysUser.setAge(Math.toIntExact(between));
         }
         wrapper.eq(SysUser::getUid, Wss.getUserId());
-        super.update(sysUser, wrapper);
         // 更新缓存
-        this.updatePrincipal(Wss.getUser()::setName, sysUser.getName());
-        return true;
+        boolean update = this.update(sysUser, wrapper);
+        if (update) {
+            this.updatePrincipal(Wss.getUser()::setName, sysUser.getName());
+        }
+        return update;
     }
 
     @Override
@@ -194,10 +196,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(SysUser::getUid, Wss.getUserId());
         wrapper.set(SysUser::getHeadimgurl, path);
-        super.update(wrapper);
         // 更新缓存
-        this.updatePrincipal(Wss.getUser()::setHeadimgurl, path);
-        return path;
+        boolean update = this.update(wrapper);
+        if (update) {
+            this.updatePrincipal(Wss.getUser()::setHeadimgurl, path);
+        }
+        return update ? path : null;
     }
 
     @Override

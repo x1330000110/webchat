@@ -17,6 +17,7 @@ import javax.websocket.CloseReason;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import static javax.websocket.CloseReason.CloseCodes;
 
@@ -131,7 +132,8 @@ public class WsUser extends SysUser {
     /**
      * 加密消息
      */
-    public String encrypt(WsMsg wsmsg) {
+    public String encrypt(Supplier<WsMsg> supplier) {
+        WsMsg wsmsg = supplier.get();
         if (wsmsg != null) {
             return AES.encrypt(JSONUtil.toJsonStr(wsmsg), http_session);
         }
@@ -141,7 +143,9 @@ public class WsUser extends SysUser {
     /**
      * 解密消息
      */
-    public WsMsg decrypt(String json) {
-        return JSONUtil.toBean(AES.decrypt(json, http_session), WsMsg.class);
+    public WsMsg decrypt(Supplier<String> supplier) {
+        WsMsg wsmsg = JSONUtil.toBean(AES.decrypt(supplier.get(), http_session), WsMsg.class);
+        wsmsg.setUid(getUid());
+        return wsmsg;
     }
 }

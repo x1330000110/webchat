@@ -54,18 +54,16 @@ public class SocketServiceImpl implements SocketService {
         if (self != null) {
             Collection<UserPreview> userList = socketManager.getUserList(self);
             WsMsg.buildsys(Callback.JOIN_INIT.of(), MessageType.INIT, userList).send(self, Remote.ASYNC);
-            // 用户加入通知（排除游客）
-            if (!self.isGuest()) {
-                socketManager.sendAll(Callback.USER_LOGIN.of(self), MessageType.JOIN, self);
-                socketManager.checkMute(self);
-            }
+            // 用户加入通知
+            socketManager.sendAll(Callback.USER_LOGIN.of(self), MessageType.JOIN, self);
+            socketManager.checkMute(self);
         }
     }
 
     @OnClose
     public void onClose() {
-        // 退出通知（排除游客）
-        if (self != null && !self.isGuest()) {
+        // 退出通知
+        if (self != null) {
             socketManager.sendAll(Callback.USER_LOGOUT.of(self), MessageType.EXIT, self);
             socketManager.remove(self);
         }
@@ -78,21 +76,26 @@ public class SocketServiceImpl implements SocketService {
 
     @OnMessage
     public String onMessage(String json) {
-        WsMsg wsmsg = self.decrypt(json);
-        wsmsg.setUid(self.getUid());
+        WsMsg wsmsg = self.decrypt(() -> json);
         WsUser target = socketManager.getUser(wsmsg.getTarget());
-        // 检查目标有效性
-        if (!wsmsg.isGroup() && target == null) {
-            return self.encrypt(WsMsg.buildsys(Callback.USER_NOT_FOUND.of(), MessageType.DANGER));
-        }
-        return self.encrypt(wsmsg.isSysmsg() ? parseSysMsg(wsmsg, target) : parseUserMsg(wsmsg, target));
+        return self.encrypt(() -> {
+            // 目标不存在（只有群组为null）
+            if (!wsmsg.isGroup() && target == null) {
+                return WsMsg.buildsys(Callback.USER_NOT_FOUND.of(), MessageType.DANGER);
+            }
+            // 目标是游客
+            if (target != null && target.isGuest()) {
+                return WsMsg.buildsys(Callback.COMMAND_INCORRECT.of(), MessageType.DANGER);
+            }
+            return wsmsg.isSysmsg() ? parseSysMsg(wsmsg, target) : parseUserMsg(wsmsg, target);
+        });
     }
 
     @Override
     public WsMsg parseUserMsg(WsMsg wsmsg, WsUser target) {
         // 游客发言检查
         if (self.isGuest()) {
-            return WsMsg.buildsys(Callback.GUEST_NOT_AUTHORIZED.of(), MessageType.DANGER);
+            return WsMsg.buildsys(Callback.REJECT_EXECUTE.of(), MessageType.DANGER);
         }
         // 禁言状态无法发送消息
         if (socketManager.isMute(self.getUid())) {
@@ -151,7 +154,7 @@ public class SocketServiceImpl implements SocketService {
     public WsMsg parseSysMsg(WsMsg wsmsg, WsUser target) {
         // 游客操作检查
         if (self.isGuest()) {
-            return WsMsg.buildsys(Callback.GUEST_NOT_AUTHORIZED.of(), MessageType.DANGER);
+            return WsMsg.buildsys(Callback.REJECT_EXECUTE.of(), MessageType.DANGER);
         }
         switch (wsmsg.getType()) {
             case SHIELD:

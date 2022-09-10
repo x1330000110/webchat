@@ -41,6 +41,9 @@ public class UserController {
     @PostMapping("/avatar")
     public HttpStatus updateAvatar(MultipartFile blob) throws IOException {
         String mapping = service.updateAvatar(blob.getBytes());
+        if (mapping == null) {
+            return HttpStatus.FAILURE.message("修改失败");
+        }
         return HttpStatus.SUCCESS.body("修改成功", mapping);
     }
 
