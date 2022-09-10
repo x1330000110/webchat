@@ -131,7 +131,7 @@ public class WsMsg {
             return;
         }
         // 发送消息
-        String encrypt = target.encrypt(this);
+        String encrypt = target.encrypt(() -> this);
         switch (type) {
             case ASYNC:
                 session.getAsyncRemote().sendText(encrypt);
