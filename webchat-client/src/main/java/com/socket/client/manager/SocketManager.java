@@ -134,17 +134,17 @@ public class SocketManager {
     /**
      * 获取聊天室用户（个人资料包含已屏蔽的用户列表）
      *
-     * @param sender 当前登录的用户
+     * @param self 当前登录的用户
      */
-    public Collection<UserPreview> getUserList(WsUser sender) {
+    public Collection<UserPreview> getUserList(WsUser self) {
         // 用户列表
         LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery(SysUser.class);
         wrapper.eq(SysUser::isDeleted, 0);
         List<SysUser> userList = sysUserMapper.selectList(wrapper);
         // 消息发起者
-        String senderUid = sender.getUid();
+        String suid = self.getUid();
         // 与此用户关联的所有未读消息
-        Map<String, SortedSet<ChatRecord>> messagesMap = recordService.getUnreadMessages(senderUid);
+        Map<String, SortedSet<ChatRecord>> messagesMap = recordService.getUnreadMessages(suid);
         // 链接数据
         List<UserPreview> collect = new ArrayList<>();
         for (SysUser sysUser : userList) {
@@ -152,13 +152,13 @@ public class SocketManager {
             preview.setOnline(onlineUsers.get(preview.getUid()) != null);
             String uid = preview.getUid();
             // 用户为自己 添加屏蔽列表
-            if (uid.equals(senderUid)) {
-                preview.setShields(this.getShieldList(sender));
+            if (uid.equals(suid)) {
+                preview.setShields(this.getShieldList(self));
                 collect.add(preview);
                 continue;
             }
             // 从Redis获取未读消息（Redis统计里忽略了语音消息）
-            int count = redisManager.getUnreadCount(senderUid, uid);
+            int count = redisManager.getUnreadCount(suid, uid);
             if (count > 0) {
                 SortedSet<ChatRecord> records = messagesMap.get(uid);
                 ChatRecord first;
@@ -170,6 +170,12 @@ public class SocketManager {
             }
             // 清除敏感信息
             preview.setIp(null).setHash(null).setPlatform(preview.isOnline() ? preview.getPlatform() : null);
+            collect.add(preview);
+        }
+        // 如果是游客 添加到列表（数据库找不到信息）
+        if (self.isGuest()) {
+            UserPreview preview = new UserPreview(self);
+            preview.setShields(Collections.emptyList());
             collect.add(preview);
         }
         return collect;

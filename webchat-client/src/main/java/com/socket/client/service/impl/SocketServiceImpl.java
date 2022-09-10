@@ -54,15 +54,18 @@ public class SocketServiceImpl implements SocketService {
         if (self != null) {
             Collection<UserPreview> userList = socketManager.getUserList(self);
             WsMsg.buildsys(Callback.JOIN_INIT.of(), MessageType.INIT, userList).send(self, Remote.ASYNC);
-            socketManager.sendAll(Callback.USER_LOGIN.of(self), MessageType.JOIN, self);
-            socketManager.checkMute(self);
+            // 用户加入通知（排除游客）
+            if (!self.isGuest()) {
+                socketManager.sendAll(Callback.USER_LOGIN.of(self), MessageType.JOIN, self);
+                socketManager.checkMute(self);
+            }
         }
     }
 
     @OnClose
     public void onClose() {
-        // 解决ws共享问题
-        if (self != null) {
+        // 退出通知（排除游客）
+        if (self != null && !self.isGuest()) {
             socketManager.sendAll(Callback.USER_LOGOUT.of(self), MessageType.EXIT, self);
             socketManager.remove(self);
         }

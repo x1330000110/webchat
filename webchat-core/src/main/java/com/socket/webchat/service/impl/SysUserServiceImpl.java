@@ -75,13 +75,15 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // shiro登录
         SecurityUtils.getSubject().login(new UsernamePasswordToken(uid, condition.getPass(), condition.isAuto()));
         // 更新登录信息
-        LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
-        wrapper.eq(uid.contains("@") ? SysUser::getEmail : SysUser::getUid, uid);
-        wrapper.set(SysUser::getIp, Wss.getRemoteIP());
-        wrapper.set(SysUser::getLoginTime, LocalDateTime.now());
-        String userAgent = Requests.get().getHeader(Header.USER_AGENT.getValue());
-        wrapper.set(SysUser::getPlatform, Wss.getPlatform(userAgent));
-        super.update(wrapper);
+        if (uid != null) {
+            LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
+            wrapper.eq(uid.contains("@") ? SysUser::getEmail : SysUser::getUid, uid);
+            wrapper.set(SysUser::getIp, Wss.getRemoteIP());
+            wrapper.set(SysUser::getLoginTime, LocalDateTime.now());
+            String userAgent = Requests.get().getHeader(Header.USER_AGENT.getValue());
+            wrapper.set(SysUser::getPlatform, Wss.getPlatform(userAgent));
+            super.update(wrapper);
+        }
     }
 
     @Override

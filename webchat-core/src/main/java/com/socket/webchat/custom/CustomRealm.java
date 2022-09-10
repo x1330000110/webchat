@@ -96,12 +96,12 @@ public class CustomRealm extends AuthorizingRealm {
         super.setCredentialsMatcher(new SimpleCredentialsMatcher() {
             @Override
             public boolean doCredentialsMatch(AuthenticationToken token, AuthenticationInfo info) {
-                String input = new String((char[]) token.getCredentials());
                 SysUser user = info.getPrincipals().oneByType(SysUser.class);
                 // 游客登录
                 if (user.getRole() == UserRole.GUEST) {
                     return true;
                 }
+                String input = new String((char[]) token.getCredentials());
                 // 微信默认密码登录
                 if (StrUtil.equals(input, Constants.WX_DEFAULT_PASSWORD)) {
                     checkLimit(user.getUid());
