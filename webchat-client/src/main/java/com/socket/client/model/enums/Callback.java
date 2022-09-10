@@ -17,6 +17,7 @@ public enum Callback {
     REJECT_EXECUTE("操作被拒绝：权限不足"),
     COMMAND_INCORRECT("命令不正确"),
     WITHDRAW_TIMEDOUT("超过{}的消息无法撤回"),
+    GUEST_NOT_AUTHORIZED("游客没有此权限"),
     // --------- 加入/退出 --------//
     USER_LOGIN("{} 加入聊天室"),
     USER_LOGOUT("{} 退出聊天室"),

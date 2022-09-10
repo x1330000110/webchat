@@ -87,6 +87,10 @@ public class SocketServiceImpl implements SocketService {
 
     @Override
     public WsMsg parseUserMsg(WsMsg wsmsg, WsUser target) {
+        // 游客发言检查
+        if (self.isGuest()) {
+            return WsMsg.buildsys(Callback.GUEST_NOT_AUTHORIZED.of(), MessageType.DANGER);
+        }
         // 禁言状态无法发送消息
         if (socketManager.isMute(self.getUid())) {
             return WsMsg.buildsys(Callback.SELF_IS_MUTE.of(), MessageType.DANGER);
@@ -142,6 +146,10 @@ public class SocketServiceImpl implements SocketService {
 
     @Override
     public WsMsg parseSysMsg(WsMsg wsmsg, WsUser target) {
+        // 游客操作检查
+        if (self.isGuest()) {
+            return WsMsg.buildsys(Callback.GUEST_NOT_AUTHORIZED.of(), MessageType.DANGER);
+        }
         switch (wsmsg.getType()) {
             case SHIELD:
                 return this.shield(target);

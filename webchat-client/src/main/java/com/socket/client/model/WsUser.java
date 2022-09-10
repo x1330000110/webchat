@@ -108,6 +108,13 @@ public class WsUser extends SysUser {
     }
 
     /**
+     * 检查当前用户是否是游客
+     */
+    public boolean isGuest() {
+        return getRole() == UserRole.GUEST;
+    }
+
+    /**
      * 当前登录的用户是否是管理员
      */
     public boolean isAdmin() {
