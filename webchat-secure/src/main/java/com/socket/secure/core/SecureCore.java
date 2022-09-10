@@ -99,7 +99,7 @@ public class SecureCore {
         for (String str : certificate.split(SecureConstant.ENCRYPT_PUBKEY_SPLIT)) {
             int length = str.length(), count = 0;
             char[] chars = new char[length >> 1];
-            for (int i = 0; i < str.length(); i += 2) {
+            for (int i = 0; i < length; i += 2) {
                 chars[count++] = (char) Integer.parseInt(str.substring(i, i + 2), 35);
             }
             sb.append(RSA.decrypt(String.valueOf(chars), prikey));
