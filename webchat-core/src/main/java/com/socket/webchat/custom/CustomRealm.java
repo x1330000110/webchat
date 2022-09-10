@@ -1,6 +1,7 @@
 package com.socket.webchat.custom;
 
 import cn.hutool.core.util.DesensitizedUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -8,6 +9,7 @@ import com.socket.webchat.constant.Constants;
 import com.socket.webchat.mapper.SysUserMapper;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.enums.RedisTree;
+import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.runtime.AccountException;
 import com.socket.webchat.runtime.OffsiteLoginException;
 import com.socket.webchat.util.*;
@@ -63,10 +65,19 @@ public class CustomRealm extends AuthorizingRealm {
      */
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
-        LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
         String uid = (String) token.getPrincipal();
-        wrapper.eq(uid.contains("@") ? SysUser::getEmail : SysUser::getUid, uid);
-        SysUser user = sysUserMapper.selectOne(wrapper);
+        SysUser user;
+        // 检查游客登录
+        if (uid == null) {
+            user = new SysUser();
+            user.setUid(RandomUtil.randomNumbers(6));
+            user.setName("游客" + user.getUid());
+            user.setRole(UserRole.GUEST);
+        } else {
+            LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
+            wrapper.eq(uid.contains("@") ? SysUser::getEmail : SysUser::getUid, uid);
+            user = sysUserMapper.selectOne(wrapper);
+        }
         // 无效账号
         if (user == null) {
             return null;
@@ -87,7 +98,11 @@ public class CustomRealm extends AuthorizingRealm {
             public boolean doCredentialsMatch(AuthenticationToken token, AuthenticationInfo info) {
                 String input = new String((char[]) token.getCredentials());
                 SysUser user = info.getPrincipals().oneByType(SysUser.class);
-                // 默认微信登录
+                // 游客登录
+                if (user.getRole() == UserRole.GUEST) {
+                    return true;
+                }
+                // 微信默认密码登录
                 if (StrUtil.equals(input, Constants.WX_DEFAULT_PASSWORD)) {
                     checkLimit(user.getUid());
                     return true;
