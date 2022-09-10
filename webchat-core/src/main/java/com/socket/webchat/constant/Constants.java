@@ -31,7 +31,7 @@ public interface Constants {
     /**
      * 微信登录时设置的默认密码
      */
-    String DEFAULT_PASSWORD = "IBOGSEVJVDKNPWOPIBUEQJKNOJWPFHIBGUOEJQNKCMOLWQOFPIHBUO";
+    String WX_DEFAULT_PASSWORD = "IBOGSEVJVDKNPWOPIBUEQJKNOJWPFHIBGUOEJQNKCMOLWQOFPIHBUO";
     /**
      * 聊天记录历史记录同步数量
      */

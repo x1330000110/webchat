@@ -59,7 +59,7 @@ public class WxloginServiceImpl implements WxloginService {
                 user.setUid(uid);
                 // 微信公众平台规范变动：2021-12-27起测试号等可能无法取到部分信息
                 user.setName(StrUtil.emptyToDefault(wxuser.getNickname(), "用户" + uid));
-                user.setHash(Bcrypt.digest(Constants.DEFAULT_PASSWORD));
+                user.setHash(Bcrypt.digest(Constants.WX_DEFAULT_PASSWORD));
                 sysUserService.save(user);
             }
             // 设置用户UID到Redis
@@ -77,7 +77,7 @@ public class WxloginServiceImpl implements WxloginService {
         if (redisUuid.isEmpty()) {
             return false;
         }
-        sysUserService.login(new LoginCondition(redisUuid.get(), Constants.DEFAULT_PASSWORD));
+        sysUserService.login(new LoginCondition(redisUuid.get(), Constants.WX_DEFAULT_PASSWORD));
         return redisUuid.remove();
     }
 
