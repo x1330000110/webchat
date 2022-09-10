@@ -21,8 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * This repeat request validator based on {@link ConcurrentHashMap} as storage
- * and {@link MappedByteBuffer}+{@linkplain ReentrantLock} as NIO concurrent asynchronization <br>
+ * Repeat request validator based on {@link ConcurrentHashMap}+{@link MappedByteBuffer}<br>
  * Internally contains memory mapping area and periodic file synchronization tasks.
  * When the memory mapping area changes, the file information is modified synchronously.
  * However, there may be some problems:
