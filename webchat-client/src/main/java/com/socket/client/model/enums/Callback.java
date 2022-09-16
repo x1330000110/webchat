@@ -38,8 +38,8 @@ public enum Callback {
     GLOBAL_ADMIN("{} 已被所有者任命为管理员"),
     GLOBA_USERS("{} 已被所有者取消管理员权限"),
     // ------ 屏蔽和检查 --------//
-    TARGET_SHIELD("您已屏蔽当前用户，发送消息请先解除"),
-    SELF_SHIELD("消息未能送达，您已被目标用户屏蔽"),
+    TARGET_SHIELD("消息未发出，您屏蔽了对方"),
+    SELF_SHIELD("消息已发出，但被对方拒收了"),
     SHIELD_USER("您已将 {} 消息屏蔽"),
     CANCEL_SHIELD("您已取消屏蔽 {} 消息"),
     // 手动设置消息
