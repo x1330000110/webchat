@@ -63,7 +63,7 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
     /**
      * memory mapped lock
      */
-    private final ReentrantLock lock = new ReentrantLock(true);
+    private final ReentrantLock lock = new ReentrantLock();
     /**
      * cache file
      */
