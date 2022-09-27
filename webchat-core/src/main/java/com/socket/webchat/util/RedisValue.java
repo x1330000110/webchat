@@ -1,7 +1,5 @@
 package com.socket.webchat.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -10,15 +8,14 @@ import org.springframework.data.redis.support.collections.*;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
- * {@link ValueOperations} Shortcut operation
+ * {@link ValueOperations} Shortcut operation <br>
+ * Please do not use this class in transaction/pipelines
  */
 public class RedisValue<V> {
-    private static final String WRANNING = "This is not a normative implementation." +
-            " Unless there are special circumstances, otherwise this method is not recommended: {}";
-    private static final Logger log = LoggerFactory.getLogger(RedisValue.class);
     private final RedisOperations<String, V> operations;
     private final BoundValueOperations<String, V> opsvalue;
     private final String key;
@@ -46,7 +43,6 @@ public class RedisValue<V> {
 
             @Override
             public V remove(int index) {
-                log.warn(WRANNING, "remove(int)");
                 V old = get(index);
                 remove(old);
                 return old;
@@ -58,7 +54,6 @@ public class RedisValue<V> {
         return new DefaultRedisMap<String, V>(template.boundHashOps(key)) {
             @Override
             public boolean containsValue(Object value) {
-                log.warn(WRANNING, "containsValue(Object)");
                 //noinspection SuspiciousMethodCalls
                 return values().contains(value);
             }
@@ -77,16 +72,14 @@ public class RedisValue<V> {
      * Check if the current KEY exists
      */
     public boolean exist() {
-        Boolean obj = operations.hasKey(key);
-        return obj != null && obj;
+        return Objects.requireNonNull(operations.hasKey(key));
     }
 
     /**
      * Remove the current KEY
      */
     public boolean remove() {
-        Boolean obj = operations.delete(key);
-        return obj != null && obj;
+        return Objects.requireNonNull(operations.delete(key));
     }
 
     /**
@@ -123,8 +116,7 @@ public class RedisValue<V> {
      * @return Return true if set successfully
      */
     public boolean setIfAbsent(V value) {
-        Boolean absent = opsvalue.setIfAbsent(value);
-        return absent != null && absent;
+        return Objects.requireNonNull(opsvalue.setIfAbsent(value));
     }
 
     /**
@@ -133,8 +125,7 @@ public class RedisValue<V> {
      * @return Return true if set successfully
      */
     public boolean setIfAbsent(V value, long second) {
-        Boolean absent = opsvalue.setIfAbsent(value, second, TimeUnit.SECONDS);
-        return absent != null && absent;
+        return Objects.requireNonNull(opsvalue.setIfAbsent(value, second, TimeUnit.SECONDS));
     }
 
     /**
@@ -143,8 +134,7 @@ public class RedisValue<V> {
      * @return Return true if set successfully
      */
     public boolean setIfPresent(V value) {
-        Boolean present = opsvalue.setIfPresent(value);
-        return present != null && present;
+        return Objects.requireNonNull(opsvalue.setIfPresent(value));
     }
 
     /**
@@ -153,8 +143,7 @@ public class RedisValue<V> {
      * @return Return true if set successfully
      */
     public boolean setIfPresent(V value, long second) {
-        Boolean present = opsvalue.setIfPresent(value, second, TimeUnit.SECONDS);
-        return present != null && present;
+        return Objects.requireNonNull(opsvalue.setIfPresent(value, second, TimeUnit.SECONDS));
     }
 
     /**
@@ -165,8 +154,7 @@ public class RedisValue<V> {
      */
     public boolean setExpired(long time) {
         if (time > 0) {
-            Boolean expire = operations.expire(key, time, TimeUnit.SECONDS);
-            return expire != null && expire;
+            return Objects.requireNonNull(operations.expire(key, time, TimeUnit.SECONDS));
         }
         remove();
         return false;
