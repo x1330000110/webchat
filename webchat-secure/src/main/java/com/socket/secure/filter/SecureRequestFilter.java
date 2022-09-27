@@ -1,5 +1,6 @@
 package com.socket.secure.filter;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.servlet.ServletUtil;
 import cn.hutool.http.Header;
 import cn.hutool.http.useragent.UserAgent;
@@ -66,16 +67,18 @@ public final class SecureRequestFilter implements Filter {
                 // Expired request validation
                 long time = wrapper.getTimestamp();
                 if (validator.isExpired(time, properties.getLinkValidTime())) {
-                    throw new ExpiredRequestException("URL expired request interception");
+                    String template = "URL expired request interception [Request time: {}, System time: {}]";
+                    throw new ExpiredRequestException(StrUtil.format(template, time, System.currentTimeMillis()));
                 }
                 // Repeat request validation
-                time = properties.isExactRequestTime() ? time : (time / 1000) * 1000;
                 if (validator.isRepeated(time, wrapper.sign())) {
-                    throw new RepeatedRequestException("URL repeated request interception");
+                    String template = "URL repeated request interception [Request time: {}, System time: {}]";
+                    throw new RepeatedRequestException(StrUtil.format(template, time, System.currentTimeMillis()));
                 }
                 // Signature verification
                 if (!wrapper.matchSignature(properties.isVerifyFileSignature())) {
-                    throw new InvalidRequestException("Signature verification failed");
+                    String template = "Signature verification failed: {}";
+                    throw new InvalidRequestException(StrUtil.format(template, wrapper.sign()));
                 }
                 request = wrapper;
             } catch (InvalidRequestException | IllegalArgumentException e) {

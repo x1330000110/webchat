@@ -67,8 +67,11 @@ public class SecureProperties {
         this.disguiseFilesCount = count;
     }
 
+    /**
+     * Get the current request configuration millisecond level time
+     */
     public int getLinkValidTime() {
-        return linkValidTime;
+        return exactRequestTime ? linkValidTime * 1000 : linkValidTime / 1000 * 1000;
     }
 
     public void setLinkValidTime(int time) {
@@ -81,10 +84,6 @@ public class SecureProperties {
 
     public void setRedisKeyPrefix(String prefix) {
         this.redisKeyPrefix = prefix;
-    }
-
-    public boolean isExactRequestTime() {
-        return exactRequestTime;
     }
 
     public void setExactRequestTime(boolean exact) {
@@ -103,7 +102,7 @@ public class SecureProperties {
         return maximumConcurrencyPerSecond;
     }
 
-    public void setMaximumConcurrencyPerSecond(int maximumConcurrencyPerSecond) {
-        this.maximumConcurrencyPerSecond = maximumConcurrencyPerSecond;
+    public void setMaximumConcurrencyPerSecond(int scond) {
+        this.maximumConcurrencyPerSecond = scond;
     }
 }

@@ -23,7 +23,7 @@ public interface RepeatValidator {
      * @return link expired return true
      */
     default boolean isExpired(long timestamp, long effectiveTime) {
-        return (System.currentTimeMillis() - timestamp) / 1000 > effectiveTime;
+        return System.currentTimeMillis() - timestamp > effectiveTime;
     }
 
     /**

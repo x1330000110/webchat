@@ -123,7 +123,7 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
     private void initByteBuffer() throws IOException {
         try (RandomAccessFile raf = new RandomAccessFile(cache, "rw")) {
             try (FileChannel channel = raf.getChannel()) {
-                this.buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, effective * maximum * BLOCK_SIZE);
+                this.buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, effective / 1000 * maximum * BLOCK_SIZE);
             }
         }
     }
@@ -182,7 +182,7 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
         // clear map
         ByteBuffer cache = ByteBuffer.allocate(buffer.capacity());
         map.forEach((sign, time) -> {
-            if (isExpired(time, effective)) {
+            if (this.isExpired(time, effective)) {
                 map.remove(sign);
             } else {
                 bufferPut(cache, time, sign);
