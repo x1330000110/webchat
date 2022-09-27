@@ -17,8 +17,6 @@ import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
 import org.apache.ibatis.reflection.property.PropertyNamer;
 import org.apache.shiro.SecurityUtils;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -66,14 +64,6 @@ public class Wss {
      */
     public static <T> String columnToString(SFunction<T, ?> lambda) {
         return StrUtil.toUnderlineCase(PropertyNamer.methodToProperty(LambdaUtils.resolve(lambda).getImplMethodName()));
-    }
-
-    /**
-     * Get spring managed beans
-     */
-    public static <T> T getBean(Class<T> clazz) {
-        WebApplicationContext context = WebApplicationContextUtils.findWebApplicationContext(Sessions.get().getServletContext());
-        return Opt.ofNullable(context).map(c -> c.getBean(clazz)).get();
     }
 
     /**
