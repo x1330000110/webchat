@@ -129,7 +129,7 @@ public class FTPClient {
         try (Ftp ftp = getClient()) {
             for (String path : paths) {
                 if (!ftp.delFile(path)) {
-                    log.warn("移除指定文件失败：{}", path);
+                    log.warn("Failed to remove specified file: {}", path);
                 }
             }
         } catch (IOException | IORuntimeException e) {
