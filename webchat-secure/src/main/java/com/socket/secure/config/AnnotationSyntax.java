@@ -4,15 +4,15 @@ import com.socket.secure.filter.anno.Encrypted;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * This class to check if {@linkplain com.socket.secure.filter.anno.Encrypted @Encrypted} marker location is legal
@@ -23,35 +23,24 @@ public class AnnotationSyntax implements BeanPostProcessor {
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         Class<?> clazz = bean.getClass();
+        if (AnnotationUtils.findAnnotation(clazz, Component.class) == null) {
+            return bean;
+        }
         Encrypted anno = clazz.getAnnotation(Encrypted.class);
         // CHECK CLASS
         if (anno != null) {
-            if (isSupportClass(clazz)) {
+            if (AnnotationUtils.findAnnotation(clazz, Controller.class) != null) {
                 return bean;
             }
             throw new BeanCreationException(beanName, "You should be mark @Encrypted on @Controller or @RestController");
         }
         // CHECK METHOD
         for (Method method : clazz.getDeclaredMethods()) {
-            if (method.getAnnotation(Encrypted.class) != null && !isSupportMethod(method)) {
+            if (method.getAnnotation(Encrypted.class) != null && AnnotationUtils.findAnnotation(method, RequestMapping.class) == null) {
                 String params = Arrays.stream(method.getParameterTypes()).map(Class::getSimpleName).collect(Collectors.joining(", "));
                 throw new BeanCreationException(beanName, "You should be mark @Encrypted on @RequestMapping or derived annotations [method: " + method.getName() + "(" + params + ")]");
             }
         }
         return bean;
-    }
-
-    /**
-     * Check if this method is protected by encryption
-     */
-    private boolean isSupportMethod(Method method) {
-        return Stream.of(RequestMapping.class, GetMapping.class, PostMapping.class, PutMapping.class, DeleteMapping.class).anyMatch(e -> method.getAnnotation(e) != null);
-    }
-
-    /**
-     * Check if this controller is protected by encryption
-     */
-    private boolean isSupportClass(Class<?> clazz) {
-        return Stream.of(Controller.class, RestController.class).anyMatch(e -> clazz.getAnnotation(e) != null);
     }
 }
