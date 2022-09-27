@@ -57,8 +57,7 @@ public class WxloginServiceImpl implements WxloginService {
                 user = SysUser.newInstance();
                 BeanUtil.copyProperties(wxuser, user);
                 user.setUid(uid);
-                // 微信公众平台规范变动：2021-12-27起测试号等可能无法取到部分信息
-                user.setName(StrUtil.emptyToDefault(wxuser.getNickname(), "用户" + uid));
+                user.setName(wxuser.getNickname());
                 user.setHash(Bcrypt.digest(Constants.WX_DEFAULT_PASSWORD));
                 sysUserService.save(user);
             }
