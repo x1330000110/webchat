@@ -118,10 +118,19 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             email = user.getEmail();
             Assert.notEmpty(email, "该账号未绑定邮箱信息", IllegalStateException::new);
         }
-        this.checkEmail(email);
+        // 检查重复发送间隔
+        String key = RedisTree.INTERIM_EMAIL.concat(email);
+        RedisValue<Object> value = RedisValue.of(template, key);
+        Assert.isFalse(value.exist(), "验证码发送过于频繁", IllegalStateException::new);
+        // 检查发送次数上限
+        String key2 = RedisTree.LIMIT_EMAIL.concat(email);
+        long count = RedisValue.of(template, key2).incr(1, TimeUnit.HOURS.toSeconds(Constants.EMAIL_LIMIT_SENDING_INTERVAL));
+        Assert.isTrue(count <= 3, "该账号验证码每日发送次数已达上限", IllegalStateException::new);
+        value.set(-1, Constants.EMAIL_SENDING_INTERVAL);
+        // 发送邮件
         String code = sender.send(email);
         // 保存到redis 10分钟
-        RedisValue.of(template, RedisTree.EMAIL.concat(email)).set(code, Constants.EMAIL_CODE_VALID_TIME * 60);
+        RedisValue.of(template, RedisTree.EMAIL.concat(email)).set(code, TimeUnit.MINUTES.toSeconds(Constants.EMAIL_CODE_VALID_TIME));
         return DesensitizedUtil.email(email);
     }
 
@@ -238,23 +247,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         SysUser user = this.get(wrapper);
         Assert.notNull(user, "找不到此用户信息", AccountException::new);
         return user;
-    }
-
-    /**
-     * 邮箱发送验证
-     *
-     * @param email 邮箱
-     */
-    private void checkEmail(String email) {
-        // 检查重复发送间隔
-        String key = RedisTree.INTERIM_EMAIL.concat(email);
-        RedisValue<Object> value = RedisValue.of(template, key);
-        Assert.isFalse(value.exist(), "验证码发送过于频繁", IllegalStateException::new);
-        // 检查发送次数上限
-        String key2 = RedisTree.LIMIT_EMAIL.concat(email);
-        long count = RedisValue.of(template, key2).incr(1, TimeUnit.HOURS.toSeconds(Constants.EMAIL_LIMIT_SENDING_INTERVAL));
-        Assert.isTrue(count <= 3, "该账号验证码每日发送次数已达上限", IllegalStateException::new);
-        value.set(-1, Constants.EMAIL_SENDING_INTERVAL);
     }
 
     /**
