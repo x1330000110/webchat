@@ -3,11 +3,13 @@ package com.socket.webchat.controller;
 import cn.hutool.core.codec.Base64;
 import cn.hutool.http.ContentType;
 import com.socket.webchat.constant.Constants;
+import com.socket.webchat.constant.properties.WxProperties;
 import com.socket.webchat.custom.WeChatRedirect;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.service.WxloginService;
+import com.socket.webchat.util.RedirectUtil;
 import com.socket.webchat.util.RedisValue;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -21,13 +23,9 @@ import java.nio.charset.StandardCharsets;
 @RequiredArgsConstructor
 @RequestMapping("/wechat")
 public class WxLoginController {
-    private static final String CLIENT_URL = "https://f12.ink";
-    private static final String SUCCESS = CLIENT_URL + "/status/success.html";
-    private static final String EXPIRED = CLIENT_URL + "/status/failed.html?key=expired";
-    private static final String LOCK = CLIENT_URL + "/status/failed.html?key=lock";
-
     private final RedisTemplate<String, Integer> template;
     private final WxloginService wxloginService;
+    private final WxProperties properties;
 
     @PostMapping("/state/{uuid}")
     public HttpStatus state(@PathVariable String uuid) {
@@ -49,32 +47,21 @@ public class WxLoginController {
 
     @WeChatRedirect("/login")
     public void login(String code, String state, HttpServletResponse response) throws IOException {
+        String domain = properties.getDomainService();
         response.setContentType(ContentType.TEXT_HTML.toString(StandardCharsets.UTF_8));
         SysUser user = wxloginService.authorize(code, state);
         boolean wxMobile = state.endsWith(Constants.WX_MOBILE);
-        if (user != null) {
-            // 微信浏览器直接跳转标识
-            if (wxMobile) {
-                // 永久限制登录
-                if (user.isDeleted()) {
-                    response.sendRedirect(LOCK);
-                    return;
-                }
-                // 临时限制登录
-                long time = RedisValue.of(template, RedisTree.LOCK.concat(user.getUid())).getExpired();
-                if (time > 0) {
-                    response.sendRedirect(LOCK + "&time=" + time);
-                    return;
-                }
-                // 微信登录
-                wxloginService.login(state);
-                response.sendRedirect(CLIENT_URL);
-                return;
-            }
-            // 手机扫码登录处理
-            response.sendRedirect(SUCCESS);
-            return;
-        }
-        response.sendRedirect(EXPIRED);
+        // 二维码过期
+        RedirectUtil.redirectIfNull(user, response, domain + "/status/failed.html?key=expired");
+        // 永久限制登录
+        RedirectUtil.redirectIfTrue(user.isDeleted(), response, domain + "/status/failed.html?key=lock");
+        // 临时限制登录
+        long time = RedisValue.of(template, RedisTree.LOCK.concat(user.getUid())).getExpired();
+        RedirectUtil.redirectIfTrue(time > 0, response, domain + "/status/failed.html?key=lock&time=" + time);
+        // 手机扫码登录处理
+        RedirectUtil.redirectIfTrue(!wxMobile, response, domain + "/status/success.html");
+        // 扫码登录
+        wxloginService.login(state);
+        RedirectUtil.redirect(response, domain);
     }
 }
