@@ -14,38 +14,38 @@ public class Assert extends cn.hutool.core.lang.Assert {
     }
 
     public static <X extends Throwable> void isFalse(boolean b, String m, Function<String, ? extends X> f) throws X {
-        isTrue(!b, m, f);
+        Assert.isTrue(!b, m, f);
     }
 
     public static <X extends Throwable> void isNull(Object object, String m, Function<String, ? extends X> f) throws X {
-        isTrue(object == null, m, f);
+        Assert.isTrue(object == null, m, f);
     }
 
     public static <X extends Throwable> void notNull(Object object, String m, Function<String, ? extends X> f) throws X {
-        isTrue(object != null, m, f);
+        Assert.isTrue(object != null, m, f);
     }
 
     public static <X extends Throwable> void isEmpty(CharSequence sequence, String m, Function<String, ? extends X> f) throws X {
-        isTrue(sequence == null || sequence.length() == 0, m, f);
+        Assert.isTrue(sequence == null || sequence.length() == 0, m, f);
     }
 
     public static <X extends Throwable> void notEmpty(CharSequence sequence, String m, Function<String, ? extends X> f) throws X {
-        isTrue(sequence != null && sequence.length() > 0, m, f);
+        Assert.isTrue(sequence != null && sequence.length() > 0, m, f);
     }
 
     public static <X extends Throwable, T> void isEmpty(T[] ts, String m, Function<String, ? extends X> f) throws X {
-        isTrue(ts == null || ts.length == 0, m, f);
+        Assert.isTrue(ts == null || ts.length == 0, m, f);
     }
 
     public static <X extends Throwable, T> void notEmpty(T[] ts, String m, Function<String, ? extends X> f) throws X {
-        isTrue(ts != null && ts.length > 0, m, f);
+        Assert.isTrue(ts != null && ts.length > 0, m, f);
     }
 
     public static <X extends Throwable, T> void equals(Object a, Object b, String m, Function<String, ? extends X> f) throws X {
-        isTrue(Objects.equals(a, b), m, f);
+        Assert.isTrue(Objects.equals(a, b), m, f);
     }
 
     public static <X extends Throwable, T> void notEquals(Object a, Object b, String m, Function<String, ? extends X> f) throws X {
-        isTrue(!Objects.equals(a, b), m, f);
+        Assert.isTrue(!Objects.equals(a, b), m, f);
     }
 }
