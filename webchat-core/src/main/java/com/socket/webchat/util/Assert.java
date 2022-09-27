@@ -7,45 +7,63 @@ import java.util.function.Function;
  * Assert异常扩展
  */
 public class Assert extends cn.hutool.core.lang.Assert {
-    public static <X extends Throwable> void isTrue(boolean b, String m, Function<String, ? extends X> f) throws X {
+    public static <X extends RuntimeException> void isTrue(boolean b, String m, Function<String, ? extends X> f) throws X {
         if (!b) {
             throw f.apply(m);
         }
     }
 
-    public static <X extends Throwable> void isFalse(boolean b, String m, Function<String, ? extends X> f) throws X {
-        Assert.isTrue(!b, m, f);
+    public static <X extends RuntimeException> void isFalse(boolean b, String m, Function<String, ? extends X> f) throws X {
+        if (b) {
+            throw f.apply(m);
+        }
     }
 
-    public static <X extends Throwable> void isNull(Object object, String m, Function<String, ? extends X> f) throws X {
-        Assert.isTrue(object == null, m, f);
+    public static <X extends RuntimeException> void isNull(Object obj, String m, Function<String, ? extends X> f) throws X {
+        if (obj != null) {
+            throw f.apply(m);
+        }
     }
 
-    public static <X extends Throwable> void notNull(Object object, String m, Function<String, ? extends X> f) throws X {
-        Assert.isTrue(object != null, m, f);
+    public static <X extends RuntimeException> void notNull(Object obj, String m, Function<String, ? extends X> f) throws X {
+        if (obj == null) {
+            throw f.apply(m);
+        }
     }
 
-    public static <X extends Throwable> void isEmpty(CharSequence sequence, String m, Function<String, ? extends X> f) throws X {
-        Assert.isTrue(sequence == null || sequence.length() == 0, m, f);
+    public static <X extends RuntimeException> void isEmpty(CharSequence sequence, String m, Function<String, ? extends X> f) throws X {
+        if (sequence != null && sequence.length() > 0) {
+            throw f.apply(m);
+        }
     }
 
-    public static <X extends Throwable> void notEmpty(CharSequence sequence, String m, Function<String, ? extends X> f) throws X {
-        Assert.isTrue(sequence != null && sequence.length() > 0, m, f);
+    public static <X extends RuntimeException> void notEmpty(CharSequence sequence, String m, Function<String, ? extends X> f) throws X {
+        if (sequence == null || sequence.length() == 0) {
+            throw f.apply(m);
+        }
     }
 
-    public static <X extends Throwable, T> void isEmpty(T[] ts, String m, Function<String, ? extends X> f) throws X {
-        Assert.isTrue(ts == null || ts.length == 0, m, f);
+    public static <X extends RuntimeException, T> void isEmpty(T[] ts, String m, Function<String, ? extends X> f) throws X {
+        if (ts != null && ts.length > 0) {
+            throw f.apply(m);
+        }
     }
 
-    public static <X extends Throwable, T> void notEmpty(T[] ts, String m, Function<String, ? extends X> f) throws X {
-        Assert.isTrue(ts != null && ts.length > 0, m, f);
+    public static <X extends RuntimeException, T> void notEmpty(T[] ts, String m, Function<String, ? extends X> f) throws X {
+        if (ts == null || ts.length == 0) {
+            throw f.apply(m);
+        }
     }
 
-    public static <X extends Throwable, T> void equals(Object a, Object b, String m, Function<String, ? extends X> f) throws X {
-        Assert.isTrue(Objects.equals(a, b), m, f);
+    public static <X extends RuntimeException, T> void equals(Object a, Object b, String m, Function<String, ? extends X> f) throws X {
+        if (!Objects.equals(a, b)) {
+            throw f.apply(m);
+        }
     }
 
-    public static <X extends Throwable, T> void notEquals(Object a, Object b, String m, Function<String, ? extends X> f) throws X {
-        Assert.isTrue(!Objects.equals(a, b), m, f);
+    public static <X extends RuntimeException, T> void notEquals(Object a, Object b, String m, Function<String, ? extends X> f) throws X {
+        if (Objects.equals(a, b)) {
+            throw f.apply(m);
+        }
     }
 }
