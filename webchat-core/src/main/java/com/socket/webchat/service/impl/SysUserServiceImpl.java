@@ -43,7 +43,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -68,7 +67,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 Assert.notNull(email, UnknownAccountException::new);
             }
             RedisValue<Object> value = RedisValue.of(template, RedisTree.EMAIL.concat(email));
-            Assert.isTrue(Objects.equals(value.get(), code), "验证码不正确", AccountException::new);
+            Assert.equals(value.get(), code, "验证码不正确", AccountException::new);
             Requests.set(Constants.OFFSITE);
             value.remove();
         }
@@ -94,7 +93,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         Assert.isNull(this.get(wrapper), "昵称已被使用", IllegalStateException::new);
         // 验证邮箱
         RedisValue<Object> emailValue = RedisValue.of(template, RedisTree.EMAIL.concat(condition.getEmail()));
-        Assert.isTrue(Objects.equals(condition.getCode(), emailValue.get()), "验证码不正确", IllegalStateException::new);
+        Assert.equals(condition.getCode(), emailValue.get(), "验证码不正确", IllegalStateException::new);
         emailValue.remove();
         // 注册
         SysUser init = SysUser.newInstance();
@@ -117,7 +116,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             Assert.notNull(user, "找不到相关账号信息", IllegalStateException::new);
             Assert.isFalse(user.isDeleted(), "该账号已被永久限制登录", IllegalStateException::new);
             email = user.getEmail();
-            Assert.isFalse(StrUtil.isEmpty(email), "该账号未绑定邮箱信息", IllegalStateException::new);
+            Assert.notEmpty(email, "该账号未绑定邮箱信息", IllegalStateException::new);
         }
         this.checkEmail(email);
         String code = sender.send(email);
@@ -137,7 +136,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
         RedisValue<Object> redisValue = RedisValue.of(template, RedisTree.EMAIL.concat(email));
         String code = (String) redisValue.get();
-        Assert.isTrue(Objects.equals(code, condition.getCode()), "邮箱验证码不正确", IllegalStateException::new);
+        Assert.equals(code, condition.getCode(), "邮箱验证码不正确", IllegalStateException::new);
         // 通过邮箱修改密码
         wrapper.eq(SysUser::getEmail, email);
         wrapper.set(SysUser::getHash, Bcrypt.digest(condition.getPassword()));
@@ -213,7 +212,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             RedisValue<Object> selfValue = RedisValue.of(template, RedisTree.EMAIL.concat(selfemail));
             String selfcode = (String) selfValue.get();
             // 对比验证码
-            Assert.isTrue(Objects.equals(selfcode, condition.getSelfcode()), "原邮箱验证码不正确", IllegalStateException::new);
+            Assert.equals(selfcode, condition.getSelfcode(), "原邮箱验证码不正确", IllegalStateException::new);
         }
         // 验证新邮箱
         String newemail = condition.getUser();
@@ -222,7 +221,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         Assert.isNull(this.get(wrapper), "该邮箱已被其他账号绑定", IllegalStateException::new);
         RedisValue<Object> newValue = RedisValue.of(template, RedisTree.EMAIL.concat(newemail));
         String newcode = (String) newValue.get();
-        Assert.isTrue(Objects.equals(newcode, condition.getNewcode()), "新邮箱验证码不正确", IllegalStateException::new);
+        Assert.equals(newcode, condition.getNewcode(), "新邮箱验证码不正确", IllegalStateException::new);
         // 更新邮箱
         wrapper.clear();
         wrapper.eq(SysUser::getUid, user.getUid());

@@ -1,12 +1,6 @@
 package com.socket.secure.constant;
 
-import org.springframework.stereotype.Controller;
 import org.springframework.util.Base64Utils;
-import org.springframework.web.bind.annotation.*;
-
-import java.lang.annotation.Annotation;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * safe-constant-pool
