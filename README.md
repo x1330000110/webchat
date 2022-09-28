@@ -7,7 +7,7 @@
 
 #### 系统架构
 
-```json
+```
 ---------------
 webchat-client ------------> SocketManager -----------> RedisManager
 ---------------
