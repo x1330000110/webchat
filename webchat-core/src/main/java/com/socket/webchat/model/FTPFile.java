@@ -16,7 +16,7 @@ public class FTPFile {
     private String name;
 
     public FTPFile(FilePath path, String name) {
-        this.parent = path.getName();
+        this.parent = path.getDirectory();
         this.name = name;
     }
 
