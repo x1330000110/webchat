@@ -12,10 +12,12 @@ import lombok.Data;
 @Data
 public class FTPFile {
     public static final char separator = '/';
+    private final FilePath type;
     private String parent;
     private String name;
 
     public FTPFile(FilePath path, String name) {
+        this.type = path;
         this.parent = path.getDirectory();
         this.name = name;
     }

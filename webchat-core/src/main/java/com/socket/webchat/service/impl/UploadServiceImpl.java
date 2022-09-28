@@ -4,7 +4,6 @@ import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.enums.SqlKeyword;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.webchat.constant.Constants;
@@ -33,6 +32,7 @@ import javax.annotation.PostConstruct;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -125,13 +125,19 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
     public void clearExpiredResources() {
         LambdaQueryWrapper<ChatRecordFile> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ChatRecordFile::getType, FilePath.BLOB);
-        // 清理4天前的数据（第三天的文件还没有过期）
-        int days = Constants.FILE_EXPIRED_DAYS + 1;
-        String condition = StrUtil.format("NOW() - INTERVAL {} DAY", days);
-        String column = Wss.columnToString(ChatRecord::getCreateTime);
-        wrapper.getExpression().add(() -> column, SqlKeyword.LT, () -> condition);
         List<ChatRecordFile> list = list(wrapper);
-        Map<String, String> maps = list.stream().collect(Collectors.toMap(ChatRecordFile::getHash, ChatRecordFile::getPath));
-        client.deleteFiles(maps);
+        LocalDateTime offset = LocalDate.now().atStartOfDay().minusDays(Constants.FILE_EXPIRED_DAYS);
+        // 获取没有过期的文件hash
+        List<String> noexpired = list.stream()
+                .filter(e -> LocalDateTimeUtil.of(e.getCreateTime()).isAfter(offset))
+                .map(ChatRecordFile::getHash)
+                .collect(Collectors.toList());
+        // 获取过期FTP文件
+        Map<String, String> collect = list.stream()
+                .filter(e -> LocalDateTimeUtil.of(e.getCreateTime()).isBefore(offset))
+                .filter(e -> !noexpired.contains(e.getHash()))
+                .collect(Collectors.toMap(ChatRecordFile::getHash, ChatRecordFile::getPath, (a, b) -> a));
+        // 删除过期文件
+        client.deleteFiles(collect);
     }
 }

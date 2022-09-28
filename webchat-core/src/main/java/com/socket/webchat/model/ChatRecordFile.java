@@ -37,8 +37,9 @@ public class ChatRecordFile extends BaseModel {
 
     public ChatRecordFile(String mid, FTPFile file, long size) {
         this.mid = mid;
+        this.size = size;
         this.path = file.getPath();
         this.hash = file.getName();
-        this.size = size;
+        this.type = file.getType();
     }
 }
