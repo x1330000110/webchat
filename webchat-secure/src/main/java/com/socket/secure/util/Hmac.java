@@ -1,12 +1,10 @@
 package com.socket.secure.util;
 
-import cn.hutool.core.io.IoUtil;
 import com.socket.secure.runtime.InvalidRequestException;
 import org.apache.tomcat.util.buf.HexUtils;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 
