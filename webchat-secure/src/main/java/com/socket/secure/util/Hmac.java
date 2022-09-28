@@ -1,11 +1,11 @@
 package com.socket.secure.util;
 
+import cn.hutool.core.io.IoUtil;
 import com.socket.secure.runtime.InvalidRequestException;
 import org.apache.tomcat.util.buf.HexUtils;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
@@ -79,21 +79,6 @@ public enum Hmac {
             engine.update(data, 0, data.length);
             return HexUtils.toHexString(engine.doFinal());
         } catch (GeneralSecurityException e) {
-            throw new InvalidRequestException(e.getMessage());
-        }
-    }
-
-    /**
-     * digest InputStream
-     *
-     * @param key    hmac key
-     * @param stream InputStream
-     * @return digeset hex string
-     */
-    public String digestHex(byte[] key, InputStream stream) {
-        try {
-            return digestHex(key, stream.readAllBytes());
-        } catch (IOException e) {
             throw new InvalidRequestException(e.getMessage());
         }
     }

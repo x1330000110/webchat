@@ -1,5 +1,6 @@
 package com.socket.secure.filter;
 
+import cn.hutool.core.io.IoUtil;
 import cn.hutool.http.ContentType;
 import cn.hutool.json.JSONConfig;
 import cn.hutool.json.JSONObject;
@@ -237,7 +238,8 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
         if (vaildPart) {
             for (Part part : part) {
                 if (part.getSubmittedFileName() != null) {
-                    joiner.add(Hmac.MD5.digestHex(SecureConstant.HMAC_SALT, part.getInputStream()));
+                    byte[] bytes = IoUtil.readBytes(part.getInputStream());
+                    joiner.add(Hmac.MD5.digestHex(SecureConstant.HMAC_SALT, bytes));
                 }
             }
         }
