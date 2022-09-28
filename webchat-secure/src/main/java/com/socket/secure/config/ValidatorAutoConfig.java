@@ -32,6 +32,6 @@ public class ValidatorAutoConfig {
     @ConditionalOnMissingBean
     public RepeatValidator repeatValidator() {
         File cache = new File(System.getProperty("java.io.tmpdir"), "MapRepeatValidatorData");
-        return new MappedRepeatValidator(cache, properties.getLinkValidTime(), properties.getMaximumConcurrencyPerSecond());
+        return new MappedRepeatValidator(cache, properties);
     }
 }

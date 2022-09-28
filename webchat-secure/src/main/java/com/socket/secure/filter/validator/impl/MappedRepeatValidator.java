@@ -81,10 +81,10 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
      */
     private MappedByteBuffer buffer;
 
-    public MappedRepeatValidator(File cache, int effective, int maximum) {
+    public MappedRepeatValidator(File cache, SecureProperties properties) {
         this.cache = cache;
-        this.maximum = maximum;
-        this.effective = effective;
+        this.effective = properties.getLinkValidTime();
+        this.maximum = properties.getMaximumConcurrencyPerSecond();
         log.debug("Mapped repeat validator is enable");
     }
 
