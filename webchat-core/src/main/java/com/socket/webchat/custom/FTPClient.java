@@ -128,8 +128,10 @@ public class FTPClient {
      */
     public void deleteFiles(Map<String, String> maps) {
         try (Ftp ftp = getClient()) {
-            List<org.apache.commons.net.ftp.FTPFile> files = ftp.lsFiles(FilePath.BLOB.getDirectory(), null);
-            files.stream().map(org.apache.commons.net.ftp.FTPFile::getName).forEach(maps::remove);
+            ftp.lsFiles(FilePath.BLOB.getDirectory(), null)
+                    .stream()
+                    .map(org.apache.commons.net.ftp.FTPFile::getName)
+                    .forEach(maps::remove);
             maps.forEach((hash, path) -> {
                 if (existFile(FilePath.BLOB, hash) && !ftp.delFile(path)) {
                     log.warn("移除FTP文件失败：{}", path);
