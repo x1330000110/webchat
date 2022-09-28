@@ -151,7 +151,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
-    public boolean updateMaterial(SysUser sysUser) {
+    public SysUser updateMaterial(SysUser sysUser) {
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
         // 清空uid
         sysUser.setUid(null);
@@ -166,7 +166,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             sysUser.setAge(Math.toIntExact(between));
         }
         wrapper.eq(SysUser::getUid, Wss.getUserId());
-        return super.update(sysUser, wrapper);
+        return super.update(sysUser, wrapper) ? sysUser : null;
     }
 
     @Override
@@ -195,7 +195,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
-    public boolean updateEmail(EmailCondition condition) {
+    public String updateEmail(EmailCondition condition) {
         // 验证原邮箱
         SysUser user = Wss.getUser();
         String selfemail = user.getEmail();
@@ -215,7 +215,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         wrapper.clear();
         wrapper.eq(SysUser::getUid, user.getUid());
         wrapper.set(SysUser::getEmail, newemail);
-        return super.update(wrapper);
+        return super.update(wrapper) ? condition.getNewcode() : null;
     }
 
     @Override
