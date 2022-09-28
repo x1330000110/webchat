@@ -41,7 +41,7 @@ public class WxAuth2Request implements BeanPostProcessor, ApplicationListener<Ap
     /**
      * 获取当前包前缀
      */
-    public String getPackagePrefix() {
+    private String getPackagePrefix() {
         String packageName = getClass().getPackageName();
         int idx = packageName.indexOf(".", packageName.indexOf(".") + 1);
         return packageName.substring(0, idx > -1 ? idx : packageName.length());
