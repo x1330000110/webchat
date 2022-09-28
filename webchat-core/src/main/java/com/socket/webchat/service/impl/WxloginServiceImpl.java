@@ -24,7 +24,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -96,10 +95,5 @@ public class WxloginServiceImpl implements WxloginService {
     public String getWxFastUrl(String uuid) {
         redisClient.set(RedisTree.WX_UUID.concat(uuid), StrUtil.EMPTY, Constants.QR_CODE_EXPIRATION_TIME);
         return wxAuth2Request.getWxLoginURL(uuid);
-    }
-
-    @PostConstruct
-    public void init() {
-        redisClient.set("123", "345", 10000);
     }
 }
