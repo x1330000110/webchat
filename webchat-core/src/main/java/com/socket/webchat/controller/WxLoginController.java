@@ -54,12 +54,12 @@ public class WxLoginController {
         // 二维码过期
         RedirectUtil.redirectIfNull(user, response, domain + "/status/failed.html?key=expired");
         // 永久限制登录
-        RedirectUtil.redirectIfTrue(user.isDeleted(), response, domain + "/status/failed.html?key=lock");
+        RedirectUtil.redirectIf(user.isDeleted(), response, domain + "/status/failed.html?key=lock");
         // 临时限制登录
         long time = RedisValue.of(template, RedisTree.LOCK.concat(user.getUid())).getExpired();
-        RedirectUtil.redirectIfTrue(time > 0, response, domain + "/status/failed.html?key=lock&time=" + time);
+        RedirectUtil.redirectIf(time > 0, response, domain + "/status/failed.html?key=lock&time=" + time);
         // 手机扫码登录处理
-        RedirectUtil.redirectIfTrue(!wxMobile, response, domain + "/status/success.html");
+        RedirectUtil.redirectIf(!wxMobile, response, domain + "/status/success.html");
         // 扫码登录
         wxloginService.login(state);
         RedirectUtil.redirect(response, domain);

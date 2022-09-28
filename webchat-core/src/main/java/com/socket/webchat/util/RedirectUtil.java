@@ -24,24 +24,40 @@ public class RedirectUtil {
         throw EXCEPTION;
     }
 
+    /**
+     * <code>TRUE</code>判定的转发操作
+     *
+     * @param bool     转发条件
+     * @param response {@linkplain HttpServletResponse}
+     * @param url      跳转地址
+     * @see #redirect(HttpServletResponse, String)
+     */
+    public static void redirectIf(boolean bool, HttpServletResponse response, String url) {
+        if (bool) {
+            redirect(response, url);
+        }
+    }
+
+    /**
+     * <code>NULL</code>判定的转发操作
+     *
+     * @param obj      为空时转发
+     * @param response {@linkplain HttpServletResponse}
+     * @param url      跳转地址
+     * @see #redirect(HttpServletResponse, String)
+     */
     public static void redirectIfNull(Object obj, HttpServletResponse response, String url) {
         if (obj == null) {
             redirect(response, url);
         }
     }
 
-
-    public static void redirectIfTrue(boolean bool, HttpServletResponse response, String url) {
-        if (bool) {
-            redirect(response, url);
-        }
-    }
-
     @ExceptionHandler(RedirectException.class)
     private void isRedirectException() {
-        // ignore
+        // Ignore
     }
 
     static class RedirectException extends RuntimeException {
+        // Inner exception class
     }
 }
