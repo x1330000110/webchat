@@ -17,9 +17,12 @@ import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
 import org.apache.ibatis.reflection.property.PropertyNamer;
 import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.PrincipalCollection;
+import org.apache.shiro.subject.SimplePrincipalCollection;
+import org.apache.shiro.subject.Subject;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
@@ -67,27 +70,6 @@ public class Wss {
     }
 
     /**
-     * Get the domain name of the current host
-     */
-    public static String getHost() {
-        HttpServletRequest request = Requests.get();
-        StringBuilder url = new StringBuilder();
-        String scheme = request.getScheme();
-        int port = request.getServerPort();
-        if (port < 0) {
-            port = 80;
-        }
-        url.append(scheme);
-        url.append("://");
-        url.append(request.getServerName());
-        if (port != 80 && port != 443) {
-            url.append(':');
-            url.append(port);
-        }
-        return url.toString();
-    }
-
-    /**
      * 转为通用时间 (1分钟 1小时 1天)
      */
     public static String universal(long second) {
@@ -101,14 +83,14 @@ public class Wss {
     }
 
     /**
-     * Get the real IP address of the client
+     * 获取客户端的真实IP地址
      */
     public static String getRemoteIP() {
         return ServletUtil.getClientIP(Requests.get());
     }
 
     /**
-     * Get the province where the specified IP address is located
+     * 获取指定IP地址所在的省份
      */
     public static String getProvince(String ip) {
         String body = HttpRequest.get("http://www.cip.cc/".concat(ip)).execute().body();
@@ -117,7 +99,7 @@ public class Wss {
     }
 
     /**
-     * Get the current device login platform
+     * 获取当前设备登录平台
      */
     public static String getPlatform(String userAgent) {
         Platform platform = UserAgentParser.parse(userAgent).getPlatform();
@@ -133,5 +115,19 @@ public class Wss {
             return false;
         }
         return Constants.GROUP.equals(record.getTarget()) || userId.equals(record.getUid()) || userId.equals(record.getTarget());
+    }
+
+    /**
+     * 更新Shiro凭证
+     *
+     * @param function lambda
+     * @param value    新的值
+     */
+    public static <T> void updatePrincipal(Function<T, SysUser> function, T value) {
+        SysUser user = function.apply(value);
+        Subject subject = SecurityUtils.getSubject();
+        PrincipalCollection principals = subject.getPrincipals();
+        String realm = principals.getRealmNames().iterator().next();
+        subject.runAs(new SimplePrincipalCollection(user, realm));
     }
 }

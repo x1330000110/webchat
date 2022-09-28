@@ -32,9 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.authc.UsernamePasswordToken;
-import org.apache.shiro.subject.PrincipalCollection;
-import org.apache.shiro.subject.SimplePrincipalCollection;
-import org.apache.shiro.subject.Subject;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -44,7 +41,6 @@ import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -150,12 +146,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         wrapper.eq(SysUser::getEmail, email);
         wrapper.set(SysUser::getHash, Bcrypt.digest(condition.getPassword()));
         redisValue.remove();
-        boolean update = super.update(wrapper);
-        // 更新凭证
-        if (update && user != null) {
-            this.updatePrincipal(user::setEmail, email);
-        }
-        return update;
+        return super.update(wrapper);
     }
 
     @Override
@@ -174,12 +165,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             sysUser.setAge(Math.toIntExact(between));
         }
         wrapper.eq(SysUser::getUid, Wss.getUserId());
-        // 更新缓存
-        boolean update = this.update(sysUser, wrapper);
-        if (update) {
-            this.updatePrincipal(Wss.getUser()::setName, sysUser.getName());
-        }
-        return update;
+        return super.update(sysUser, wrapper);
     }
 
     @Override
@@ -204,12 +190,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(SysUser::getUid, Wss.getUserId());
         wrapper.set(SysUser::getHeadimgurl, path);
-        // 更新缓存
-        boolean update = this.update(wrapper);
-        if (update) {
-            this.updatePrincipal(Wss.getUser()::setHeadimgurl, path);
-        }
-        return update ? path : null;
+        return super.update(wrapper) ? path : null;
     }
 
     @Override
@@ -235,7 +216,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         wrapper.clear();
         wrapper.eq(SysUser::getUid, user.getUid());
         wrapper.set(SysUser::getEmail, newemail);
-        this.updatePrincipal(Wss.getUser()::setEmail, newemail);
         return super.update(wrapper);
     }
 
@@ -247,19 +227,5 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         SysUser user = this.get(wrapper);
         Assert.notNull(user, "找不到此用户信息", AccountException::new);
         return user;
-    }
-
-    /**
-     * 更新Shiro凭证
-     *
-     * @param function lambda
-     * @param value    新的值
-     */
-    private <T> void updatePrincipal(Function<T, SysUser> function, T value) {
-        SysUser user = function.apply(value);
-        Subject subject = SecurityUtils.getSubject();
-        PrincipalCollection principals = subject.getPrincipals();
-        String realm = principals.getRealmNames().iterator().next();
-        subject.runAs(new SimplePrincipalCollection(user, realm));
     }
 }

@@ -26,7 +26,7 @@ public class RedisValue<V> {
         this.opsvalue = opsvalue;
     }
 
-    public static <V> RedisValue<V> of(RedisTemplate<String, V> template, String key) {
+    public static <V> RedisValue<V> of(RedisOperations<String, V> template, String key) {
         return new RedisValue<>(template.boundValueOps(key));
     }
 
