@@ -1,5 +1,6 @@
 package com.socket.webchat.model.enums;
 
+import com.baomidou.mybatisplus.annotation.IEnum;
 import lombok.Getter;
 
 /**
@@ -8,16 +9,16 @@ import lombok.Getter;
  * @date 2022/6/8
  */
 @Getter
-public enum FilePath {
+public enum FilePath implements IEnum<String> {
     AUDIO(0x150000),
     IMAGE(0x300000),
     BLOB(0x1e00000);
 
-    private final String name;
+    private final String directory;
     private final int size;
 
     FilePath(int size) {
-        this.name = '/' + name().toLowerCase();
+        this.directory = '/' + getValue();
         this.size = size;
     }
 
@@ -33,5 +34,10 @@ public enum FilePath {
             default:
                 throw new IllegalArgumentException();
         }
+    }
+
+    @Override
+    public String getValue() {
+        return name().toLowerCase();
     }
 }

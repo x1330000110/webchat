@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -106,7 +107,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
 
     @Override
     public <T extends OutputStream> T writeStream(FilePath path, String hash, T stream) {
-        return client.download(path.getName(), hash, stream);
+        return client.download(path.getDirectory(), hash, stream);
     }
 
     @Override
@@ -123,13 +124,14 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
     @Scheduled(cron = "0 0 0 * * ?")
     public void clearExpiredResources() {
         LambdaQueryWrapper<ChatRecordFile> wrapper = Wrappers.lambdaQuery();
-        wrapper.likeRight(ChatRecordFile::getPath, FilePath.BLOB.getName());
+        wrapper.eq(ChatRecordFile::getType, FilePath.BLOB);
         // 清理4天前的数据（第三天的文件还没有过期）
         int days = Constants.FILE_EXPIRED_DAYS + 1;
         String condition = StrUtil.format("NOW() - INTERVAL {} DAY", days);
         String column = Wss.columnToString(ChatRecord::getCreateTime);
         wrapper.getExpression().add(() -> column, SqlKeyword.LT, () -> condition);
-        List<String> paths = list(wrapper).stream().map(ChatRecordFile::getPath).collect(Collectors.toList());
-        client.deleteFiles(paths);
+        List<ChatRecordFile> list = list(wrapper);
+        Map<String, String> maps = list.stream().collect(Collectors.toMap(ChatRecordFile::getHash, ChatRecordFile::getPath));
+        client.deleteFiles(maps);
     }
 }

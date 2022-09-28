@@ -1,5 +1,6 @@
 package com.socket.webchat.model;
 
+import com.socket.webchat.model.enums.FilePath;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -17,6 +18,10 @@ public class ChatRecordFile extends BaseModel {
      * 消息id
      */
     private String mid;
+    /**
+     * 文件类型
+     */
+    private FilePath type;
     /**
      * 文件路径
      */

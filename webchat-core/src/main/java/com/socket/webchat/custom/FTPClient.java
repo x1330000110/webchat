@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
-import java.util.List;
+import java.util.Map;
 
 /**
  * 文件上传管理服务
@@ -63,7 +63,7 @@ public class FTPClient {
     public FTPFile upload(FilePath path, String name, InputStream stream) {
         FTPFile file = new FTPFile(path, name);
         try (Ftp ftp = getClient()) {
-            if (ftp.existFile(file.getPath()) || ftp.upload(path.getName(), name, stream)) {
+            if (ftp.existFile(file.getPath()) || ftp.upload(path.getDirectory(), name, stream)) {
                 return file;
             }
         } catch (IOException | IORuntimeException e) {
@@ -81,7 +81,7 @@ public class FTPClient {
      */
     public boolean existFile(FilePath path, String name) {
         try (Ftp ftp = getClient()) {
-            return ftp.existFile(path.getName() + FTPFile.separator + name);
+            return ftp.existFile(path.getDirectory() + FTPFile.separator + name);
         } catch (IOException | IORuntimeException e) {
             log.warn(e.getMessage());
         }
@@ -104,16 +104,16 @@ public class FTPClient {
     /**
      * 下载FTP文件
      *
-     * @param path   目录
-     * @param name   文件名
-     * @param stream 输出流
+     * @param directory 目录
+     * @param name      文件名
+     * @param stream    输出流
      */
-    public <T extends OutputStream> T download(String path, String name, T stream) {
+    public <T extends OutputStream> T download(String directory, String name, T stream) {
         try (Ftp ftp = getClient()) {
-            if (!ftp.existFile(path + FTPFile.separator + name)) {
+            if (!ftp.existFile(directory + FTPFile.separator + name)) {
                 return null;
             }
-            ftp.download(path, name, stream);
+            ftp.download(directory, name, stream);
         } catch (IOException | IORuntimeException e) {
             log.warn(e.getMessage());
         }
@@ -123,15 +123,15 @@ public class FTPClient {
     /**
      * 移除FTP文件
      *
-     * @param paths 文件路径
+     * @param maps key-散列文件 value-文件位置
      */
-    public void deleteFiles(List<String> paths) {
+    public void deleteFiles(Map<String, String> maps) {
         try (Ftp ftp = getClient()) {
-            for (String path : paths) {
-                if (!ftp.delFile(path)) {
-                    log.warn("Failed to remove specified file: {}", path);
+            maps.forEach((hash, path) -> {
+                if (existFile(FilePath.BLOB, hash) && !ftp.delFile(path)) {
+                    log.warn("移除FTP文件失败：{}", path);
                 }
-            }
+            });
         } catch (IOException | IORuntimeException e) {
             log.warn(e.getMessage());
         }
