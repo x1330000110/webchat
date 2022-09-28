@@ -46,7 +46,7 @@ public class WxLoginController {
     }
 
     @WeChatRedirect("/login")
-    public void login(String code, String state, HttpServletResponse response) throws IOException {
+    public void login(String code, String state, HttpServletResponse response) {
         String domain = properties.getDomainService();
         response.setContentType(ContentType.TEXT_HTML.toString(StandardCharsets.UTF_8));
         SysUser user = wxloginService.authorize(code, state);
