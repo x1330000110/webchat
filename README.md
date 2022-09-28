@@ -33,7 +33,7 @@ webchat-secure --------|                               | ----> MapRepeatValidato
 需要配置的环境依赖
 * MySQL 5.7
 * Redis 6.2
-* Kafka 2.9
+* Kafka 3.1
 * FTP服务器
 
 #### 现支持的功能
