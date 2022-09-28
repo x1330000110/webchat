@@ -17,7 +17,7 @@ public interface Constants {
      */
     int EMAIL_CODE_VALID_TIME = 5;
     /**
-     * 微信登录二维码过期时间
+     * 微信登录二维码过期时间（单位：秒）
      */
     long QR_CODE_EXPIRATION_TIME = 60;
     /**
