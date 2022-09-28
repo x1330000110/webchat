@@ -107,7 +107,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
 
     @Override
     public <T extends OutputStream> T writeStream(FilePath path, String hash, T stream) {
-        return client.download(path.getDirectory(), hash, stream);
+        return client.download(path, hash, stream);
     }
 
     @Override

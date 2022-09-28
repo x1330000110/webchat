@@ -10,7 +10,10 @@ import com.socket.webchat.model.enums.FilePath;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Map;
 
 /**
@@ -91,24 +94,12 @@ public class FTPClient {
     /**
      * 下载FTP文件
      *
-     * @param path 目录
-     * @param name 文件名
-     * @return 文件数据
+     * @param path   目录
+     * @param name   文件名
+     * @param stream 输出流
      */
-    public byte[] download(String path, String name) {
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        this.download(path, name, stream);
-        return stream.toByteArray();
-    }
-
-    /**
-     * 下载FTP文件
-     *
-     * @param directory 目录
-     * @param name      文件名
-     * @param stream    输出流
-     */
-    public <T extends OutputStream> T download(String directory, String name, T stream) {
+    public <T extends OutputStream> T download(FilePath path, String name, T stream) {
+        String directory = path.getDirectory();
         try (Ftp ftp = getClient()) {
             if (!ftp.existFile(directory + FTPFile.separator + name)) {
                 return null;
