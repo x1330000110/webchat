@@ -21,7 +21,7 @@ import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.service.RecordService;
 import com.socket.webchat.util.Assert;
-import com.socket.webchat.util.RedisClient;
+import com.socket.webchat.custom.RedisClient;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.socket.webchat.util;
+package com.socket.webchat.custom;
 
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;

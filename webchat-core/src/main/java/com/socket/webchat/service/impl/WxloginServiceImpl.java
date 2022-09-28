@@ -18,7 +18,7 @@ import com.socket.webchat.service.SysUserService;
 import com.socket.webchat.service.WxloginService;
 import com.socket.webchat.util.Assert;
 import com.socket.webchat.util.Bcrypt;
-import com.socket.webchat.util.RedisClient;
+import com.socket.webchat.custom.RedisClient;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -11,7 +11,7 @@ import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.service.SysUserService;
-import com.socket.webchat.util.RedisClient;
+import com.socket.webchat.custom.RedisClient;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import org.apache.shiro.SecurityUtils;

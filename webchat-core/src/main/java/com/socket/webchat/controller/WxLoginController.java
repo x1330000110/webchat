@@ -10,7 +10,7 @@ import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.service.WxloginService;
 import com.socket.webchat.util.RedirectUtil;
-import com.socket.webchat.util.RedisClient;
+import com.socket.webchat.custom.RedisClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
