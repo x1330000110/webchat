@@ -18,13 +18,13 @@ import com.socket.webchat.service.SysUserService;
 import com.socket.webchat.service.WxloginService;
 import com.socket.webchat.util.Assert;
 import com.socket.webchat.util.Bcrypt;
-import com.socket.webchat.util.RedisValue;
+import com.socket.webchat.util.RedisClient;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -36,17 +36,17 @@ import java.io.IOException;
 @Service
 @RequiredArgsConstructor
 public class WxloginServiceImpl implements WxloginService {
-    private final StringRedisTemplate redisTemplate;
     private final WxAuth2Request wxAuth2Request;
     private final SysUserService sysUserService;
+    private final RedisClient redisClient;
 
     @Override
     public SysUser authorize(String code, String uuid) {
         WxUser wxuser = wxAuth2Request.getUserInfo(code);
         Assert.notNull(wxuser.getOpenid(), "无效的openId", AccountException::new);
-        RedisValue<String> redisUuid = RedisValue.of(redisTemplate, RedisTree.WX_UUID.concat(uuid));
+        String key = RedisTree.WX_UUID.concat(uuid);
         // 二维码过期判断
-        if (redisUuid.exist()) {
+        if (redisClient.exist(key)) {
             // 转换UID格式
             String uid = Wss.toUID(wxuser.getOpenid());
             // 检查用户数据 不存在将被注册
@@ -62,22 +62,23 @@ public class WxloginServiceImpl implements WxloginService {
                 sysUserService.save(user);
             }
             // 设置用户UID到Redis
-            return redisUuid.setIfPresent(uid, Constants.QR_CODE_EXPIRATION_TIME) ? user : null;
+            return redisClient.setIfPresent(key, uid, Constants.QR_CODE_EXPIRATION_TIME) ? user : null;
         }
         return null;
     }
 
     @Override
     public boolean login(String uuid) {
-        RedisValue<String> redisUuid = RedisValue.of(redisTemplate, RedisTree.WX_UUID.concat(uuid));
+        String key = RedisTree.WX_UUID.concat(uuid);
+        String uid = redisClient.get(key);
         // key不存在（已过期）
-        Assert.isTrue(redisUuid.exist(), "二维码已过期", AccountException::new);
+        Assert.notNull(uid, "二维码已过期", AccountException::new);
         // 检查value是否被赋值[uid]
-        if (redisUuid.isEmpty()) {
+        if (StrUtil.isEmpty(uid)) {
             return false;
         }
-        sysUserService.login(new LoginCondition(redisUuid.get(), Constants.WX_DEFAULT_PASSWORD));
-        return redisUuid.remove();
+        sysUserService.login(new LoginCondition(uid, Constants.WX_DEFAULT_PASSWORD));
+        return redisClient.remove(key);
     }
 
     @Override
@@ -93,8 +94,12 @@ public class WxloginServiceImpl implements WxloginService {
 
     @Override
     public String getWxFastUrl(String uuid) {
-        RedisValue<String> redisUuid = RedisValue.of(redisTemplate, RedisTree.WX_UUID.concat(uuid));
-        redisUuid.set(StrUtil.EMPTY, Constants.QR_CODE_EXPIRATION_TIME);
+        redisClient.set(RedisTree.WX_UUID.concat(uuid), StrUtil.EMPTY, Constants.QR_CODE_EXPIRATION_TIME);
         return wxAuth2Request.getWxLoginURL(uuid);
+    }
+
+    @PostConstruct
+    public void init() {
+        redisClient.set("123", "345", 10000);
     }
 }

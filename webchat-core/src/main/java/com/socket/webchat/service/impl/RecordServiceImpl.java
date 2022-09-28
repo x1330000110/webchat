@@ -21,11 +21,11 @@ import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.service.RecordService;
 import com.socket.webchat.util.Assert;
+import com.socket.webchat.util.RedisClient;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord> implements RecordService {
     private final ChatRecordDeletedMapper chatRecordDeletedMapper;
     private final ChatRecordOffsetMapper chatRecordOffsetMapper;
-    private final RedisTemplate<String, Object> template;
+    private final RedisClient redisClient;
 
     @KafkaListener(topics = Constants.KAFKA_RECORD)
     public void saveRecord(ConsumerRecord<String, String> data) {
@@ -182,7 +182,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         wrapper.set(ChatRecord::isUnread, false);
         super.update(wrapper);
         // 清空redis计数器
-        template.delete(RedisTree.UNREAD.concat(uid));
+        redisClient.remove(RedisTree.UNREAD.concat(uid));
     }
 
     @Override

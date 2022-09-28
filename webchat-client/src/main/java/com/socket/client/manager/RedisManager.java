@@ -9,10 +9,8 @@ import com.socket.webchat.constant.Constants;
 import com.socket.webchat.mapper.ShieldUserMapper;
 import com.socket.webchat.model.ShieldUser;
 import com.socket.webchat.model.enums.RedisTree;
-import com.socket.webchat.util.RedisValue;
+import com.socket.webchat.util.RedisClient;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.support.collections.RedisList;
 import org.springframework.data.redis.support.collections.RedisMap;
 import org.springframework.stereotype.Component;
@@ -28,9 +26,8 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class RedisManager {
-    private final StringRedisTemplate stringRedisTemplate;
-    private final RedisTemplate<String, Object> template;
     private final ShieldUserMapper shieldUserMapper;
+    private final RedisClient redisClient;
 
     /**
      * 临时禁言
@@ -39,8 +36,8 @@ public class RedisManager {
      * @param time 时间（单位：秒）
      */
     public void setMute(String uid, int time) {
-        RedisValue<Object> value = RedisValue.of(template, SocketTree.MUTE.concat(uid));
-        value.set((int) (System.currentTimeMillis() / 1000), time);
+        int value = (int) (System.currentTimeMillis() / 1000);
+        redisClient.set(SocketTree.MUTE.concat(uid), value, time);
     }
 
     /**
@@ -50,24 +47,22 @@ public class RedisManager {
      * @param time 时间（单位：秒）
      */
     public void setLock(String uid, int time) {
-        RedisValue<Object> value = RedisValue.of(template, SocketTree.LOCK.concat(uid));
-        value.set((int) (System.currentTimeMillis() / 1000), time);
+        int value = (int) (System.currentTimeMillis() / 1000);
+        redisClient.set(SocketTree.LOCK.concat(uid), value, time);
     }
 
     /**
      * 获取禁言剩余时间（单位：秒）
      */
     public long getMuteTime(String uid) {
-        RedisValue<Object> value = RedisValue.of(template, SocketTree.MUTE.concat(uid));
-        return value.getExpired();
+        return redisClient.getExpired(SocketTree.MUTE.concat(uid));
     }
 
     /**
      * 获取冻结剩余时间（单位：秒）
      */
     public long getLockTime(String uid) {
-        RedisValue<Object> value = RedisValue.of(template, SocketTree.LOCK.concat(uid));
-        return value.getExpired();
+        return redisClient.getExpired(SocketTree.LOCK.concat(uid));
     }
 
     /**
@@ -77,8 +72,8 @@ public class RedisManager {
      * @return 发言次数
      */
     public long incrSpeak(String uid) {
-        RedisValue<Object> value = RedisValue.of(template, SocketTree.SPEAK.concat(uid));
-        return value.exist() ? value.incr() : value.incr(1, 10);
+        String key = SocketTree.SPEAK.concat(uid);
+        return redisClient.exist(key) ? redisClient.incr(key, 1) : redisClient.incr(key, 1, 10);
     }
 
     /**
@@ -89,7 +84,7 @@ public class RedisManager {
      * @param delta  递增/递减阈值（0清除未读消息）
      */
     public void setUnreadCount(String uid, String target, int delta) {
-        RedisMap<String, Object> map = RedisValue.ofMap(template, RedisTree.UNREAD.concat(uid));
+        RedisMap<String, Object> map = redisClient.withMap(RedisTree.UNREAD.concat(uid));
         if (delta == 0 || map.increment(target, delta) == 0) {
             map.remove(target);
         }
@@ -103,7 +98,7 @@ public class RedisManager {
      * @return 未读消息数量
      */
     public int getUnreadCount(String uid, String target) {
-        Map<String, Object> map = RedisValue.ofMap(template, RedisTree.UNREAD.concat(uid));
+        Map<String, Object> map = redisClient.withMap(RedisTree.UNREAD.concat(uid));
         return (int) map.getOrDefault(target, 0);
     }
 
@@ -113,7 +108,7 @@ public class RedisManager {
      * @param content 公告
      */
     public void pushNotice(String content) {
-        RedisMap<String, Object> map = RedisValue.ofMap(template, RedisTree.ANNOUNCE.concat());
+        RedisMap<String, Object> map = redisClient.withMap(RedisTree.ANNOUNCE.concat());
         // 公告为空删除
         if (content.isEmpty()) {
             map.clear();
@@ -131,7 +126,7 @@ public class RedisManager {
      * @return 屏蔽列表
      */
     public List<String> getShield(String uid) {
-        RedisList<String> redisList = RedisValue.ofList(stringRedisTemplate, SocketTree.SHIELD.concat(uid));
+        RedisList<Object> redisList = redisClient.withList(SocketTree.SHIELD.concat(uid));
         // 检查缓存
         if (redisList.isEmpty()) {
             // 查询数据库
@@ -143,6 +138,6 @@ public class RedisManager {
             redisList.addAll(collect);
             redisList.expire(Constants.SHIELD_CACHE_TIME, TimeUnit.HOURS);
         }
-        return redisList;
+        return redisList.stream().map(Object::toString).collect(Collectors.toList());
     }
 }

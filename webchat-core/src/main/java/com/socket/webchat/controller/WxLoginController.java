@@ -10,22 +10,20 @@ import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.service.WxloginService;
 import com.socket.webchat.util.RedirectUtil;
-import com.socket.webchat.util.RedisValue;
+import com.socket.webchat.util.RedisClient;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/wechat")
 public class WxLoginController {
-    private final RedisTemplate<String, Integer> template;
     private final WxloginService wxloginService;
     private final WxProperties properties;
+    private final RedisClient redisClient;
 
     @PostMapping("/state/{uuid}")
     public HttpStatus state(@PathVariable String uuid) {
@@ -56,7 +54,7 @@ public class WxLoginController {
         // 永久限制登录
         RedirectUtil.redirectIf(user.isDeleted(), response, domain + "/status/failed.html?key=lock");
         // 临时限制登录
-        long time = RedisValue.of(template, RedisTree.LOCK.concat(user.getUid())).getExpired();
+        long time = redisClient.getExpired(RedisTree.LOCK.concat(user.getUid()));
         RedirectUtil.redirectIf(time > 0, response, domain + "/status/failed.html?key=lock&time=" + time);
         // 手机扫码登录处理
         RedirectUtil.redirectIf(!wxMobile, response, domain + "/status/success.html");

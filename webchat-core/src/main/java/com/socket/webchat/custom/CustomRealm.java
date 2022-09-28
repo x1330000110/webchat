@@ -13,6 +13,7 @@ import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.runtime.AccountException;
 import com.socket.webchat.runtime.OffsiteLoginException;
 import com.socket.webchat.util.*;
+import lombok.RequiredArgsConstructor;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -23,8 +24,6 @@ import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -34,19 +33,10 @@ import java.util.Optional;
  * Shiro登录验证与权限检查
  */
 @Component
+@RequiredArgsConstructor
 public class CustomRealm extends AuthorizingRealm {
-    private RedisTemplate<String, Integer> template;
-    private SysUserMapper sysUserMapper;
-
-    @Autowired
-    public void setSysUserMapper(SysUserMapper sysUserMapper) {
-        this.sysUserMapper = sysUserMapper;
-    }
-
-    @Autowired
-    public void setRedisWrapper(RedisTemplate<String, Integer> template) {
-        this.template = template;
-    }
+    private final SysUserMapper sysUserMapper;
+    private final RedisClient redisClient;
 
     /**
      * 权限认证
@@ -144,7 +134,7 @@ public class CustomRealm extends AuthorizingRealm {
      * 验证登录限制
      */
     private void checkLimit(String uid) {
-        long time = RedisValue.of(template, RedisTree.LOCK.concat(uid)).getExpired();
+        long time = redisClient.getExpired(RedisTree.LOCK.concat(uid));
         Assert.isTrue(time <= 0, () -> new AccountException("您已被限制登录，预计剩余" + Wss.universal(time)));
     }
 }

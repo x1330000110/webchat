@@ -11,11 +11,10 @@ import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.service.SysUserService;
-import com.socket.webchat.util.RedisValue;
+import com.socket.webchat.util.RedisClient;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import org.apache.shiro.SecurityUtils;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.support.collections.RedisMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,20 +26,20 @@ import java.util.Map;
 @RequestMapping("/user")
 @RequiredArgsConstructor
 public class UserController {
-    private final RedisTemplate<String, Object> template;
-    private final SysUserService service;
+    private final SysUserService sysUserService;
+    private final RedisClient redisClient;
 
     @Encrypted
     @PostMapping(value = "/material")
     public HttpStatus material(@RequestBody SysUser sysUser) {
-        boolean success = service.updateMaterial(sysUser);
+        boolean success = sysUserService.updateMaterial(sysUser);
         return HttpStatus.state(success, "修改");
     }
 
     @Encrypted
     @PostMapping("/avatar")
     public HttpStatus updateAvatar(MultipartFile blob) throws IOException {
-        String mapping = service.updateAvatar(blob.getBytes());
+        String mapping = sysUserService.updateAvatar(blob.getBytes());
         if (mapping == null) {
             return HttpStatus.FAILURE.message("修改失败");
         }
@@ -50,7 +49,7 @@ public class UserController {
     @Encrypted
     @PostMapping("/email")
     public HttpStatus updateEmail(@RequestBody EmailCondition condition) {
-        boolean success = service.updateEmail(condition);
+        boolean success = sysUserService.updateEmail(condition);
         return HttpStatus.state(success, "修改");
     }
 
@@ -62,7 +61,7 @@ public class UserController {
 
     @GetMapping("/{uid}")
     public HttpStatus userInfo(@PathVariable String uid) {
-        SysUser user = service.getUserInfo(uid);
+        SysUser user = sysUserService.getUserInfo(uid);
         return HttpStatus.SUCCESS.body(user);
     }
 
@@ -76,12 +75,12 @@ public class UserController {
         wrapper.eq(SysUser::getUid, condition.getUid());
         wrapper.eq(SysUser::isDeleted, 0);
         wrapper.set(SysUser::isDeleted, 1);
-        return HttpStatus.of(service.update(wrapper), "操作成功", "找不到此用户");
+        return HttpStatus.of(sysUserService.update(wrapper), "操作成功", "找不到此用户");
     }
 
     @GetMapping("/notice")
     public HttpStatus getNotice(String digest) {
-        RedisMap<String, Object> map = RedisValue.ofMap(template, RedisTree.ANNOUNCE.concat());
+        RedisMap<String, Object> map = redisClient.withMap(RedisTree.ANNOUNCE.concat());
         Object dg = map.get(Announce.digest);
         // 散列id不同 表示发布新内容
         if (dg != null && !dg.equals(digest)) {
