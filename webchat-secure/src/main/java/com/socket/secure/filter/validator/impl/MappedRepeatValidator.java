@@ -114,18 +114,6 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
     public void afterPropertiesSet() throws Exception {
         initByteBuffer();
         initSyncMappedThread();
-        restoreMapData();
-    }
-
-    /**
-     * Initialize the file memory map area
-     */
-    private void initByteBuffer() throws IOException {
-        try (RandomAccessFile raf = new RandomAccessFile(cache, "rw")) {
-            try (FileChannel channel = raf.getChannel()) {
-                this.buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, effective / 1000 * maximum * BLOCK_SIZE);
-            }
-        }
     }
 
     /**
@@ -152,7 +140,12 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
     /**
      * Restore Map data
      */
-    private void restoreMapData() {
+    private void initByteBuffer() throws IOException {
+        try (RandomAccessFile raf = new RandomAccessFile(cache, "rw")) {
+            try (FileChannel channel = raf.getChannel()) {
+                this.buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, effective / 1000 * maximum * BLOCK_SIZE);
+            }
+        }
         while (buffer.hasRemaining()) {
             long time = buffer.getLong();
             int pos = buffer.position();
