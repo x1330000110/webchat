@@ -62,7 +62,7 @@ public class Wss {
     }
 
     /**
-     * 获取指定函数式接口命名形式（核心实现由Mybatis-Plus支持）
+     * 获取指定函数式接口命名形式
      */
     public static <T> String columnToString(Func1<T, ?> lambda) {
         return StrUtil.toUnderlineCase(LambdaUtil.getFieldName(lambda));
