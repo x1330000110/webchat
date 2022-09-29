@@ -38,7 +38,7 @@ public class UserPreview extends SysUser {
     /**
      * 未读消息总数
      */
-    private Integer unreadCount;
+    private Integer unreads;
 
     public UserPreview(SysUser sysUser) {
         BeanUtil.copyProperties(sysUser, this);
