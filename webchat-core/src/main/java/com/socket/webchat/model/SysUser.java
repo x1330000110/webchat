@@ -13,7 +13,7 @@ import java.time.LocalDate;
 import java.util.Date;
 
 /**
- * 用户登录信息
+ * 用户信息
  */
 @Data
 @Accessors(chain = true)
@@ -41,18 +41,13 @@ public class SysUser extends BaseModel implements Serializable {
      */
     private String email;
     /**
+     * 微信openid
+     */
+    private String openid;
+    /**
      * 手机
      */
     private String phone;
-    /**
-     * 最近登录ip地址
-     */
-    @JsonIgnore
-    private String ip;
-    /**
-     * 登录平台
-     */
-    private String platform;
     /**
      * 生日
      */
@@ -70,11 +65,6 @@ public class SysUser extends BaseModel implements Serializable {
      * 头像地址
      */
     private String headimgurl;
-    /**
-     * 登录时间
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "GMT+8")
-    private Date loginTime;
     /**
      * 头衔
      */
