@@ -1,6 +1,7 @@
 # webchat
 
 #### 项目介绍
+
 基于SpringBoot+WebSocket的实时通信系统。支持多人在线聊天，在线状态实时更新，支持多种类型消息发送和查看，支持用户黑名单，禁言，限制登录，视频录制，游客登录，视频语音通话。更有个性化设置，背景图片自定义，气泡颜色自定义，黑暗主题，消息通知，自定义来电铃声等功能。
 
 内部包含数据安全传输模块，基于AES，RSA加密交换数据（可独立提取使用：[参考文档](https://www.zybuluo.com/1330000110/note/2172127)）。
@@ -26,11 +27,14 @@ webchat-secure --------|                               | ----> MapRepeatValidato
 --------------         | ---> filter ---> validator ---|
                                                        | ----> RedisRepeatValidator
 ```
+
 基于JDK11
+
 * 后端：Spring Boot、Mybatis Plus、Shiro、Mysql、Redis、Kafka、Socket、FTP
 * 前端：HTML5、css3、JavaScript(ES6+)、Vue3(原生)、Element Plus(原生)、WebSocket、WebRTC
 
 需要配置的环境依赖
+
 * MySQL 5.7
 * Redis 6.2
 * Kafka 3.1
@@ -88,6 +92,7 @@ webchat-secure --------|                               | ----> MapRepeatValidato
 * 语音通话
 
 #### 其他
+
 * 修改背景图片
 * 修改气泡颜色（本地）
 * 切换主题
