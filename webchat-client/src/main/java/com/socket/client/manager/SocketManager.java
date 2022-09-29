@@ -53,11 +53,16 @@ public class SocketManager {
     /**
      * 加入用户
      *
+     * @param session    ws session
+     * @param properties 配置信息
      * @return 已加入的用户对象
      */
-    public WsUser join(Subject subject, Session socketSession, HttpSession httpSession) {
+    public WsUser join(Session session, Map<String, Object> properties) {
         // 构建聊天室用户
-        WsUser user = new WsUser(subject, socketSession, httpSession);
+        Subject subject = (Subject) properties.get(Constants.SUBJECT);
+        HttpSession httpSession = (HttpSession) properties.get(Constants.HTTP_SESSION);
+        String platform = (String) properties.get(Constants.PLATFORM);
+        WsUser user = new WsUser(session, subject, httpSession, platform);
         // 检查登录限制（会话缓存检查）
         long time = redisManager.getLockTime(user.getUid());
         if (time > 0) {
@@ -152,12 +157,10 @@ public class SocketManager {
         // 链接数据
         List<UserPreview> collect = userList.stream()
                 .map(UserPreview::new)
-                // 在线状态
-                .peek(e -> e.setOnline(onlines.containsKey(e.getUid())))
-                // 脱敏信息
-                .peek(UserPreview::desensit)
+                // 补全状态
+                .peek(user -> user.fill(onlines.get(user.getUid())))
                 // 同步未读消息
-                .peek(preview -> syncUnreadMessage(preview, messages, suid))
+                .peek(user -> this.syncUnreadMessage(user, messages, suid))
                 // 转为List
                 .collect(Collectors.toList());
         // 添加游客到列表（数据库不包含游客信息）

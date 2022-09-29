@@ -1,5 +1,6 @@
 package com.socket.webchat.model;
 
+import cn.hutool.core.annotation.PropIgnore;
 import cn.hutool.core.util.RandomUtil;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -31,6 +32,7 @@ public class SysUser extends BaseModel implements Serializable {
      * 散列密码
      */
     @JsonIgnore
+    @PropIgnore
     private String hash;
     /**
      * 角色

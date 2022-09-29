@@ -35,7 +35,7 @@ public class WsUser extends SysUser {
     /**
      * Http Session
      */
-    private HttpSession http_session;
+    private HttpSession httpSession;
     /**
      * Shiro Subject
      */
@@ -50,6 +50,11 @@ public class WsUser extends SysUser {
      */
     @Setter
     private String choose;
+    /**
+     * 登录平台
+     */
+    @Getter
+    private String platform;
 
     /**
      * 构建ws用户信息
@@ -63,15 +68,16 @@ public class WsUser extends SysUser {
     /**
      * 构建ws用户信息
      *
-     * @param subject      shiro subject
-     * @param session      Websocket session
-     * @param http_session Http Session
+     * @param subject  shiro subject
+     * @param session  Websocket session
+     * @param hsession Http Session
      */
-    public WsUser(Subject subject, Session session, HttpSession http_session) {
+    public WsUser(Session session, Subject subject, HttpSession hsession, String platform) {
         this((SysUser) subject.getPrincipal());
         this.subject = subject;
         this.session = session;
-        this.http_session = http_session;
+        this.httpSession = hsession;
+        this.platform = platform;
         this.online = true;
     }
 
@@ -135,7 +141,7 @@ public class WsUser extends SysUser {
     public String encrypt(Supplier<WsMsg> supplier) {
         WsMsg wsmsg = supplier.get();
         if (wsmsg != null) {
-            return AES.encrypt(JSONUtil.toJsonStr(wsmsg), http_session);
+            return AES.encrypt(JSONUtil.toJsonStr(wsmsg), httpSession);
         }
         return null;
     }
@@ -144,7 +150,7 @@ public class WsUser extends SysUser {
      * 解密消息
      */
     public WsMsg decrypt(Supplier<String> supplier) {
-        WsMsg wsmsg = JSONUtil.toBean(AES.decrypt(supplier.get(), http_session), WsMsg.class);
+        WsMsg wsmsg = JSONUtil.toBean(AES.decrypt(supplier.get(), httpSession), WsMsg.class);
         wsmsg.setUid(getUid());
         return wsmsg;
     }

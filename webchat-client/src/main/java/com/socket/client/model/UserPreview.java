@@ -24,6 +24,10 @@ public class UserPreview extends SysUser {
      */
     private boolean online;
     /**
+     * 登录平台
+     */
+    private String platform;
+    /**
      * 未读的最后一条消息
      */
     private String preview;
@@ -40,12 +44,10 @@ public class UserPreview extends SysUser {
         BeanUtil.copyProperties(sysUser, this);
     }
 
-    /**
-     * 脱敏信息处理
-     */
-    public void desensit() {
-        setIp(null);
-        setHash(null);
-        this.preview = online ? preview : null;
+    public void fill(WsUser wsUser) {
+        if (wsUser != null) {
+            this.online = true;
+            this.platform = wsUser.getPlatform();
+        }
     }
 }

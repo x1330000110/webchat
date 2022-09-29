@@ -15,15 +15,12 @@ import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.request.XiaoBingAPIRequest;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpSession;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * websocket服务处理
@@ -44,13 +41,9 @@ public class SocketServiceImpl implements SocketService {
 
     @OnOpen
     public void onOpen(Session session, EndpointConfig config) {
-        Map<String, Object> properties = config.getUserProperties();
-        // 收集数据
-        Subject subject = (Subject) properties.get(Constants.SUBJECT);
-        HttpSession hsession = (HttpSession) properties.get(Constants.HTTP_SESSION);
-        this.self = socketManager.join(subject, session, hsession);
-        // 同步登录平台
-        self.setPlatform((String) properties.get(Constants.PLATFORM));
+        // 登入
+        this.self = socketManager.join(session, config.getUserProperties());
+        // 传递消息
         if (self != null) {
             Collection<UserPreview> userList = socketManager.getUserList(self);
             WsMsg.buildsys(Callback.JOIN_INIT.of(), MessageType.INIT, userList).send(self, Remote.ASYNC);
