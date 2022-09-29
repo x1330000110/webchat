@@ -6,8 +6,11 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.webchat.constant.Constants;
+import com.socket.webchat.mapper.SysUserLogMapper;
 import com.socket.webchat.mapper.SysUserMapper;
+import com.socket.webchat.model.BaseModel;
 import com.socket.webchat.model.SysUser;
+import com.socket.webchat.model.SysUserLog;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.runtime.AccountException;
@@ -38,6 +41,7 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 public class CustomRealm extends AuthorizingRealm {
+    private final SysUserLogMapper sysUserLogMapper;
     private final SysUserMapper sysUserMapper;
     private final RedisClient redisClient;
 
@@ -114,15 +118,25 @@ public class CustomRealm extends AuthorizingRealm {
      * 异地登录检查
      */
     private boolean checkOffsite(SysUser sysUser) {
-        // 未绑定邮箱或首次登录不会检查
-        if (StrUtil.isEmpty(sysUser.getEmail()) || StrUtil.isEmpty(sysUser.getIp())) {
+        // 未绑定邮箱
+        if (StrUtil.isEmpty(sysUser.getEmail())) {
+            return true;
+        }
+        // 查询登录记录
+        LambdaQueryWrapper<SysUserLog> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(SysUserLog::getUid, sysUser.getUid());
+        wrapper.orderByDesc(BaseModel::getCreateTime);
+        wrapper.last("LIMIT 1");
+        SysUserLog log = sysUserLogMapper.selectOne(wrapper);
+        // 首次登录放行
+        if (log == null) {
             return true;
         }
         // 检查标记
         if (Requests.notExist(Constants.OFFSITE)) {
             // 检查异地
             String remoteip = Wss.getRemoteIP();
-            String lastip = sysUser.getIp();
+            String lastip = log.getIp();
             if (!Objects.equals(lastip, remoteip)) {
                 // IP所属省是否相同
                 boolean offsite = Objects.equals(Wss.getProvince(remoteip), Wss.getProvince(lastip));
