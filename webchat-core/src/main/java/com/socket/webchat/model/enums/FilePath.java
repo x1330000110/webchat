@@ -10,8 +10,17 @@ import lombok.Getter;
  */
 @Getter
 public enum FilePath implements IEnum<String> {
+    /**
+     * 语音
+     */
     AUDIO(0x150000),
+    /**
+     * 图片
+     */
     IMAGE(0x300000),
+    /**
+     * 视频/文件
+     */
     BLOB(0x1e00000);
 
     private final String directory;
