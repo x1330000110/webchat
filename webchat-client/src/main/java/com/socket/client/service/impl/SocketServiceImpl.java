@@ -119,7 +119,8 @@ public class SocketServiceImpl implements SocketService {
             wsmsg.send(target, Remote.ASYNC);
         } finally {
             // 保存消息（已读条件：消息未能送达 || 消息来自群组 || 目标会话正在选择你）
-            socketManager.cacheRecord(wsmsg, wsmsg.isReject() || wsmsg.isGroup() || target.chooseTarget(self));
+            boolean isread = wsmsg.isReject() || wsmsg.isGroup() || target.chooseTarget(self);
+            socketManager.cacheRecord(wsmsg, isread);
         }
         return wsmsg;
     }
