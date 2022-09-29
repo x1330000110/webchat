@@ -123,7 +123,7 @@ public class RedisClient implements InitializingBean {
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         template.afterPropertiesSet();
     }
 }
