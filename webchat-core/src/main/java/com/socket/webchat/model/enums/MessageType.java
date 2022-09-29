@@ -60,7 +60,7 @@ public enum MessageType implements EnumItem<MessageType>, IEnum<String> {
     /**
      * 消息类型：图片
      */
-    IMG("图片消息"),
+    IMAGE("图片消息"),
     /**
      * 消息类型：语音（系统消息时为语音通话请求）
      */

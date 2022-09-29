@@ -26,7 +26,7 @@ public enum FilePath implements IEnum<String> {
         switch (type) {
             case AUDIO:
                 return AUDIO;
-            case IMG:
+            case IMAGE:
                 return IMAGE;
             case BLOB:
             case VIDEO:
