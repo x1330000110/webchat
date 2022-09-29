@@ -1,6 +1,6 @@
 package com.socket.webchat.custom;
 
-import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.support.collections.*;
@@ -8,30 +8,29 @@ import org.springframework.data.redis.support.collections.*;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-public class RedisClient {
-    private final RedisOperations<String, Object> operations;
+public class RedisClient implements InitializingBean {
+    private final RedisTemplate<String, Object> template;
     private final ValueOperations<String, Object> opsvalue;
 
-    public RedisClient(RedisTemplate<String, Object> operations) {
-        this.operations = operations;
-        this.opsvalue = operations.opsForValue();
-        operations.afterPropertiesSet();
+    public RedisClient(RedisTemplate<String, Object> template) {
+        this.template = template;
+        this.opsvalue = template.opsForValue();
     }
 
     public RedisList<Object> withList(String key) {
-        return new DefaultRedisList<>(operations.boundListOps(key));
+        return new DefaultRedisList<>(template.boundListOps(key));
     }
 
     public RedisMap<String, Object> withMap(String key) {
-        return new DefaultRedisMap<>(operations.boundHashOps(key));
+        return new DefaultRedisMap<>(template.boundHashOps(key));
     }
 
     public RedisSet<Object> withSet(String key) {
-        return new DefaultRedisSet<>(operations.boundSetOps(key));
+        return new DefaultRedisSet<>(template.boundSetOps(key));
     }
 
     public RedisZSet<Object> withZset(String key) {
-        return new DefaultRedisZSet<>(operations.boundZSetOps(key));
+        return new DefaultRedisZSet<>(template.boundZSetOps(key));
     }
 
     public boolean setIfAbsent(String key, Object value) {
@@ -56,14 +55,14 @@ public class RedisClient {
 
     private boolean setExpired(String key, int time, TimeUnit unit) {
         if (time > 0) {
-            return Objects.requireNonNull(operations.expire(key, time, unit));
+            return Objects.requireNonNull(template.expire(key, time, unit));
         }
         remove(key);
         return false;
     }
 
     public long getExpired(String key) {
-        Long obj = operations.getExpire(key, TimeUnit.SECONDS);
+        Long obj = template.getExpire(key, TimeUnit.SECONDS);
         return obj == null ? -2 : obj;
     }
 
@@ -95,11 +94,11 @@ public class RedisClient {
     }
 
     public boolean exist(String key) {
-        return Objects.requireNonNull(operations.hasKey(key));
+        return Objects.requireNonNull(template.hasKey(key));
     }
 
     public boolean remove(String key) {
-        return Objects.requireNonNull(operations.delete(key));
+        return Objects.requireNonNull(template.delete(key));
     }
 
     public void set(String key, Object value) {
@@ -121,5 +120,10 @@ public class RedisClient {
     public boolean isEmpty(String key) {
         Object v = get(key);
         return v == null || v instanceof String && ((String) v).isEmpty();
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        template.afterPropertiesSet();
     }
 }
