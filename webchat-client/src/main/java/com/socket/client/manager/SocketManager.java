@@ -170,9 +170,9 @@ public class SocketManager {
                 .forEach(collect::add);
         // 查找自己并设置屏蔽列表
         collect.stream()
-                .filter(e -> e.getUid().equals(suid))
+                .filter(user -> user.getUid().equals(suid))
                 .findFirst()
-                .ifPresent(e -> e.setShields(redisManager.getShield(e.getUid())));
+                .ifPresent(user -> user.setShields(redisManager.getShield(user.getUid())));
         return collect;
     }
 
