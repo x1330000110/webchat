@@ -2,6 +2,8 @@ package com.socket.webchat.util;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Opt;
+import cn.hutool.core.lang.func.Func1;
+import cn.hutool.core.lang.func.LambdaUtil;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.MD5;
@@ -10,12 +12,9 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.http.useragent.Platform;
 import cn.hutool.http.useragent.UserAgentParser;
 import cn.hutool.json.JSONObject;
-import com.baomidou.mybatisplus.core.toolkit.LambdaUtils;
-import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
-import org.apache.ibatis.reflection.property.PropertyNamer;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.SimplePrincipalCollection;
@@ -65,8 +64,8 @@ public class Wss {
     /**
      * 获取指定函数式接口命名形式（核心实现由Mybatis-Plus支持）
      */
-    public static <T> String columnToString(SFunction<T, ?> lambda) {
-        return StrUtil.toUnderlineCase(PropertyNamer.methodToProperty(LambdaUtils.resolve(lambda).getImplMethodName()));
+    public static <T> String columnToString(Func1<T, ?> lambda) {
+        return StrUtil.toUnderlineCase(LambdaUtil.getFieldName(lambda));
     }
 
     /**
