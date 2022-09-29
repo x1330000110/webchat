@@ -13,13 +13,13 @@ import com.socket.webchat.util.Assert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+@Encrypted
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
 public class LoginController {
     private final SysUserService sysUserService;
 
-    @Encrypted
     @GetMapping("/login")
     public HttpStatus login(LoginCondition condition) {
         // 必要的密码长度判断
@@ -28,21 +28,18 @@ public class LoginController {
         return HttpStatus.SUCCESS.message("登录成功");
     }
 
-    @Encrypted
     @PostMapping("/register")
     public HttpStatus register(@RequestBody RegisterCondition condition) {
         sysUserService.register(condition);
         return HttpStatus.SUCCESS.message("注册成功");
     }
 
-    @Encrypted
     @PostMapping("/send")
     public HttpStatus send(@RequestBody EmailCondition condition) {
         String email = sysUserService.sendEmail(condition.getUser());
         return HttpStatus.SUCCESS.body("发送成功", email);
     }
 
-    @Encrypted
     @PostMapping("/password")
     public HttpStatus updatePassword(@RequestBody PasswordCondition condition) {
         boolean success = sysUserService.updatePassword(condition);
