@@ -189,7 +189,7 @@ public class SocketManager {
                 MessageType type = first.getType();
                 preview.setPreview(type == MessageType.TEXT ? first.getContent() : '[' + type.getPreview() + ']');
                 preview.setLastTime(first.getCreateTime().getTime());
-                preview.setUnreads(Math.min(records.size(), 99));
+                preview.setUnreads(Math.min(count, 99));
             }
         }
     }
