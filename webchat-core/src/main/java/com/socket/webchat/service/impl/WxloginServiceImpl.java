@@ -19,7 +19,6 @@ import com.socket.webchat.service.SysUserService;
 import com.socket.webchat.service.WxloginService;
 import com.socket.webchat.util.Assert;
 import com.socket.webchat.util.Bcrypt;
-import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,22 +45,19 @@ public class WxloginServiceImpl implements WxloginService {
         String key = RedisTree.WX_UUID.concat(uuid);
         // 二维码过期判断
         if (redisClient.exist(key)) {
-            // 转换UID格式
-            String uid = Wss.toUID(wxuser.getOpenid());
             // 检查用户数据 不存在将被注册
             LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
-            wrapper.eq(SysUser::getUid, uid);
+            wrapper.eq(SysUser::getOpenid, wxuser.getOpenid());
             SysUser user = sysUserService.getOne(wrapper);
             if (user == null) {
                 user = SysUser.newUser();
                 BeanUtil.copyProperties(wxuser, user);
-                user.setUid(uid);
                 user.setName(wxuser.getNickname());
                 user.setHash(Bcrypt.digest(Constants.WX_DEFAULT_PASSWORD));
                 sysUserService.save(user);
             }
             // 设置用户UID到Redis
-            return redisClient.setIfPresent(key, uid, Constants.QR_CODE_EXPIRATION_TIME) ? user : null;
+            return redisClient.setIfPresent(key, user.getUid(), Constants.QR_CODE_EXPIRATION_TIME) ? user : null;
         }
         return null;
     }

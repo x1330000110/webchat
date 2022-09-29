@@ -82,6 +82,7 @@ public class SysUser extends BaseModel implements Serializable {
      * 创建游客
      */
     public static SysUser newGuest() {
-        return new SysUser().setRole(UserRole.GUEST).setUid("GUEST_" + RandomUtil.randomNumbers(6));
+        String uid = RandomUtil.randomNumbers(6);
+        return new SysUser().setRole(UserRole.GUEST).setUid("GUEST_" + uid).setName("游客" + uid);
     }
 }
