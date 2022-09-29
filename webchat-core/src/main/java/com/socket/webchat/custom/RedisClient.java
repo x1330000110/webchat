@@ -10,11 +10,11 @@ import java.util.concurrent.TimeUnit;
 
 public class RedisClient implements InitializingBean {
     private final RedisTemplate<String, Object> template;
-    private final ValueOperations<String, Object> opsvalue;
+    private final ValueOperations<String, Object> operations;
 
     public RedisClient(RedisTemplate<String, Object> template) {
         this.template = template;
-        this.opsvalue = template.opsForValue();
+        this.operations = template.opsForValue();
     }
 
     public RedisList<Object> withList(String key) {
@@ -33,20 +33,24 @@ public class RedisClient implements InitializingBean {
         return new DefaultRedisZSet<>(template.boundZSetOps(key));
     }
 
+    public ValueOperations<String, Object> getOperations() {
+        return operations;
+    }
+
     public boolean setIfAbsent(String key, Object value) {
-        return Objects.requireNonNull(opsvalue.setIfAbsent(key, value));
+        return Objects.requireNonNull(operations.setIfAbsent(key, value));
     }
 
     public boolean setIfAbsent(String key, Object value, long second) {
-        return Objects.requireNonNull(opsvalue.setIfAbsent(key, value, second, TimeUnit.SECONDS));
+        return Objects.requireNonNull(operations.setIfAbsent(key, value, second, TimeUnit.SECONDS));
     }
 
     public boolean setIfPresent(String key, Object value) {
-        return Objects.requireNonNull(opsvalue.setIfPresent(key, value));
+        return Objects.requireNonNull(operations.setIfPresent(key, value));
     }
 
     public boolean setIfPresent(String key, Object value, long second) {
-        return Objects.requireNonNull(opsvalue.setIfPresent(key, value, second, TimeUnit.SECONDS));
+        return Objects.requireNonNull(operations.setIfPresent(key, value, second, TimeUnit.SECONDS));
     }
 
     public boolean setExpired(String key, int time) {
@@ -68,7 +72,7 @@ public class RedisClient implements InitializingBean {
 
     public <T> T get(String key) {
         //noinspection unchecked
-        return (T) opsvalue.get(key);
+        return (T) operations.get(key);
     }
 
     public <T> T getOrDefault(String key, T defval) {
@@ -77,7 +81,7 @@ public class RedisClient implements InitializingBean {
     }
 
     public long incr(String key, int delta) {
-        Long obj = opsvalue.increment(key, delta);
+        Long obj = operations.increment(key, delta);
         return obj == null ? delta : obj;
     }
 
@@ -86,7 +90,7 @@ public class RedisClient implements InitializingBean {
     }
 
     public long incr(String key, int delta, int time, TimeUnit unit) {
-        Long obj = opsvalue.increment(key, delta);
+        Long obj = operations.increment(key, delta);
         if (time > 0) {
             setExpired(key, time, unit);
         }
@@ -111,7 +115,7 @@ public class RedisClient implements InitializingBean {
 
     public void set(String key, Object value, long second, TimeUnit unit) {
         if (second > 0) {
-            opsvalue.set(key, value, second, unit);
+            operations.set(key, value, second, unit);
         } else {
             remove(key);
         }
