@@ -52,7 +52,7 @@ public class WxloginServiceImpl implements WxloginService {
             if (user == null) {
                 user = SysUser.newUser();
                 BeanUtil.copyProperties(wxuser, user);
-                user.setName(wxuser.getNickname());
+                user.setName(StrUtil.sub(wxuser.getNickname(), 0, 6));
                 user.setHash(Bcrypt.digest(Constants.WX_DEFAULT_PASSWORD));
                 sysUserService.save(user);
             }
