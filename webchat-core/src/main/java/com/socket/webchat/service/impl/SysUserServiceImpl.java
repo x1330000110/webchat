@@ -88,7 +88,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         Assert.equals(condition.getCode(), redisClient.get(key), "验证码不正确", IllegalStateException::new);
         redisClient.remove(key);
         // 注册
-        SysUser init = SysUser.newInstance();
+        SysUser init = SysUser.newUser();
         init.setName(condition.getName());
         init.setEmail(condition.getEmail());
         init.setHash(Bcrypt.digest(condition.getPass()));

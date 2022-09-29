@@ -1,7 +1,6 @@
 package com.socket.webchat.custom;
 
 import cn.hutool.core.util.DesensitizedUtil;
-import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -31,6 +30,7 @@ import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.springframework.stereotype.Component;
+import org.springframework.util.function.SupplierUtils;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -63,18 +63,11 @@ public class CustomRealm extends AuthorizingRealm {
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
         String uid = (String) token.getPrincipal();
-        SysUser user;
-        // 检查游客登录
-        if (uid == null) {
-            user = new SysUser();
-            user.setUid(RandomUtil.randomNumbers(6));
-            user.setName("游客" + user.getUid());
-            user.setRole(UserRole.GUEST);
-        } else {
+        SysUser user = uid == null ? SysUser.newGuest() : SupplierUtils.resolve(() -> {
             LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
             wrapper.eq(uid.contains("@") ? SysUser::getEmail : SysUser::getUid, uid);
-            user = sysUserMapper.selectOne(wrapper);
-        }
+            return sysUserMapper.selectOne(wrapper);
+        });
         // 无效账号
         if (user == null) {
             return null;

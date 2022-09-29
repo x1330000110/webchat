@@ -11,7 +11,6 @@ import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.Date;
 
 /**
  * 用户信息
@@ -73,9 +72,16 @@ public class SysUser extends BaseModel implements Serializable {
     private String alias;
 
     /**
-     * 初始化必要数据
+     * 创建用户
      */
-    public static SysUser newInstance() {
-        return (SysUser) new SysUser().setRole(UserRole.USER).setUid(RandomUtil.randomNumbers(6)).setCreateTime(new Date());
+    public static SysUser newUser() {
+        return new SysUser().setRole(UserRole.USER).setUid(RandomUtil.randomNumbers(6));
+    }
+
+    /**
+     * 创建游客
+     */
+    public static SysUser newGuest() {
+        return new SysUser().setRole(UserRole.GUEST).setUid("GUEST_" + RandomUtil.randomNumbers(6));
     }
 }

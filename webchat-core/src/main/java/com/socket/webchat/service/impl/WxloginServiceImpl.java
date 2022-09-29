@@ -53,7 +53,7 @@ public class WxloginServiceImpl implements WxloginService {
             wrapper.eq(SysUser::getUid, uid);
             SysUser user = sysUserService.getOne(wrapper);
             if (user == null) {
-                user = SysUser.newInstance();
+                user = SysUser.newUser();
                 BeanUtil.copyProperties(wxuser, user);
                 user.setUid(uid);
                 user.setName(wxuser.getNickname());
