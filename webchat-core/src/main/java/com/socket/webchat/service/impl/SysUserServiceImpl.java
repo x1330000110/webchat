@@ -8,7 +8,6 @@ import cn.hutool.core.lang.Opt;
 import cn.hutool.core.lang.Validator;
 import cn.hutool.core.util.DesensitizedUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.http.Header;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -16,8 +15,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.FTPClient;
 import com.socket.webchat.custom.RedisClient;
+import com.socket.webchat.mapper.SysUserLogMapper;
 import com.socket.webchat.mapper.SysUserMapper;
 import com.socket.webchat.model.SysUser;
+import com.socket.webchat.model.SysUserLog;
 import com.socket.webchat.model.condition.EmailCondition;
 import com.socket.webchat.model.condition.LoginCondition;
 import com.socket.webchat.model.condition.PasswordCondition;
@@ -40,12 +41,14 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
+    private final SysUserLogMapper sysUserLogMapper;
     private final RedisClient redisClient;
     private final FTPClient client;
     private final Email sender;
@@ -71,15 +74,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // shiro登录
         SecurityUtils.getSubject().login(new UsernamePasswordToken(uid, condition.getPass(), condition.isAuto()));
         // 更新登录信息
-        if (uid != null) {
-            LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
-            wrapper.eq(uid.contains("@") ? SysUser::getEmail : SysUser::getUid, uid);
-            wrapper.set(SysUser::getIp, Wss.getRemoteIP());
-            wrapper.set(SysUser::getLoginTime, LocalDateTime.now());
-            String userAgent = Requests.get().getHeader(Header.USER_AGENT.getValue());
-            wrapper.set(SysUser::getPlatform, Wss.getPlatform(userAgent));
-            super.update(wrapper);
-        }
+        Optional.ofNullable(uid).ifPresent(e -> sysUserLogMapper.insert(new SysUserLog()));
     }
 
     @Override

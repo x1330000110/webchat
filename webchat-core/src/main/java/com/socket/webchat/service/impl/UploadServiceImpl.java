@@ -94,7 +94,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         w2.eq(BaseModel::isDeleted, 0);
         ChatRecord record = chatRecordMapper.selectOne(w2);
         // 检查来源
-        if (Wss.checkMessagePermissions(record)) {
+        if (Wss.checkMessagePermission(record)) {
             // 检查文件类型过期时间
             LocalDateTime create = LocalDateTimeUtil.of(file.getCreateTime());
             MessageType type = record.getType();

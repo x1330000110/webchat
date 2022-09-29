@@ -8,6 +8,7 @@ import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.MD5;
 import cn.hutool.extra.servlet.ServletUtil;
+import cn.hutool.http.Header;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.useragent.Platform;
 import cn.hutool.http.useragent.UserAgentParser;
@@ -98,7 +99,14 @@ public class Wss {
     }
 
     /**
-     * 获取当前设备登录平台
+     * 获取当前请求登录平台
+     */
+    public static String getPlatform() {
+        return getPlatform(Requests.get().getHeader(Header.USER_AGENT.getValue()));
+    }
+
+    /**
+     * 获取当前请求登录平台
      */
     public static String getPlatform(String userAgent) {
         Platform platform = UserAgentParser.parse(userAgent).getPlatform();
@@ -108,7 +116,7 @@ public class Wss {
     /**
      * 检查消息是否有操作权限（目标是群组，发起者是自己或目标是自己）
      */
-    public static boolean checkMessagePermissions(ChatRecord record) {
+    public static boolean checkMessagePermission(ChatRecord record) {
         String userId = getUserId();
         if (userId == null) {
             return false;

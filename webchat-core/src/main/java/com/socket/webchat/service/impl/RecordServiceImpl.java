@@ -215,7 +215,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         wrapper.eq(ChatRecord::getMid, mid);
         ChatRecord record = getOne(wrapper);
         // 检查消息权限
-        if (!Wss.checkMessagePermissions(record)) {
+        if (!Wss.checkMessagePermission(record)) {
             return false;
         }
         // 添加删除标记
