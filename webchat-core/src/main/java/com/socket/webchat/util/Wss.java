@@ -110,7 +110,7 @@ public class Wss {
      */
     public static String getPlatform(String userAgent) {
         Platform platform = UserAgentParser.parse(userAgent).getPlatform();
-        return platform.isAndroid() ? "手机在线" : platform.isIos() ? "iPhone在线" : "PC在线";
+        return platform.isAndroid() ? "手机" : platform.isIos() ? "iPhone" : "PC";
     }
 
     /**
