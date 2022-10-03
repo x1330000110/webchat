@@ -74,7 +74,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // shiro登录
         SecurityUtils.getSubject().login(new UsernamePasswordToken(uid, condition.getPass(), condition.isAuto()));
         // 更新登录信息
-        Optional.ofNullable(uid).ifPresent(e -> sysUserLogMapper.insert(new SysUserLog()));
+        Optional.ofNullable(uid).ifPresent(e -> sysUserLogMapper.insert(SysUserLog.buildLog()));
     }
 
     @Override

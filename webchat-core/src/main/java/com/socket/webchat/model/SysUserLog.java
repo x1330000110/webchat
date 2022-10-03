@@ -15,19 +15,21 @@ public class SysUserLog extends BaseModel {
     /**
      * 账号/用户ID
      */
-    private final String uid;
+    private String uid;
     /**
      * 最近登录ip地址
      */
-    private final String ip;
+    private String ip;
     /**
      * 登录平台
      */
-    private final String platform;
+    private String platform;
 
-    public SysUserLog() {
-        this.uid = Wss.getUserId();
-        this.ip = Wss.getRemoteIP();
-        this.platform = Wss.getPlatform();
+    public static SysUserLog buildLog() {
+        SysUserLog log = new SysUserLog();
+        log.uid = Wss.getUserId();
+        log.ip = Wss.getRemoteIP();
+        log.platform = Wss.getPlatform();
+        return log;
     }
 }
