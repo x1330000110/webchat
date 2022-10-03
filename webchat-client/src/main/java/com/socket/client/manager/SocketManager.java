@@ -154,13 +154,7 @@ public class SocketManager {
         // 与此用户关联的所有未读消息
         Map<String, SortedSet<ChatRecord>> messages = recordService.getUnreadMessages(suid);
         // 登录记录
-        QueryWrapper<SysUserLog> w2 = Wrappers.query();
-        String last = StrUtil.format("MAX({})", Wss.columnToString(BaseModel::getCreateTime));
-        w2.select(Wss.columnToString(SysUserLog::getUid), last);
-        w2.lambda().groupBy(SysUserLog::getUid);
-        Map<String, Date> logs = sysUserLogMapper.selectList(w2)
-                .stream()
-                .collect(Collectors.toMap(SysUserLog::getUid, BaseModel::getCreateTime));
+        Map<String, Date> logs = this.getUserLoginLogs();
         // 链接数据
         List<UserPreview> collect = userList.stream()
                 .map(UserPreview::new)
@@ -181,6 +175,17 @@ public class SocketManager {
                 .findFirst()
                 .ifPresent(user -> user.setShields(redisManager.getShield(user.getUid())));
         return collect;
+    }
+
+    /**
+     * 获取所有用户登录最新时间
+     */
+    private Map<String, Date> getUserLoginLogs() {
+        QueryWrapper<SysUserLog> w2 = Wrappers.query();
+        w2.select(Wss.columnToString(SysUserLog::getUid), Wss.selecterMax(BaseModel::getCreateTime));
+        w2.lambda().groupBy(SysUserLog::getUid);
+        List<SysUserLog> userLogs = sysUserLogMapper.selectList(w2);
+        return userLogs.stream().collect(Collectors.toMap(SysUserLog::getUid, BaseModel::getCreateTime));
     }
 
     /**

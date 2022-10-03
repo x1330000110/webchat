@@ -6,7 +6,6 @@ import cn.hutool.core.lang.func.Func1;
 import cn.hutool.core.lang.func.LambdaUtil;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.crypto.digest.MD5;
 import cn.hutool.extra.servlet.ServletUtil;
 import cn.hutool.http.Header;
 import cn.hutool.http.HttpRequest;
@@ -24,20 +23,9 @@ import org.apache.shiro.subject.Subject;
 import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
-import java.util.stream.IntStream;
 
 public class Wss {
     private static final String REGEX = "地址\\s+:\\s+(.+?)\\s+(.+?)\\s+(.+?)\n";
-
-    /**
-     * 将微信openId转为wsUid
-     */
-    public static String toUID(String openid) {
-        String digest = MD5.create().digestHex(openid);
-        StringBuilder sb = new StringBuilder();
-        IntStream.range(0, digest.length()).filter(i -> i % 2 == 0).forEach(i -> sb.append(digest.charAt(i)));
-        return String.valueOf(Long.parseLong(sb.substring(0, 6), 16) & 1000000);
-    }
 
     /**
      * 枚举转JSON
@@ -136,5 +124,13 @@ public class Wss {
         PrincipalCollection principals = subject.getPrincipals();
         String realm = principals.getRealmNames().iterator().next();
         subject.runAs(new SimplePrincipalCollection(user, realm));
+    }
+
+    /**
+     * mybatis group by max合成字符串
+     */
+    public static <T> String selecterMax(Func1<T, ?> lambda) {
+        String column = columnToString(lambda);
+        return StrUtil.format("MAX({}) AS {}", column, column);
     }
 }

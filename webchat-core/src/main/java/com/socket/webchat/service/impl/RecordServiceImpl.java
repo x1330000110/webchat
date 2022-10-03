@@ -122,7 +122,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
     @Override
     public void removeAllMessage(String uid, String target) {
         QueryWrapper<ChatRecord> wrapper = Wrappers.query();
-        wrapper.select("MAX(ID) AS ID");
+        wrapper.select(Wss.selecterMax(BaseModel::getId));
         LambdaQueryWrapper<ChatRecord> lambda = wrapper.lambda();
         // 群组特殊条件
         if (Constants.GROUP.equals(target)) {
