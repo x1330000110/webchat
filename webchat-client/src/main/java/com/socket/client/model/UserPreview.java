@@ -5,7 +5,10 @@ import com.socket.webchat.model.SysUser;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * 初始化聊天室的额外用户信息
@@ -44,10 +47,17 @@ public class UserPreview extends SysUser {
         BeanUtil.copyProperties(sysUser, this);
     }
 
-    public void fill(WsUser wsUser) {
-        if (wsUser != null) {
+    /**
+     * 填充Ws用户数据
+     *
+     * @param logs    日志列表
+     * @param onlines 在线用户列表
+     */
+    public void fill(Map<String, Date> logs, Map<String, WsUser> onlines) {
+        Optional.ofNullable(onlines.get(getUid())).ifPresent(user -> {
             this.online = true;
-            this.platform = wsUser.getPlatform();
-        }
+            this.platform = user.getPlatform();
+        });
+        Optional.ofNullable(logs.get(getUid())).ifPresent(date -> this.lastTime = date.getTime());
     }
 }

@@ -5,6 +5,7 @@ import cn.hutool.core.lang.Opt;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.client.model.UserPreview;
@@ -14,13 +15,13 @@ import com.socket.client.model.enums.Callback;
 import com.socket.client.model.enums.Remote;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.mapper.ShieldUserMapper;
+import com.socket.webchat.mapper.SysUserLogMapper;
 import com.socket.webchat.mapper.SysUserMapper;
-import com.socket.webchat.model.ChatRecord;
-import com.socket.webchat.model.ShieldUser;
-import com.socket.webchat.model.SysUser;
+import com.socket.webchat.model.*;
 import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.service.RecordService;
+import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.subject.Subject;
@@ -29,10 +30,7 @@ import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -45,6 +43,7 @@ import java.util.stream.Collectors;
 public class SocketManager {
     private final ConcurrentHashMap<String, WsUser> onlines = new ConcurrentHashMap<>();
     private final KafkaTemplate<String, String> kafkaTemplate;
+    private final SysUserLogMapper sysUserLogMapper;
     private final ShieldUserMapper shieldUserMapper;
     private final RecordService recordService;
     private final SysUserMapper sysUserMapper;
@@ -154,11 +153,19 @@ public class SocketManager {
         String suid = self.getUid();
         // 与此用户关联的所有未读消息
         Map<String, SortedSet<ChatRecord>> messages = recordService.getUnreadMessages(suid);
+        // 登录记录
+        QueryWrapper<SysUserLog> w2 = Wrappers.query();
+        String last = StrUtil.format("MAX({})", Wss.columnToString(BaseModel::getCreateTime));
+        w2.select(Wss.columnToString(SysUserLog::getUid), last);
+        w2.lambda().groupBy(SysUserLog::getUid);
+        Map<String, Date> logs = sysUserLogMapper.selectList(w2)
+                .stream()
+                .collect(Collectors.toMap(SysUserLog::getUid, BaseModel::getCreateTime));
         // 链接数据
         List<UserPreview> collect = userList.stream()
                 .map(UserPreview::new)
                 // 补全状态
-                .peek(user -> user.fill(onlines.get(user.getUid())))
+                .peek(user -> user.fill(logs, onlines))
                 // 同步未读消息
                 .peek(user -> this.syncUnreadMessage(user, messages, suid))
                 // 转为List
