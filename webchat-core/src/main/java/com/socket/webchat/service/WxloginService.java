@@ -1,7 +1,7 @@
 package com.socket.webchat.service;
 
+import com.socket.webchat.exception.AccountException;
 import com.socket.webchat.model.SysUser;
-import com.socket.webchat.runtime.AccountException;
 
 import javax.servlet.http.HttpServletResponse;
 

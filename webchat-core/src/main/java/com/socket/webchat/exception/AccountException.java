@@ -1,4 +1,4 @@
-package com.socket.webchat.runtime;
+package com.socket.webchat.exception;
 
 import org.apache.shiro.authc.AuthenticationException;
 

@@ -1,4 +1,4 @@
-package com.socket.webchat.runtime;
+package com.socket.webchat.exception;
 
 /**
  * 异地登录检查

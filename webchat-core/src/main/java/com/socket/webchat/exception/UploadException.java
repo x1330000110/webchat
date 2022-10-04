@@ -1,4 +1,4 @@
-package com.socket.webchat.runtime;
+package com.socket.webchat.exception;
 
 /**
  * 文件上传失败异常

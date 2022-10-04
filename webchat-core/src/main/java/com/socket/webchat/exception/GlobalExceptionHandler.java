@@ -1,4 +1,4 @@
-package com.socket.webchat.runtime;
+package com.socket.webchat.exception;
 
 import com.socket.webchat.model.enums.HttpStatus;
 import lombok.extern.slf4j.Slf4j;
