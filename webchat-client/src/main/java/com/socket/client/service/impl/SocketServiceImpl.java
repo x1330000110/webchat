@@ -64,7 +64,7 @@ public class SocketServiceImpl implements SocketService {
     }
 
     @OnError
-    public void onError(Exception e) {
+    public void onError(Throwable e) {
         if (e instanceof SocketException) {
             ((SocketException) e).buildMessage().send(self, Remote.ASYNC);
             return;
