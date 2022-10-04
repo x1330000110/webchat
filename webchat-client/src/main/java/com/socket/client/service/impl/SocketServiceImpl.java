@@ -1,7 +1,6 @@
 package com.socket.client.service.impl;
 
 import com.socket.client.config.SocketConfig;
-import com.socket.client.exception.SocketException;
 import com.socket.client.manager.SocketManager;
 import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
@@ -65,13 +64,7 @@ public class SocketServiceImpl implements SocketService {
 
     @OnError
     public void onError(Throwable e) {
-        if (e instanceof SocketException) {
-            ((SocketException) e).buildMessage().send(self, Remote.ASYNC);
-            return;
-        }
-        String error = e.getMessage();
-        log.warn(error);
-        WsMsg.buildsys(Callback.MANUAL.of(error), MessageType.DANGER).send(self, Remote.ASYNC);
+        e.printStackTrace();
     }
 
     @OnMessage
