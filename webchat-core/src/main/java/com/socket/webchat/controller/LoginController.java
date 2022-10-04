@@ -23,7 +23,7 @@ public class LoginController {
     @GetMapping("/login")
     public HttpStatus login(LoginCondition condition) {
         // 必要的密码长度判断
-        Assert.isTrue(StrUtil.length(condition.getPass()) <= 16, InvalidRequestException::new);
+        Assert.isTrue(StrUtil.length(condition.getPass()) <= 16, "无效的请求", InvalidRequestException::new);
         sysUserService.login(condition);
         return HttpStatus.SUCCESS.message("登录成功");
     }
