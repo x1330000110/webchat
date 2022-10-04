@@ -63,7 +63,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery(SysUser.class);
                 wrapper.eq(SysUser::getUid, uid);
                 email = Opt.ofNullable(get(wrapper)).map(SysUser::getEmail).get();
-                Assert.notNull(email, UnknownAccountException::new);
+                Assert.notNull(email, "找不到指定账号", UnknownAccountException::new);
             }
             String key = RedisTree.EMAIL.concat(email);
             Object redisCode = redisClient.get(key);

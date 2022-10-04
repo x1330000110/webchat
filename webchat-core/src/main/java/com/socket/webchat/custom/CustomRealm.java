@@ -145,6 +145,8 @@ public class CustomRealm extends AuthorizingRealm {
      */
     private void checkLimit(String uid) {
         long time = redisClient.getExpired(RedisTree.LOCK.concat(uid));
-        Assert.isTrue(time <= 0, "您已被限制登录，预计剩余" + Wss.universal(time), AccountException::new);
+        if (time > 0) {
+            throw new AccountException("您已被限制登录，预计剩余" + Wss.universal(time));
+        }
     }
 }
