@@ -4,8 +4,10 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Opt;
 import cn.hutool.json.JSONUtil;
 import com.socket.client.model.enums.Callback;
+import com.socket.client.model.enums.Remote;
 import com.socket.secure.util.AES;
 import com.socket.webchat.model.SysUser;
+import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.model.enums.UserRole;
 import lombok.Getter;
 import lombok.Setter;
@@ -85,12 +87,13 @@ public class WsUser extends SysUser {
      * 退出聊天室
      *
      * @param reason 原因（强制退出时填写）
+     * @param objs   参数
      */
-    public void logout(Callback reason) {
+    public void logout(Callback reason, Object... objs) {
         // 始终清除ws会话
         if (session != null) {
             try {
-                String str = Opt.ofNullable(reason).map(Callback::getReason).get();
+                String str = Opt.ofNullable(reason).peek(e -> e.of(objs)).map(Callback::getReason).get();
                 session.close(new CloseReason(CloseCodes.NORMAL_CLOSURE, str));
             } catch (IOException e) {
                 log.warn(e.getMessage());
@@ -153,5 +156,17 @@ public class WsUser extends SysUser {
         WsMsg wsmsg = JSONUtil.toBean(AES.decrypt(supplier.get(), httpSession), WsMsg.class);
         wsmsg.setUid(getUid());
         return wsmsg;
+    }
+
+    /**
+     * 未送达消息处理
+     */
+    public void rejectMessage(WsMsg wsmsg) {
+        WsMsg msg = new WsMsg();
+        wsmsg.setReject(true);
+        wsmsg.setMid(wsmsg.getMid());
+        wsmsg.setContent(wsmsg.getContent());
+        msg.send(this, Remote.SYNC);
+        WsMsg.buildsys(Callback.SELF_SHIELD.of(), MessageType.WARNING).send(this, Remote.ASYNC);
     }
 }

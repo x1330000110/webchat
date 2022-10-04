@@ -65,13 +65,13 @@ public class SocketManager {
         // 检查登录限制（会话缓存检查）
         long time = redisManager.getLockTime(user.getUid());
         if (time > 0) {
-            user.logout(Callback.LOGIN_LIMIT.of(time));
+            user.logout(Callback.LOGIN_LIMIT, time);
             return null;
         }
         // 检查重复登录
         WsUser repeat = onlines.get(user.getUid());
         if (repeat != null) {
-            repeat.logout(Callback.REPEAT_LOGIN.of());
+            repeat.logout(Callback.REPEAT_LOGIN);
         }
         // 登录到聊天室
         onlines.put(user.getUid(), user);
@@ -276,9 +276,8 @@ public class SocketManager {
         boolean audio = !wsmsg.isGroup() && wsmsg.getType() == MessageType.AUDIO;
         record.setUnread(audio || !isread);
         kafkaTemplate.send(Constants.KAFKA_RECORD, JSONUtil.toJsonStr(record));
-        // 未读消息计数器
+        // 目标列表添加发起者uid
         if (!isread) {
-            // 目标列表添加发起者uid
             redisManager.setUnreadCount(wsmsg.getTarget(), wsmsg.getUid(), 1);
         }
     }

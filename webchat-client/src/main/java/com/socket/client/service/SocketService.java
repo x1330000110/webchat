@@ -10,30 +10,25 @@ public interface SocketService {
 
     /**
      * 处理用户消息
-     *
-     * @return 回调数据
      */
-    WsMsg parseUserMsg(WsMsg wsmsg, WsUser target);
+    void parseUserMsg(WsMsg wsmsg, WsUser target);
 
     /**
      * 处理系统消息
      * 用户命令（无需权限执行）
      *
-     * @return 回调数据
      */
-    WsMsg parseSysMsg(WsMsg wsmsg, WsUser target);
+    void parseSysMsg(WsMsg wsmsg, WsUser target);
 
     /**
      * 解析管理员命令
      *
-     * @return 回调数据
      */
-    WsMsg parseAdminSysMsg(WsMsg wsmsg, WsUser target);
+    void parseAdminSysMsg(WsMsg wsmsg, WsUser target);
 
     /**
      * 解析所有者命令
      *
-     * @return 回调数据
      */
-    WsMsg parseOwnerSysMsg(WsMsg wsmsg, WsUser target);
+    void parseOwnerSysMsg(WsMsg wsmsg, WsUser target);
 }

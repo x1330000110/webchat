@@ -11,27 +11,26 @@ import lombok.Getter;
 public enum Callback {
     // ------ 安全检查 ---------//
     REPEAT_LOGIN("您的账号已在别处登录"),
-    SELF_IS_MUTE("您已被禁言，请稍后再试"),
+    SELF_MUTE("您已被禁言，请稍后再试"),
     USER_NOT_FOUND("找不到消息发送的目标用户（可能已注销）"),
     MALICIOUS_SPEAK("检查到存在刷屏行为，您已被禁言{}"),
     REJECT_EXECUTE("操作被拒绝：权限不足"),
     COMMAND_INCORRECT("命令不正确"),
-    WITHDRAW_TIMEDOUT("超过{}的消息无法撤回"),
+    WITHDRAW_FAILURE("超过{}的消息无法撤回"),
     // --------- 加入/退出 --------//
     USER_LOGIN("{} 加入聊天室"),
     USER_LOGOUT("{} 退出聊天室"),
     JOIN_INIT("INIT"),
     //---- 禁言 ------//
     MUTE_LIMIT("您已被管理员禁言{}"),
-    CANCEL_MUTE_LIMIT("您已被管理员解除禁言"),
-    GLOBAL_MUTE_LIMIT("{} 已被管理员禁言{}"),
-    GLOBAL_CANCEL_MUTE_LIMIT("{} 已被管理员解除禁言"),
+    C_MUTE_LIMIT("您已被管理员解除禁言"),
+    G_MUTE_LIMIT("{} 已被管理员禁言{}"),
+    GC_MUTE_LIMIT("{} 已被管理员解除禁言"),
     //---- 限制登录 ------//
     LOGIN_LIMIT("您已被管理员限制登陆{}"),
-    LOGIN_LIMIT_FOREVER("您已被管理员永久限制登陆"),
-    GLOBAL_LOGIN_LIMIT("{} 已被管理员限制登陆{}"),
-    GLOBAL_LOGIN_LIMIT_FOREVER("{} 已被管理员永久限制登陆"),
-    GLOBAL_CANCEL_LOGIN_LIMIT("{} 已被管理员解除登录限制"),
+    LIMIT_FOREVER("您已被管理员永久限制登陆"),
+    G_LOGIN_LIMIT("{} 已被管理员限制登陆{}"),
+    GC_LOGIN_LIMIT("{} 已被管理员解除登录限制"),
     // ----- 任命管理员 ------//
     ADMIN("您已被所有者任命为管理员"),
     USERS("您已被所有者取消管理员权限"),

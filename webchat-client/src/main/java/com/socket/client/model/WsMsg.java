@@ -52,9 +52,9 @@ public class WsMsg {
      */
     private Object data;
 
-    WsMsg(String content, MessageType type, Object data) {
+    WsMsg(Callback callback, MessageType type, Object data) {
         this.sysmsg = true;
-        this.content = content;
+        this.content = callback.getReason();
         this.type = type;
         this.data = data;
     }
@@ -78,22 +78,22 @@ public class WsMsg {
     /**
      * 构造系统消息
      *
-     * @param tips 内容
-     * @param type 消息类型
+     * @param callback 内容
+     * @param type     消息类型
      */
-    public static WsMsg buildsys(Callback tips, MessageType type) {
-        return buildsys(tips, type, null);
+    public static WsMsg buildsys(Callback callback, MessageType type) {
+        return new WsMsg(callback, type, null);
     }
 
     /**
      * 构造系统消息
      *
-     * @param tips 内容
-     * @param type 消息类型
-     * @param data 额外数据
+     * @param callback 内容
+     * @param type     消息类型
+     * @param data     额外数据
      */
-    public static WsMsg buildsys(Callback tips, MessageType type, Object data) {
-        return new WsMsg(tips.getReason(), type, data);
+    public static WsMsg buildsys(Callback callback, MessageType type, Object data) {
+        return new WsMsg(callback, type, data);
     }
 
     /**
