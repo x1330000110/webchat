@@ -222,6 +222,7 @@ public class SocketServiceImpl implements SocketService {
             // 若此撤回的消息指向群组，则通知所有人撤回此消息
             if (wsmsg.isGroup()) {
                 socketManager.sendAll(wsmsg, self);
+                return;
             }
             // 仅通知目标撤回此消息（若目标已将此用户屏蔽，则忽略此撤回消息）
             if (!socketManager.shield(target, self)) {
