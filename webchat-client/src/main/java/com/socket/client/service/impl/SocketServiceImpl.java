@@ -164,7 +164,7 @@ public class SocketServiceImpl implements SocketService {
     @Override
     public void parseAdminSysMsg(WsMsg wsmsg, WsUser target) {
         // 管理员权限检查
-        boolean admin = self.isAdmin() && !target.isOwner();
+        boolean admin = self.isOwner() || self.isAdmin() && !target.isOwner();
         Assert.isTrue(admin, Callback.REJECT_EXECUTE, MessageType.DANGER);
         switch (wsmsg.getType()) {
             case MUTE:
