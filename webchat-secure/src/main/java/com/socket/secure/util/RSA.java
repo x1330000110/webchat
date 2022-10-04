@@ -1,7 +1,7 @@
 package com.socket.secure.util;
 
 import com.socket.secure.constant.SecureConstant;
-import com.socket.secure.runtime.InvalidRequestException;
+import com.socket.secure.exception.InvalidRequestException;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.springframework.util.Base64Utils;
 

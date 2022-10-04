@@ -6,7 +6,7 @@ import cn.hutool.json.JSONConfig;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.socket.secure.constant.SecureConstant;
-import com.socket.secure.runtime.InvalidRequestException;
+import com.socket.secure.exception.InvalidRequestException;
 import com.socket.secure.util.AES;
 import com.socket.secure.util.Hmac;
 import org.springframework.util.StringUtils;

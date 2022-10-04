@@ -1,4 +1,4 @@
-package com.socket.secure.runtime;
+package com.socket.secure.exception;
 
 import com.socket.secure.constant.SecureProperties;
 

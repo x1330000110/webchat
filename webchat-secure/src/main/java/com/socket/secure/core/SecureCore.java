@@ -4,7 +4,7 @@ import cn.hutool.http.Header;
 import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.constant.SecureProperties;
 import com.socket.secure.event.entity.KeyEvent;
-import com.socket.secure.runtime.InvalidRequestException;
+import com.socket.secure.exception.InvalidRequestException;
 import com.socket.secure.util.AES;
 import com.socket.secure.util.Hmac;
 import com.socket.secure.util.RSA;

@@ -1,6 +1,6 @@
 package com.socket.secure.util;
 
-import com.socket.secure.runtime.InvalidRequestException;
+import com.socket.secure.exception.InvalidRequestException;
 import org.apache.tomcat.util.buf.HexUtils;
 
 import javax.crypto.Mac;

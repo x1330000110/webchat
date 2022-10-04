@@ -1,4 +1,4 @@
-package com.socket.secure.runtime;
+package com.socket.secure.exception;
 
 /**
  * Security Authentication Failed Exception <br>

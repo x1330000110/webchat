@@ -1,6 +1,6 @@
 package com.socket.secure.core;
 
-import com.socket.secure.runtime.InvalidRequestException;
+import com.socket.secure.exception.InvalidRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
