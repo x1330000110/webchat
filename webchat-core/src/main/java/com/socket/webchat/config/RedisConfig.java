@@ -12,13 +12,13 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 public class RedisConfig {
 
     @Bean
-    public RedisClient redisClient(LettuceConnectionFactory factory) {
+    public RedisClient<?> redisClient(LettuceConnectionFactory factory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setKeySerializer(new StringRedisSerializer());
         template.setHashKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
         template.setConnectionFactory(factory);
-        return new RedisClient(template);
+        return new RedisClient<>(template);
     }
 }

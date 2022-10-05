@@ -13,5 +13,5 @@ public enum Remote {
     /**
      * 异步发送
      */
-    ASYNC;
+    ASYNC
 }

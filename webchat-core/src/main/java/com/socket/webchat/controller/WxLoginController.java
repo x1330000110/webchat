@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
 public class WxLoginController {
     private final WxloginService wxloginService;
     private final WxProperties properties;
-    private final RedisClient redisClient;
+    private final RedisClient<?> redisClient;
 
     @PostMapping("/state/{uuid}")
     public HttpStatus state(@PathVariable String uuid) {

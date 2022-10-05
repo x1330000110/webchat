@@ -36,7 +36,7 @@ import java.io.IOException;
 public class WxloginServiceImpl implements WxloginService {
     private final WxAuth2Request wxAuth2Request;
     private final SysUserService sysUserService;
-    private final RedisClient redisClient;
+    private final RedisClient<String> redisClient;
 
     @Override
     public SysUser authorize(String code, String uuid) {

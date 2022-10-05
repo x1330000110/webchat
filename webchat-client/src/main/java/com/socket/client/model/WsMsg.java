@@ -52,6 +52,9 @@ public class WsMsg {
      */
     private Object data;
 
+    /**
+     * 系统消息
+     */
     WsMsg(Callback callback, MessageType type, Object data) {
         this.sysmsg = true;
         this.content = callback.getReason();
@@ -59,6 +62,9 @@ public class WsMsg {
         this.data = data;
     }
 
+    /**
+     * 用户消息
+     */
     WsMsg(String uid, String target, String content, MessageType type, String mid) {
         this.uid = uid;
         this.target = target;
@@ -68,9 +74,23 @@ public class WsMsg {
     }
 
     /**
-     * 构造用户消息
+     * 未送达消息
      */
-    public static WsMsg buildmsg(String uid, String target, String content, MessageType type) {
+    public WsMsg(boolean reject, String mid, String content) {
+        this.reject = reject;
+        this.mid = mid;
+        this.content = content;
+    }
+
+    /**
+     * 构造用户消息
+     *
+     * @param uid     发起者
+     * @param target  目标
+     * @param content 内容
+     * @param type    消息类型
+     */
+    public static WsMsg build(String uid, String target, String content, MessageType type) {
         String mid = MD5.create().digestHex(uid + content + type.getName() + target + System.currentTimeMillis());
         return new WsMsg(uid, target, content, type, mid);
     }
@@ -81,7 +101,7 @@ public class WsMsg {
      * @param callback 内容
      * @param type     消息类型
      */
-    public static WsMsg buildsys(Callback callback, MessageType type) {
+    public static WsMsg build(Callback callback, MessageType type) {
         return new WsMsg(callback, type, null);
     }
 
@@ -92,8 +112,23 @@ public class WsMsg {
      * @param type     消息类型
      * @param data     额外数据
      */
-    public static WsMsg buildsys(Callback callback, MessageType type, Object data) {
+    public static WsMsg build(Callback callback, MessageType type, Object data) {
         return new WsMsg(callback, type, data);
+    }
+
+
+    /**
+     * 转为未送达的消息
+     */
+    public WsMsg reject() {
+        return new WsMsg(true, mid, content);
+    }
+
+    /**
+     * 转为已送达的消息
+     */
+    public WsMsg accept() {
+        return new WsMsg(false, mid, content);
     }
 
     /**
@@ -131,7 +166,7 @@ public class WsMsg {
             return;
         }
         // 发送消息
-        String encrypt = target.encrypt(() -> this);
+        String encrypt = target.encrypt(this);
         switch (type) {
             case ASYNC:
                 session.getAsyncRemote().sendText(encrypt);

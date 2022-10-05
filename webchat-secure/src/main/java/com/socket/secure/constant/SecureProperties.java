@@ -17,7 +17,7 @@ public class SecureProperties {
      * Disguise the number of synchronized public key files <br>
      * A moderate number can increase the resolution speed of the client,
      * and vice versa can increase the difficulty of cracking
-     * (it's not recommended to change this configuration).
+     * (it's not recommend changing this configuration).
      */
     private int disguiseFilesCount = 25;
     /**

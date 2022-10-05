@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord> implements RecordService {
     private final ChatRecordDeletedMapper chatRecordDeletedMapper;
     private final ChatRecordOffsetMapper chatRecordOffsetMapper;
-    private final RedisClient redisClient;
+    private final RedisClient<?> redisClient;
 
     @KafkaListener(topics = Constants.KAFKA_RECORD)
     public void saveRecord(ConsumerRecord<String, String> data) {

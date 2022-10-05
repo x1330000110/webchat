@@ -43,7 +43,7 @@ import java.util.Optional;
 public class CustomRealm extends AuthorizingRealm {
     private final SysUserLogMapper sysUserLogMapper;
     private final SysUserMapper sysUserMapper;
-    private final RedisClient redisClient;
+    private final RedisClient<?> redisClient;
 
     /**
      * 权限认证
@@ -100,7 +100,8 @@ public class CustomRealm extends AuthorizingRealm {
                 // 验证密码
                 if (Bcrypt.verify(input, (String) info.getCredentials())) {
                     checkLimit(user.getUid());
-                    return checkOffsite(user);
+                    checkOffsite(user);
+                    return true;
                 }
                 return false;
             }
@@ -110,10 +111,10 @@ public class CustomRealm extends AuthorizingRealm {
     /**
      * 异地登录检查
      */
-    private boolean checkOffsite(SysUser sysUser) {
+    private void checkOffsite(SysUser sysUser) {
         // 未绑定邮箱
         if (StrUtil.isEmpty(sysUser.getEmail())) {
-            return true;
+            return;
         }
         // 查询登录记录
         LambdaQueryWrapper<SysUserLog> wrapper = Wrappers.lambdaQuery();
@@ -123,7 +124,7 @@ public class CustomRealm extends AuthorizingRealm {
         SysUserLog log = sysUserLogMapper.selectOne(wrapper);
         // 首次登录放行
         if (log == null) {
-            return true;
+            return;
         }
         // 检查标记
         if (Requests.notExist(Constants.OFFSITE)) {
@@ -137,7 +138,6 @@ public class CustomRealm extends AuthorizingRealm {
                 Assert.isTrue(offsite, DesensitizedUtil.email(sysUser.getEmail()), OffsiteLoginException::new);
             }
         }
-        return true;
     }
 
     /**

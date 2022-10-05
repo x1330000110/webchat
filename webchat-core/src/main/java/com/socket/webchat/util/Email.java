@@ -4,8 +4,8 @@ import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.socket.webchat.constant.Constants;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.mail.MailProperties;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -14,17 +14,11 @@ import org.springframework.stereotype.Component;
 import javax.mail.internet.MimeMessage;
 
 @Component
+@RequiredArgsConstructor
 public class Email {
-    private JavaMailSenderImpl mailSender;
-    private MailProperties properties;
-    private String content;
-
-    @Autowired
-    public void setAutowired(JavaMailSenderImpl sender, MailProperties properties) {
-        this.mailSender = sender;
-        this.properties = properties;
-        this.content = IoUtil.readUtf8(getClass().getClassLoader().getResourceAsStream("other/mail.html"));
-    }
+    private final JavaMailSenderImpl mailSender;
+    private final MailProperties properties;
+    private final String content = IoUtil.readUtf8(getClass().getClassLoader().getResourceAsStream("other/mail.html"));
 
     /**
      * 向指定mail发送验证码

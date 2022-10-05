@@ -103,7 +103,7 @@ public class SocketManager {
      * @param sender 发起者信息
      */
     public void sendAll(Callback tips, MessageType type, SysUser sender) {
-        WsMsg sysmsg = WsMsg.buildsys(tips, type, sender);
+        WsMsg sysmsg = WsMsg.build(tips, type, sender);
         for (WsUser wsuser : onlines.values()) {
             if (!wsuser.getUid().equals(sender.getUid())) {
                 sysmsg.send(wsuser, Remote.ASYNC);
@@ -259,7 +259,7 @@ public class SocketManager {
         int time = Constants.FREQUENT_SPEECHES_MUTE_TIME;
         if (redisManager.incrSpeak(user.getUid()) > Constants.FREQUENT_SPEECH_THRESHOLD) {
             redisManager.setMute(user.getUid(), time);
-            WsMsg.buildsys(Callback.MALICIOUS_SPEAK.of(time), MessageType.MUTE, time).send(user, Remote.ASYNC);
+            WsMsg.build(Callback.BRUSH_SCREEN.format(time), MessageType.MUTE, time).send(user, Remote.ASYNC);
         }
     }
 
@@ -389,8 +389,8 @@ public class SocketManager {
     public void checkMute(WsUser user) {
         long muteTime = redisManager.getMuteTime(user.getUid());
         if (muteTime > 0) {
-            Callback tips = Callback.MUTE_LIMIT.of(muteTime);
-            WsMsg.buildsys(tips, MessageType.MUTE, muteTime).send(user, Remote.ASYNC);
+            Callback tips = Callback.MUTE_LIMIT.format(muteTime);
+            WsMsg.build(tips, MessageType.MUTE, muteTime).send(user, Remote.ASYNC);
         }
     }
 
@@ -413,7 +413,7 @@ public class SocketManager {
         String content = wsMsg.getContent();
         redisManager.pushNotice(content);
         if (StrUtil.isNotEmpty(content)) {
-            this.sendAll(Callback.MANUAL.of(content), MessageType.ANNOUNCE, sender);
+            this.sendAll(Callback.MANUAL.format(content), MessageType.ANNOUNCE, sender);
         }
     }
 }

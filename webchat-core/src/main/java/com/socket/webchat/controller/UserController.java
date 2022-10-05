@@ -28,7 +28,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserController {
     private final SysUserService sysUserService;
-    private final RedisClient redisClient;
+    private final RedisClient<String> redisClient;
 
     @Encrypted
     @PostMapping(value = "/material")
@@ -84,7 +84,7 @@ public class UserController {
 
     @GetMapping("/notice")
     public HttpStatus getNotice(String digest) {
-        RedisMap<String, Object> map = redisClient.withMap(RedisTree.ANNOUNCE.concat());
+        RedisMap<String, String> map = redisClient.withMap(RedisTree.ANNOUNCE.concat());
         Object dg = map.get(Announce.digest);
         // 散列id不同 表示发布新内容
         if (dg != null && !dg.equals(digest)) {

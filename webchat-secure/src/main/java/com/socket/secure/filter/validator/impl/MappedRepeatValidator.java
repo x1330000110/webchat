@@ -33,7 +33,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * The maximum number of accepted requests per second can be configured
  * {@link SecureProperties#getMaximumConcurrencyPerSecond()},
  * When the request exceeds the critical point,
- * it possible thrown {@link BufferOverflowException} exception.
+ * its possible thrown {@link BufferOverflowException} exception.
  *
  * @see ConcurrentHashMap
  * @see MappedByteBuffer

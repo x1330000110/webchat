@@ -49,7 +49,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
     private final SysUserLogMapper sysUserLogMapper;
-    private final RedisClient redisClient;
+    private final RedisClient<Object> redisClient;
     private final FTPClient client;
     private final Email sender;
 

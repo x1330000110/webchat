@@ -46,9 +46,9 @@ public class SocketServiceImpl implements SocketService {
         // 传递消息
         if (self != null) {
             Collection<UserPreview> userList = socketManager.getUserList(self);
-            WsMsg.buildsys(Callback.JOIN_INIT.of(), MessageType.INIT, userList).send(self, Remote.ASYNC);
+            WsMsg.build(Callback.JOIN_INIT.format(), MessageType.INIT, userList).send(self, Remote.ASYNC);
             // 用户加入通知
-            socketManager.sendAll(Callback.USER_LOGIN.of(self), MessageType.JOIN, self);
+            socketManager.sendAll(Callback.USER_LOGIN.format(self), MessageType.JOIN, self);
             socketManager.checkMute(self);
         }
     }
@@ -57,7 +57,7 @@ public class SocketServiceImpl implements SocketService {
     public void onClose() {
         // 退出通知
         if (self != null) {
-            socketManager.sendAll(Callback.USER_LOGOUT.of(self), MessageType.EXIT, self);
+            socketManager.sendAll(Callback.USER_LOGOUT.format(self), MessageType.EXIT, self);
             socketManager.remove(self);
         }
     }
@@ -68,29 +68,27 @@ public class SocketServiceImpl implements SocketService {
     }
 
     @OnMessage
-    public String onMessage(String json) {
-        WsMsg wsmsg = self.decrypt(() -> json);
+    public void onMessage(String message) {
+        WsMsg wsmsg = self.decrypt(message);
         WsUser target = socketManager.getUser(wsmsg.getTarget());
-        return self.encrypt(() -> {
-            // 目标不存在（只有群组为null）
-            Assert.isTrue(wsmsg.isGroup() || target != null, Callback.USER_NOT_FOUND, MessageType.DANGER);
-            // 目标是游客
-            Assert.isFalse(target.isGuest(), Callback.COMMAND_INCORRECT, MessageType.DANGER);
-            // 系统消息
-            if (wsmsg.isSysmsg()) {
-                this.parseSysMsg(wsmsg, target);
-                return null;
-            }
-            this.parseUserMsg(wsmsg, target);
-            socketManager.cacheRecord(wsmsg, wsmsg.isReject() || wsmsg.isGroup() || target.chooseTarget(self));
-            return wsmsg;
-        });
+        // 目标不存在（只有群组为null）
+        Assert.isTrue(wsmsg.isGroup() || target != null, Callback.USER_NOT_FOUND, MessageType.DANGER);
+        // 目标是游客
+        Assert.notGuest(target, Callback.INVALID_COMMAND, MessageType.DANGER);
+        // 系统消息
+        if (wsmsg.isSysmsg()) {
+            this.parseSysMsg(wsmsg, target);
+            return;
+        }
+        // 用户消息
+        this.parseUserMsg(wsmsg, target);
+        socketManager.cacheRecord(wsmsg, wsmsg.isReject() || wsmsg.isGroup() || target.chooseTarget(self));
     }
 
     @Override
     public void parseUserMsg(WsMsg wsmsg, WsUser target) {
         // 游客发言检查
-        Assert.isFalse(self.isGuest(), Callback.REJECT_EXECUTE, MessageType.DANGER);
+        Assert.notGuest(self, Callback.REJECT_EXECUTE, MessageType.DANGER);
         // 禁言状态无法发送消息
         Assert.isFalse(socketManager.isMute(self.getUid()), Callback.SELF_MUTE, MessageType.DANGER);
         // HTML脚本过滤
@@ -108,11 +106,13 @@ public class SocketServiceImpl implements SocketService {
         Assert.isFalse(socketManager.shield(self, target), Callback.TARGET_SHIELD, MessageType.INFO);
         // 目标屏蔽了你
         if (socketManager.shield(target, self)) {
-            self.rejectMessage(wsmsg);
+            wsmsg.reject().send(self, Remote.SYNC);
+            WsMsg.build(Callback.SELF_SHIELD.format(), MessageType.WARNING).send(self, Remote.ASYNC);
             return;
         }
         // 发送至目标
         wsmsg.send(target, Remote.ASYNC);
+        wsmsg.accept().send(self, Remote.ASYNC);
     }
 
     /**
@@ -126,7 +126,7 @@ public class SocketServiceImpl implements SocketService {
             robot.dialogue(wsmsg.getContent()).addCallback(result -> {
                 if (result != null) {
                     // AI消息
-                    WsMsg aimsg = WsMsg.buildmsg(Constants.SYSTEM_UID, wsmsg.getUid(), result, MessageType.TEXT);
+                    WsMsg aimsg = WsMsg.build(Constants.SYSTEM_UID, wsmsg.getUid(), result, MessageType.TEXT);
                     aimsg.send(self, Remote.ASYNC);
                     socketManager.cacheRecord(aimsg, true);
                 }
@@ -137,7 +137,7 @@ public class SocketServiceImpl implements SocketService {
     @Override
     public void parseSysMsg(WsMsg wsmsg, WsUser target) {
         // 游客操作检查
-        Assert.isFalse(self.isGuest(), Callback.REJECT_EXECUTE, MessageType.DANGER);
+        Assert.notGuest(self, Callback.REJECT_EXECUTE, MessageType.DANGER);
         switch (wsmsg.getType()) {
             case SHIELD:
                 this.shield(target);
@@ -164,8 +164,7 @@ public class SocketServiceImpl implements SocketService {
     @Override
     public void parseAdminSysMsg(WsMsg wsmsg, WsUser target) {
         // 管理员权限检查
-        boolean admin = self.isOwner() || self.isAdmin() && !target.isOwner();
-        Assert.isTrue(admin, Callback.REJECT_EXECUTE, MessageType.DANGER);
+        Assert.isAdmin(self, target, Callback.REJECT_EXECUTE, MessageType.DANGER);
         switch (wsmsg.getType()) {
             case MUTE:
                 this.mute(target, wsmsg);
@@ -181,7 +180,7 @@ public class SocketServiceImpl implements SocketService {
     @Override
     public void parseOwnerSysMsg(WsMsg wsmsg, WsUser target) {
         // 所有者权限检查
-        Assert.isTrue(self.isOwner(), Callback.REJECT_EXECUTE, MessageType.DANGER);
+        Assert.isOwner(self, Callback.REJECT_EXECUTE, MessageType.DANGER);
         switch (wsmsg.getType()) {
             case ROLE:
                 this.switchRole(target);
@@ -193,7 +192,7 @@ public class SocketServiceImpl implements SocketService {
                 socketManager.pushNotice(wsmsg, self);
                 break;
             default:
-                WsMsg.buildsys(Callback.COMMAND_INCORRECT.of(), MessageType.DANGER).send(self, Remote.ASYNC);
+                WsMsg.build(Callback.INVALID_COMMAND.format(), MessageType.DANGER).send(self, Remote.ASYNC);
         }
     }
 
@@ -202,8 +201,8 @@ public class SocketServiceImpl implements SocketService {
      */
     private void shield(WsUser target) {
         boolean shield = socketManager.shieldTarget(self, target);
-        Callback tips = shield ? Callback.SHIELD_USER.of(target) : Callback.CANCEL_SHIELD.of(target);
-        WsMsg.buildsys(tips, MessageType.SHIELD, target).send(self, Remote.ASYNC);
+        Callback tips = shield ? Callback.SHIELD_USER.format(target) : Callback.CANCEL_SHIELD.format(target);
+        WsMsg.build(tips, MessageType.SHIELD, target).send(self, Remote.ASYNC);
     }
 
     /**
@@ -227,8 +226,8 @@ public class SocketServiceImpl implements SocketService {
             }
             return;
         }
-        Callback callback = Callback.WITHDRAW_FAILURE.of(Constants.WITHDRAW_MESSAGE_TIME);
-        WsMsg.buildsys(callback, MessageType.WARNING).send(self, Remote.ASYNC);
+        Callback callback = Callback.WITHDRAW_FAILURE.format(Constants.WITHDRAW_MESSAGE_TIME);
+        WsMsg.build(callback, MessageType.WARNING).send(self, Remote.ASYNC);
     }
 
     /**
@@ -258,13 +257,13 @@ public class SocketServiceImpl implements SocketService {
         long time = socketManager.addMute(wsmsg);
         // 禁言
         if (time > 0) {
-            WsMsg.buildsys(Callback.MUTE_LIMIT.of(time), MessageType.MUTE, time).send(target, Remote.ASYNC);
-            socketManager.sendAll(Callback.G_MUTE_LIMIT.of(target, time), MessageType.PRIMARY, target);
+            WsMsg.build(Callback.MUTE_LIMIT.format(time), MessageType.MUTE, time).send(target, Remote.ASYNC);
+            socketManager.sendAll(Callback.G_MUTE_LIMIT.format(target, time), MessageType.PRIMARY, target);
             return;
         }
         // 取消禁言
-        WsMsg.buildsys(Callback.C_MUTE_LIMIT.of(), MessageType.MUTE, time).send(target, Remote.ASYNC);
-        socketManager.sendAll(Callback.GC_MUTE_LIMIT.of(target, time), MessageType.PRIMARY, target);
+        WsMsg.build(Callback.C_MUTE_LIMIT.format(), MessageType.MUTE, time).send(target, Remote.ASYNC);
+        socketManager.sendAll(Callback.GC_MUTE_LIMIT.format(target, time), MessageType.PRIMARY, target);
     }
 
     /**
@@ -281,10 +280,10 @@ public class SocketServiceImpl implements SocketService {
         if (time > 0) {
             // 大于0强制下线
             target.logout(Callback.LOGIN_LIMIT, time);
-            socketManager.sendAll(Callback.G_LOGIN_LIMIT.of(target, time), MessageType.DANGER, target);
+            socketManager.sendAll(Callback.G_LOGIN_LIMIT.format(target, time), MessageType.DANGER, target);
             return;
         }
-        socketManager.sendAll(Callback.GC_LOGIN_LIMIT.of(target, time), MessageType.DANGER, target);
+        socketManager.sendAll(Callback.GC_LOGIN_LIMIT.format(target, time), MessageType.DANGER, target);
     }
 
     /**
@@ -293,10 +292,10 @@ public class SocketServiceImpl implements SocketService {
     private void switchRole(WsUser target) {
         socketManager.updateRole(target, target.isAdmin() ? UserRole.USER : UserRole.ADMIN);
         // 通知目标
-        Callback cb = (target.isAdmin() ? Callback.ADMIN : Callback.USERS).of();
-        WsMsg.buildsys(cb, MessageType.ROLE, target).send(target, Remote.ASYNC);
+        Callback cb = (target.isAdmin() ? Callback.AUTH_ADMIN : Callback.AUTH_USER).format();
+        WsMsg.build(cb, MessageType.ROLE, target).send(target, Remote.ASYNC);
         // 广播消息
-        Callback gcb = (target.isAdmin() ? Callback.GLOBAL_ADMIN : Callback.GLOBA_USERS).of(target);
+        Callback gcb = (target.isAdmin() ? Callback.G_AUTH_ADMIN : Callback.G_AUTH_USER).format(target);
         socketManager.sendAll(gcb, MessageType.ROLE, target);
     }
 

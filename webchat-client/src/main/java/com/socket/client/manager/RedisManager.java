@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RedisManager {
     private final ShieldUserMapper shieldUserMapper;
-    private final RedisClient redisClient;
+    private final RedisClient<String> redisClient;
 
     /**
      * 临时禁言
@@ -37,7 +37,7 @@ public class RedisManager {
      */
     public void setMute(String uid, int time) {
         int value = (int) (System.currentTimeMillis() / 1000);
-        redisClient.set(SocketTree.MUTE.concat(uid), value, time);
+        redisClient.set(SocketTree.MUTE.concat(uid), String.valueOf(value), time);
     }
 
     /**
@@ -48,7 +48,7 @@ public class RedisManager {
      */
     public void setLock(String uid, int time) {
         int value = (int) (System.currentTimeMillis() / 1000);
-        redisClient.set(SocketTree.LOCK.concat(uid), value, time);
+        redisClient.set(SocketTree.LOCK.concat(uid), String.valueOf(value), time);
     }
 
     /**
@@ -84,7 +84,7 @@ public class RedisManager {
      * @param delta  递增/递减阈值（0清除未读消息）
      */
     public void setUnreadCount(String uid, String target, int delta) {
-        RedisMap<String, Object> map = redisClient.withMap(RedisTree.UNREAD.concat(uid));
+        RedisMap<String, String> map = redisClient.withMap(RedisTree.UNREAD.concat(uid));
         if (delta == 0 || map.increment(target, delta) == 0) {
             map.remove(target);
         }
@@ -98,8 +98,8 @@ public class RedisManager {
      * @return 未读消息数量
      */
     public int getUnreadCount(String uid, String target) {
-        Map<String, Object> map = redisClient.withMap(RedisTree.UNREAD.concat(uid));
-        return (int) map.getOrDefault(target, 0);
+        Map<String, String> map = redisClient.withMap(RedisTree.UNREAD.concat(uid));
+        return Integer.parseInt(map.getOrDefault(target, String.valueOf(0)));
     }
 
     /**
@@ -108,7 +108,7 @@ public class RedisManager {
      * @param content 公告
      */
     public void pushNotice(String content) {
-        RedisMap<String, Object> map = redisClient.withMap(RedisTree.ANNOUNCE.concat());
+        RedisMap<String, String> map = redisClient.withMap(RedisTree.ANNOUNCE.concat());
         // 公告为空删除
         if (content.isEmpty()) {
             map.clear();
@@ -116,7 +116,7 @@ public class RedisManager {
         }
         map.put(Announce.content, content);
         map.put(Announce.digest, MD5.create().digestHex(content));
-        map.put(Announce.time, System.currentTimeMillis());
+        map.put(Announce.time, String.valueOf(System.currentTimeMillis()));
     }
 
     /**
@@ -126,7 +126,7 @@ public class RedisManager {
      * @return 屏蔽列表
      */
     public List<String> getShield(String uid) {
-        RedisList<Object> redisList = redisClient.withList(SocketTree.SHIELD.concat(uid));
+        RedisList<String> redisList = redisClient.withList(SocketTree.SHIELD.concat(uid));
         // 检查缓存
         if (redisList.isEmpty()) {
             // 查询数据库
@@ -138,6 +138,6 @@ public class RedisManager {
             redisList.addAll(collect);
             redisList.expire(Constants.SHIELD_CACHE_TIME, TimeUnit.HOURS);
         }
-        return redisList.stream().map(Object::toString).collect(Collectors.toList());
+        return redisList;
     }
 }

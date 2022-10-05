@@ -13,9 +13,9 @@ public enum Callback {
     REPEAT_LOGIN("您的账号已在别处登录"),
     SELF_MUTE("您已被禁言，请稍后再试"),
     USER_NOT_FOUND("找不到消息发送的目标用户（可能已注销）"),
-    MALICIOUS_SPEAK("检查到存在刷屏行为，您已被禁言{}"),
+    BRUSH_SCREEN("检查到存在刷屏行为，您已被禁言{}"),
     REJECT_EXECUTE("操作被拒绝：权限不足"),
-    COMMAND_INCORRECT("命令不正确"),
+    INVALID_COMMAND("命令不正确"),
     WITHDRAW_FAILURE("超过{}的消息无法撤回"),
     // --------- 加入/退出 --------//
     USER_LOGIN("{} 加入聊天室"),
@@ -32,10 +32,10 @@ public enum Callback {
     G_LOGIN_LIMIT("{} 已被管理员限制登陆{}"),
     GC_LOGIN_LIMIT("{} 已被管理员解除登录限制"),
     // ----- 任命管理员 ------//
-    ADMIN("您已被所有者任命为管理员"),
-    USERS("您已被所有者取消管理员权限"),
-    GLOBAL_ADMIN("{} 已被所有者任命为管理员"),
-    GLOBA_USERS("{} 已被所有者取消管理员权限"),
+    AUTH_ADMIN("您已被所有者任命为管理员"),
+    AUTH_USER("您已被所有者取消管理员权限"),
+    G_AUTH_ADMIN("{} 已被所有者任命为管理员"),
+    G_AUTH_USER("{} 已被所有者取消管理员权限"),
     // ------ 屏蔽和检查 --------//
     TARGET_SHIELD("消息未发出，您屏蔽了对方"),
     SELF_SHIELD("消息已发出，但被对方拒收了"),
@@ -58,7 +58,7 @@ public enum Callback {
      * 传入{@link WsUser}时消息指定用户<br>
      * 也可同时传入，但{@link WsUser}必须在前面<br>
      */
-    public Callback of(Object... obj) {
+    public Callback format(Object... obj) {
         if (obj.length > 1 && obj[0] instanceof WsUser && obj[1] instanceof Number) {
             WsUser user = (WsUser) obj[0];
             long time = ((Number) obj[1]).longValue();

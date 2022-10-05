@@ -146,7 +146,7 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
      * @param signName request signature name
      * @throws InvalidRequestException decryption error
      */
-    protected void decryptRequset(String signName) {
+    void decryptRequset(String signName) {
         // Decrypt FormData
         params.forEach(this::decrypt);
         // Decryption request body
@@ -209,7 +209,7 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
      * @param vaildPart Whether to verify the file
      * @return match returns true
      */
-    protected boolean matchSignature(boolean vaildPart) throws IOException {
+    boolean matchSignature(boolean vaildPart) throws IOException {
         // Generate signature
         StringJoiner joiner = new StringJoiner(String.valueOf(SecureConstant.JOIN_SALT));
         // join form data
@@ -251,14 +251,14 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
     /**
      * request timestamp
      */
-    protected long getTimestamp() {
+    long getTimestamp() {
         return Long.parseLong(signData[0], 36);
     }
 
     /**
      * request signature
      */
-    protected String sign() {
+    String sign() {
         return signData[1];
     }
 }
