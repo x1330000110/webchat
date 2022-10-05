@@ -209,10 +209,11 @@ public class SocketManager {
     /**
      * 检查指定用户是否被禁言
      *
+     * @param user 用户
      * @return true被禁言
      */
-    public boolean isMute(String uid) {
-        return redisManager.getMuteTime(uid) > 0;
+    public boolean isMute(WsUser user) {
+        return redisManager.getMuteTime(user.getUid()) > 0;
     }
 
     /**

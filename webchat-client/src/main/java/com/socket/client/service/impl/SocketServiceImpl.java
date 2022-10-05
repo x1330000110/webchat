@@ -90,7 +90,7 @@ public class SocketServiceImpl implements SocketService {
         // 游客发言检查
         Assert.notGuest(self, Callback.REJECT_EXECUTE, MessageType.DANGER);
         // 禁言状态无法发送消息
-        Assert.isFalse(socketManager.isMute(self.getUid()), Callback.SELF_MUTE, MessageType.DANGER);
+        Assert.isFalse(socketManager.isMute(self), Callback.SELF_MUTE, MessageType.DANGER);
         // HTML脚本过滤
         wsmsg.checkMessage();
         // AI消息智能回复
