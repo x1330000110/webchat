@@ -74,15 +74,6 @@ public class WsMsg {
     }
 
     /**
-     * 未送达消息
-     */
-    public WsMsg(boolean reject, String mid, String content) {
-        this.reject = reject;
-        this.mid = mid;
-        this.content = content;
-    }
-
-    /**
      * 构造用户消息
      *
      * @param uid     发起者
@@ -121,14 +112,16 @@ public class WsMsg {
      * 转为未送达的消息
      */
     public WsMsg reject() {
-        return new WsMsg(true, mid, content);
+        this.reject = true;
+        return this;
     }
 
     /**
      * 转为已送达的消息
      */
     public WsMsg accept() {
-        return new WsMsg(false, mid, content);
+        this.reject = false;
+        return this;
     }
 
     /**
