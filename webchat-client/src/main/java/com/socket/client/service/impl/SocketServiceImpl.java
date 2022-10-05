@@ -71,6 +71,8 @@ public class SocketServiceImpl implements SocketService {
     public void onMessage(String message) {
         WsMsg wsmsg = self.decrypt(message);
         WsUser target = socketManager.getUser(wsmsg.getTarget());
+        // 自己是游客
+        Assert.notGuest(self, Callback.REJECT_EXECUTE, MessageType.DANGER);
         // 目标不存在（只有群组为null）
         Assert.isTrue(wsmsg.isGroup() || target != null, Callback.USER_NOT_FOUND, MessageType.DANGER);
         // 目标是游客
@@ -87,8 +89,6 @@ public class SocketServiceImpl implements SocketService {
 
     @Override
     public void parseUserMsg(WsMsg wsmsg, WsUser target) {
-        // 游客发言检查
-        Assert.notGuest(self, Callback.REJECT_EXECUTE, MessageType.DANGER);
         // 禁言状态无法发送消息
         Assert.isFalse(socketManager.isMute(self), Callback.SELF_MUTE, MessageType.DANGER);
         // HTML脚本过滤
@@ -136,8 +136,6 @@ public class SocketServiceImpl implements SocketService {
 
     @Override
     public void parseSysMsg(WsMsg wsmsg, WsUser target) {
-        // 游客操作检查
-        Assert.notGuest(self, Callback.REJECT_EXECUTE, MessageType.DANGER);
         switch (wsmsg.getType()) {
             case SHIELD:
                 this.shield(target);
