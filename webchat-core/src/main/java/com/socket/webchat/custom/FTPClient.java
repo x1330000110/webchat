@@ -14,7 +14,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 文件上传管理服务
@@ -118,12 +120,13 @@ public class FTPClient {
      */
     public void deleteFiles(Map<String, String> maps) {
         try (Ftp ftp = getClient()) {
-            ftp.lsFiles(FilePath.BLOB.getDirectory(), null)
+            List<String> collect = ftp.lsFiles(FilePath.BLOB.getDirectory(), null)
                     .stream()
                     .map(org.apache.commons.net.ftp.FTPFile::getName)
-                    .forEach(maps::remove);
+                    .filter(maps::containsKey)
+                    .collect(Collectors.toList());
             maps.forEach((hash, path) -> {
-                if (existFile(FilePath.BLOB, hash) && !ftp.delFile(path)) {
+                if (collect.contains(hash) && !ftp.delFile(path)) {
                     log.warn("移除FTP文件失败：{}", path);
                 }
             });
