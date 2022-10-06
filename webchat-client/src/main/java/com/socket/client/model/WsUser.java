@@ -5,6 +5,7 @@ import cn.hutool.core.lang.Opt;
 import cn.hutool.json.JSONUtil;
 import com.socket.client.model.enums.Callback;
 import com.socket.secure.util.AES;
+import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.enums.UserRole;
 import lombok.Getter;
@@ -133,6 +134,13 @@ public class WsUser extends SysUser {
      */
     public boolean isOwner() {
         return getRole() == UserRole.OWNER;
+    }
+
+    /**
+     * 检查当前用户是否是群组
+     */
+    public boolean isGroup() {
+        return Objects.equals(getUid(), Constants.GROUP);
     }
 
     /**

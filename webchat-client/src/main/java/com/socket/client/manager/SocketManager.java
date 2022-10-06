@@ -25,6 +25,7 @@ import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.subject.Subject;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
@@ -40,7 +41,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class SocketManager {
+public class SocketManager implements InitializingBean {
+    private final ConcurrentHashMap<String, List<String>> groups = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, WsUser> onlines = new ConcurrentHashMap<>();
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final SysUserLogMapper sysUserLogMapper;
@@ -79,19 +81,29 @@ public class SocketManager {
     }
 
     /**
-     * 向所有用户发送消息（不包括发起者和屏蔽的用户）<br>
+     * 向群组发送消息（不包括发起者和屏蔽的用户）<br>
      *
      * @param wsmsg  消息
      * @param sender 发起者
      */
-    public void sendAll(WsMsg wsmsg, WsUser sender) {
+    public void sendGroup(WsMsg wsmsg, WsUser sender) {
         List<String> exclude = redisManager.getShield(sender.getUid());
         String uid = sender.getUid();
-        for (WsUser wsuser : onlines.values()) {
-            String target = wsuser.getUid();
-            if (!target.equals(uid) && exclude.stream().noneMatch(target::equals)) {
-                wsmsg.send(wsuser, Remote.ASYNC);
+        for (String tuid : groups.get(wsmsg.getTarget())) {
+            WsUser wsuser = onlines.get(tuid);
+            // 不在线
+            if (wsuser == null) {
+                continue;
             }
+            // 自己
+            if (uid.equals(tuid)) {
+                continue;
+            }
+            // 已屏蔽
+            if (exclude.contains(tuid)) {
+                continue;
+            }
+            wsmsg.send(wsuser, Remote.ASYNC);
         }
     }
 
@@ -144,9 +156,9 @@ public class SocketManager {
      *
      * @param self 当前登录的用户
      */
-    public Collection<UserPreview> getUserList(WsUser self) {
+    public Collection<UserPreview> getPreviews(WsUser self) {
         // 用户列表
-        LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery(SysUser.class);
+        LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(SysUser::isDeleted, 0);
         List<SysUser> userList = sysUserMapper.selectList(wrapper);
         // 消息发起者
@@ -168,6 +180,12 @@ public class SocketManager {
         onlines.values().stream()
                 .filter(WsUser::isGuest)
                 .map(UserPreview::new)
+                .forEach(collect::add);
+        // 添加群组到列表
+        onlines.values().stream()
+                .filter(WsUser::isGroup)
+                .map(UserPreview::new)
+                .peek(e -> e.setOnline(true))
                 .forEach(collect::add);
         // 查找自己并设置屏蔽列表
         collect.stream()
@@ -416,5 +434,20 @@ public class SocketManager {
         if (StrUtil.isNotEmpty(content)) {
             this.sendAll(Callback.MANUAL.format(content), MessageType.ANNOUNCE, sender);
         }
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        // 添加群组信息 暂时固定
+        SysUser sys = new SysUser();
+        final String uid = Constants.GROUP;
+        sys.setUid(uid);
+        sys.setName("公共群组");
+        // 初始化所有用户
+        LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(SysUser::isDeleted, 0);
+        onlines.put(uid, new WsUser(sys));
+        List<SysUser> list = sysUserMapper.selectList(wrapper);
+        groups.put(uid, list.stream().map(SysUser::getUid).collect(Collectors.toList()));
     }
 }

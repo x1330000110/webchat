@@ -35,4 +35,10 @@ public class Assert {
             throw new SocketException(callback.format(), type);
         }
     }
+
+    public static void notNull(WsUser target, Callback callback, MessageType type) {
+        if (target == null) {
+            throw new SocketException(callback.format(), type);
+        }
+    }
 }

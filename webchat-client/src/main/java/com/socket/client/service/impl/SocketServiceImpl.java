@@ -45,7 +45,7 @@ public class SocketServiceImpl implements SocketService {
         this.self = socketManager.join(session, config.getUserProperties());
         // 传递消息
         if (self != null) {
-            Collection<UserPreview> userList = socketManager.getUserList(self);
+            Collection<UserPreview> userList = socketManager.getPreviews(self);
             WsMsg.build(Callback.JOIN_INIT.format(), MessageType.INIT, userList).send(self, Remote.ASYNC);
             // 用户加入通知
             socketManager.sendAll(Callback.USER_LOGIN.format(self), MessageType.JOIN, self);
@@ -74,7 +74,7 @@ public class SocketServiceImpl implements SocketService {
         // 自己是游客
         Assert.notGuest(self, Callback.REJECT_EXECUTE, MessageType.DANGER);
         // 目标不存在（只有群组为null）
-        Assert.isTrue(wsmsg.isGroup() || target != null, Callback.USER_NOT_FOUND, MessageType.DANGER);
+        Assert.notNull(target, Callback.USER_NOT_FOUND, MessageType.DANGER);
         // 目标是游客
         Assert.notGuest(target, Callback.INVALID_COMMAND, MessageType.DANGER);
         // 系统消息
@@ -99,7 +99,8 @@ public class SocketServiceImpl implements SocketService {
         socketManager.operateMark(self);
         // 群组消息
         if (wsmsg.isGroup()) {
-            socketManager.sendAll(wsmsg, self);
+            socketManager.sendGroup(wsmsg, self);
+            wsmsg.accept().send(self, Remote.ASYNC);
             return;
         }
         // 你屏蔽了目标
@@ -208,14 +209,13 @@ public class SocketServiceImpl implements SocketService {
      */
     private void remove(WsUser target, WsMsg wsmsg) {
         ChatRecord record = socketManager.removeMessage(wsmsg);
+        // 转发系统消息
         if (record != null) {
-            // 若此撤回的消息指向群组，则通知所有人撤回此消息
+            // 若此撤回的消息指向群组，则通知群组内所有人撤回此消息
             if (wsmsg.isGroup()) {
-                socketManager.sendAll(wsmsg, self);
-                return;
-            }
-            // 仅通知目标撤回此消息（若目标已将此用户屏蔽，则忽略此撤回消息）
-            if (!socketManager.shield(target, self)) {
+                socketManager.sendGroup(wsmsg, self);
+            } else if (!socketManager.shield(target, self)) {
+                // 仅通知目标撤回此消息（若目标已将此用户屏蔽，则忽略此撤回消息）
                 wsmsg.send(target, Remote.ASYNC);
             }
             // 若这是一条未能送达是消息 则不提示任何回调
@@ -304,7 +304,7 @@ public class SocketServiceImpl implements SocketService {
         String alias = wsmsg.getContent();
         if (socketManager.updateAlias(target, alias)) {
             wsmsg.send(self, Remote.ASYNC);
-            socketManager.sendAll(wsmsg, self);
+            socketManager.sendGroup(wsmsg, self);
         }
     }
 }

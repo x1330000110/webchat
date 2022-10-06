@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 public class RedisManager {
     private final ShieldUserMapper shieldUserMapper;
     private final RedisClient<String> redisClient;
+    private final RedisClient<Integer> unread;
 
     /**
      * 临时禁言
@@ -36,7 +37,7 @@ public class RedisManager {
      * @param time 时间（单位：秒）
      */
     public void setMute(String uid, int time) {
-        int value = (int) (System.currentTimeMillis() / 1000);
+        int value = (int) (System.currentTimeMillis() / 1000) + time;
         redisClient.set(SocketTree.MUTE.concat(uid), String.valueOf(value), time);
     }
 
@@ -47,7 +48,7 @@ public class RedisManager {
      * @param time 时间（单位：秒）
      */
     public void setLock(String uid, int time) {
-        int value = (int) (System.currentTimeMillis() / 1000);
+        int value = (int) (System.currentTimeMillis() / 1000) + time;
         redisClient.set(SocketTree.LOCK.concat(uid), String.valueOf(value), time);
     }
 
@@ -73,7 +74,7 @@ public class RedisManager {
      */
     public long incrSpeak(String uid) {
         String key = SocketTree.SPEAK.concat(uid);
-        return redisClient.exist(key) ? redisClient.incr(key, 1) : redisClient.incr(key, 1, 10);
+        return unread.exist(key) ? unread.incr(key, 1) : unread.incr(key, 1, 10);
     }
 
     /**
@@ -84,7 +85,7 @@ public class RedisManager {
      * @param delta  递增/递减阈值（0清除未读消息）
      */
     public void setUnreadCount(String uid, String target, int delta) {
-        RedisMap<String, String> map = redisClient.withMap(RedisTree.UNREAD.concat(uid));
+        RedisMap<String, Integer> map = unread.withMap(RedisTree.UNREAD.concat(uid));
         if (delta == 0 || map.increment(target, delta) == 0) {
             map.remove(target);
         }
@@ -98,8 +99,8 @@ public class RedisManager {
      * @return 未读消息数量
      */
     public int getUnreadCount(String uid, String target) {
-        Map<String, String> map = redisClient.withMap(RedisTree.UNREAD.concat(uid));
-        return Integer.parseInt(map.getOrDefault(target, String.valueOf(0)));
+        Map<String, Integer> map = unread.withMap(RedisTree.UNREAD.concat(uid));
+        return map.getOrDefault(target, 0);
     }
 
     /**
