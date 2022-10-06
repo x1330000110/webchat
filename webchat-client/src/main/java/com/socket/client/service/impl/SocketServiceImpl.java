@@ -141,8 +141,8 @@ public class SocketServiceImpl implements SocketService {
             case SHIELD:
                 this.shield(target);
                 break;
-            case REMOVE:
-                this.remove(target, wsmsg);
+            case WITHDRAW:
+                this.withdraw(target, wsmsg);
                 break;
             case CHOOSE:
                 this.choose(target, wsmsg);
@@ -207,7 +207,7 @@ public class SocketServiceImpl implements SocketService {
     /**
      * 撤回消息
      */
-    private void remove(WsUser target, WsMsg wsmsg) {
+    private void withdraw(WsUser target, WsMsg wsmsg) {
         ChatRecord record = socketManager.removeMessage(wsmsg);
         // 转发系统消息
         if (record != null) {

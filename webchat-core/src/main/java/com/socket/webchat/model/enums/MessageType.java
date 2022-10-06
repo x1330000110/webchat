@@ -30,9 +30,9 @@ public enum MessageType implements EnumItem<MessageType>, IEnum<String> {
      */
     SHIELD,
     /**
-     * 撤回/删除消息
+     * 撤回消息
      */
-    REMOVE,
+    WITHDRAW,
     /**
      * 禁言
      */
