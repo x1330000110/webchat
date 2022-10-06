@@ -73,7 +73,7 @@ public class SocketServiceImpl implements SocketService {
         WsUser target = socketManager.getUser(wsmsg.getTarget());
         // 自己是游客
         Assert.notGuest(self, Callback.REJECT_EXECUTE, MessageType.DANGER);
-        // 目标不存在（只有群组为null）
+        // 目标不存在
         Assert.notNull(target, Callback.USER_NOT_FOUND, MessageType.DANGER);
         // 目标是游客
         Assert.notGuest(target, Callback.INVALID_COMMAND, MessageType.DANGER);
