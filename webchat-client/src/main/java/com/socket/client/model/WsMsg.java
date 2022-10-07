@@ -5,6 +5,7 @@ import cn.hutool.crypto.digest.MD5;
 import com.socket.client.model.enums.Callback;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.enums.MessageType;
+import com.socket.webchat.util.Wss;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -104,7 +105,7 @@ public class WsMsg {
      * 消息发送的目标是否为群组
      */
     public boolean isGroup() {
-        return target.startsWith(Constants.GROUP);
+        return Wss.isGroup(target);
     }
 
     /**

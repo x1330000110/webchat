@@ -220,7 +220,7 @@ public class SocketServiceImpl implements SocketService {
             }
             return;
         }
-        self.sendError(Callback.WITHDRAW_FAILURE, MessageType.WARNING, Constants.WITHDRAW_MESSAGE_TIME);
+        self.sendError(Callback.WITHDRAW_FAILURE, MessageType.WARNING, Constants.WITHDRAW_TIME);
     }
 
     /**
