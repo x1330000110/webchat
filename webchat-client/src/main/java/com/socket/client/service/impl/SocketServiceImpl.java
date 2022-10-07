@@ -29,13 +29,13 @@ import java.util.Collection;
 @ServerEndpoint(value = "/user/room", configurator = SocketConfig.class)
 public class SocketServiceImpl implements SocketService {
     private static SocketManager socketManager;
-    private static XiaoBingAPIRequest robot;
+    private static XiaoBingAPIRequest request;
     private WsUser self;
 
     @Autowired
     private void setAutowired(SocketManager socketManager, XiaoBingAPIRequest robot) {
         SocketServiceImpl.socketManager = socketManager;
-        SocketServiceImpl.robot = robot;
+        SocketServiceImpl.request = robot;
     }
 
     @OnOpen
@@ -121,8 +121,8 @@ public class SocketServiceImpl implements SocketService {
         boolean sysuid = Constants.SYSTEM_UID.equals(wsmsg.getTarget());
         boolean text = wsmsg.getType() == MessageType.TEXT;
         // 判断AI消息
-        if (sysuid && text && socketManager.getUser(Constants.SYSTEM_UID).isOnline()) {
-            robot.dialogue(wsmsg.getContent()).addCallback(result -> {
+        if (sysuid && text && !socketManager.getUser(Constants.SYSTEM_UID).isOnline()) {
+            request.dialogue(wsmsg.getContent()).addCallback(result -> {
                 if (result != null) {
                     // AI消息
                     WsMsg aimsg = WsMsg.build(Constants.SYSTEM_UID, wsmsg.getUid(), result, MessageType.TEXT);
