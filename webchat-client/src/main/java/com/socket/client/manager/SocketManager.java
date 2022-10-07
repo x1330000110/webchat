@@ -137,7 +137,7 @@ public class SocketManager implements InitializingBean {
     }
 
     /**
-     * 通过uid获取用户信息
+     * 通过消息获取目标身份
      *
      * @param wsmsg 消息
      * @return {@link WsUser}
@@ -146,7 +146,7 @@ public class SocketManager implements InitializingBean {
     public WsUser getTarget(WsMsg wsmsg) {
         String target = wsmsg.getTarget();
         if (wsmsg.isGroup()) {
-            return new WsUser(getSysGroup(target).toWsUser());
+            return getSysGroup(target).toWsUser();
         }
         WsUser online = getOnline(target);
         if (online != null) {
