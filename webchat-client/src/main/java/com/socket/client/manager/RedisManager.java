@@ -2,7 +2,6 @@ package com.socket.client.manager;
 
 import cn.hutool.crypto.digest.MD5;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.client.model.enums.SocketTree;
 import com.socket.webchat.constant.Announce;
 import com.socket.webchat.constant.Constants;
@@ -10,6 +9,7 @@ import com.socket.webchat.custom.RedisClient;
 import com.socket.webchat.mapper.ShieldUserMapper;
 import com.socket.webchat.model.ShieldUser;
 import com.socket.webchat.model.enums.RedisTree;
+import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.support.collections.RedisList;
 import org.springframework.data.redis.support.collections.RedisMap;
@@ -131,9 +131,8 @@ public class RedisManager {
         // 检查缓存
         if (redisList.isEmpty()) {
             // 查询数据库
-            LambdaQueryWrapper<ShieldUser> wrapper = Wrappers.lambdaQuery();
+            LambdaQueryWrapper<ShieldUser> wrapper = Wss.lambdaQuery();
             wrapper.eq(ShieldUser::getUid, uid);
-            wrapper.eq(ShieldUser::isDeleted, 0);
             List<ShieldUser> users = shieldUserMapper.selectList(wrapper);
             List<String> collect = users.stream().map(ShieldUser::getTarget).collect(Collectors.toList());
             redisList.addAll(collect);

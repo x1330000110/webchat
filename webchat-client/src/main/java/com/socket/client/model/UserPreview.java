@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * 初始化聊天室的额外用户信息
+ * 列表预览用户信息
  *
  * @date 2021/8/20
  */

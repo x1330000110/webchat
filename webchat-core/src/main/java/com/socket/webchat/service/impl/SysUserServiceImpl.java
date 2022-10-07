@@ -215,9 +215,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public SysUser getUserInfo(String uid) {
-        LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
+        LambdaQueryWrapper<SysUser> wrapper = Wss.lambdaQuery();
         wrapper.eq(SysUser::getUid, uid);
-        wrapper.eq(SysUser::isDeleted, 0);
         SysUser user = this.get(wrapper);
         Assert.notNull(user, "找不到此用户信息", AccountException::new);
         return user;

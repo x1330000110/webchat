@@ -50,9 +50,8 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
     public List<ChatRecord> getRecords(String mid, String target) {
         String userId = Wss.getUserId();
         // wrapper构造器
-        LambdaQueryWrapper<ChatRecord> wrapper = Wrappers.lambdaQuery();
+        LambdaQueryWrapper<ChatRecord> wrapper = Wss.lambdaQuery();
         wrapper.eq(ChatRecord::isSysmsg, 0);
-        wrapper.eq(ChatRecord::isDeleted, 0);
         // 若查询群组，获取所有目标为群组的消息
         if (Constants.GROUP.equals(target)) {
             wrapper.eq(ChatRecord::getTarget, Constants.GROUP);
@@ -84,9 +83,8 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
             wrapper.lt(BaseModel::getId, offset.getId());
         }
         // 排除已删除的消息id
-        LambdaQueryWrapper<ChatRecordDeleted> w3 = Wrappers.lambdaQuery();
+        LambdaQueryWrapper<ChatRecordDeleted> w3 = Wss.lambdaQuery();
         w3.eq(ChatRecordDeleted::getUid, userId);
-        w3.eq(BaseModel::isDeleted, 0);
         Optional.ofNullable(offset).ifPresent(m -> w3.lt(ChatRecordDeleted::getRecordTime, m.getCreateTime()));
         List<String> deleted = chatRecordDeletedMapper.selectList(w3)
                 .stream()
@@ -150,9 +148,8 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
                 chatRecordOffsetMapper.insert(offset);
             }
             // 单条消息设置失效
-            LambdaUpdateWrapper<ChatRecordDeleted> w2 = Wrappers.lambdaUpdate();
+            LambdaUpdateWrapper<ChatRecordDeleted> w2 = Wss.lambdaUpdate();
             w2.eq(ChatRecordDeleted::getTarget, target);
-            w2.eq(BaseModel::isDeleted, 0);
             w2.set(BaseModel::isDeleted, 1);
             chatRecordDeletedMapper.update(null, w2);
         }
@@ -188,10 +185,9 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
     @Override
     public Map<String, SortedSet<ChatRecord>> getUnreadMessages(String uid) {
         Map<String, SortedSet<ChatRecord>> mss = new HashMap<>();
-        LambdaQueryWrapper<ChatRecord> wrapper = Wrappers.lambdaQuery();
+        LambdaQueryWrapper<ChatRecord> wrapper = Wss.lambdaQuery();
         wrapper.eq(ChatRecord::getTarget, uid);
         wrapper.eq(ChatRecord::isUnread, 1);
-        wrapper.eq(BaseModel::isDeleted, 0);
         // 分组聊天记录
         List<ChatRecord> list = list(wrapper);
         for (ChatRecord record : list) {

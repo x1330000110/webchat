@@ -11,7 +11,6 @@ import com.socket.webchat.custom.FTPClient;
 import com.socket.webchat.exception.UploadException;
 import com.socket.webchat.mapper.ChatRecordFileMapper;
 import com.socket.webchat.mapper.ChatRecordMapper;
-import com.socket.webchat.model.BaseModel;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.ChatRecordFile;
 import com.socket.webchat.model.FTPFile;
@@ -80,18 +79,16 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
     @Override
     public <T extends OutputStream> T writeStream(String mid, T stream) {
         // 获取消息文件
-        LambdaQueryWrapper<ChatRecordFile> w1 = Wrappers.lambdaQuery();
+        LambdaQueryWrapper<ChatRecordFile> w1 = Wss.lambdaQuery();
         w1.eq(ChatRecordFile::getMid, mid);
-        w1.eq(BaseModel::isDeleted, 0);
         ChatRecordFile file = getOne(w1);
         // 检查记录
         if (file == null) {
             return null;
         }
         // 查询消息发起与类型
-        LambdaQueryWrapper<ChatRecord> w2 = Wrappers.lambdaQuery();
+        LambdaQueryWrapper<ChatRecord> w2 = Wss.lambdaQuery();
         w2.eq(ChatRecord::getMid, mid);
-        w2.eq(BaseModel::isDeleted, 0);
         ChatRecord record = chatRecordMapper.selectOne(w2);
         // 检查来源
         if (Wss.checkMessagePermission(record)) {
