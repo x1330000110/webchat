@@ -43,7 +43,6 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -76,8 +75,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
         // shiro登录
         SecurityUtils.getSubject().login(new UsernamePasswordToken(uid, condition.getPass(), condition.isAuto()));
-        // 更新登录信息
-        Optional.ofNullable(uid).ifPresent(e -> sysUserLogMapper.insert(SysUserLog.buildLog()));
+        // 写入登录信息
+        sysUserLogMapper.insert(SysUserLog.buildLog());
     }
 
     @Override
