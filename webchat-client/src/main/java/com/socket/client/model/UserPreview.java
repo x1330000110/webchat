@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.socket.webchat.model.SysUser;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.Optional;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class UserPreview extends SysUser {
     /**
      * 屏蔽的用户UID列表
@@ -42,6 +44,10 @@ public class UserPreview extends SysUser {
      * 未读消息总数
      */
     private Integer unreads;
+    /**
+     * 是否为群组
+     */
+    private boolean group;
 
     public UserPreview(SysUser sysUser) {
         BeanUtil.copyProperties(sysUser, this);

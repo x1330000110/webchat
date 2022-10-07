@@ -13,6 +13,7 @@ public class SysGroup extends BaseModel {
     /**
      * 群组id
      */
+    @EqualsAndHashCode.Include
     private String groupId;
     /**
      * 群组名称

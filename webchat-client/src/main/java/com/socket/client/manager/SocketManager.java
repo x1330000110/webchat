@@ -8,12 +8,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.socket.client.exception.SocketException;
 import com.socket.client.mapper.SysGroupMapper;
 import com.socket.client.mapper.SysGroupUserMapper;
-import com.socket.client.model.SysGroup;
-import com.socket.client.model.UserPreview;
-import com.socket.client.model.WsMsg;
-import com.socket.client.model.WsUser;
+import com.socket.client.model.*;
 import com.socket.client.model.enums.Callback;
 import com.socket.client.model.enums.Remote;
 import com.socket.webchat.constant.Constants;
@@ -45,7 +43,7 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class SocketManager implements InitializingBean {
-    private final ConcurrentHashMap<String, List<String>> groups = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<SysGroup, List<String>> groups = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, WsUser> onlines = new ConcurrentHashMap<>();
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final SysGroupUserMapper sysGroupUserMapper;
@@ -94,12 +92,13 @@ public class SocketManager implements InitializingBean {
     public void sendGroup(WsMsg wsmsg, WsUser sender) {
         List<String> exclude = redisManager.getShield(sender.getUid());
         String uid = sender.getUid();
-        for (String tuid : groups.get(wsmsg.getTarget())) {
-            WsUser wsuser = onlines.get(tuid);
-            // 不在线
-            if (wsuser == null) {
-                continue;
-            }
+        // 查找目标群组
+        SysGroup group = groups.keySet().stream()
+                .filter(e -> e.getGroupId().equals(wsmsg.getTarget()))
+                .findFirst()
+                .orElseThrow(() -> new SocketException(Callback.USER_NOT_FOUND, MessageType.DANGER));
+        // 向群内所有人发送消息
+        for (String tuid : groups.get(group)) {
             // 自己
             if (uid.equals(tuid)) {
                 continue;
@@ -108,7 +107,12 @@ public class SocketManager implements InitializingBean {
             if (exclude.contains(tuid)) {
                 continue;
             }
-            wsmsg.send(wsuser, Remote.ASYNC);
+            WsUser wsuser = onlines.get(tuid);
+            // 不在线
+            if (wsuser == null) {
+                continue;
+            }
+            wsuser.send(wsmsg, Remote.ASYNC);
         }
     }
 
@@ -123,7 +127,7 @@ public class SocketManager implements InitializingBean {
         WsMsg sysmsg = WsMsg.build(tips, type, sender);
         for (WsUser wsuser : onlines.values()) {
             if (!wsuser.getUid().equals(sender.getUid())) {
-                sysmsg.send(wsuser, Remote.ASYNC);
+                wsuser.send(sysmsg, Remote.ASYNC);
             }
         }
     }
@@ -184,11 +188,18 @@ public class SocketManager implements InitializingBean {
                 .map(UserPreview::new)
                 .forEach(collect::add);
         // 添加群组到列表
-        onlines.values().stream()
-                .filter(WsUser::isGroup)
-                .map(UserPreview::new)
-                .peek(e -> e.setOnline(true))
-                .forEach(collect::add);
+        for (Map.Entry<SysGroup, List<String>> entry : groups.entrySet()) {
+            SysGroup group = entry.getKey();
+            List<String> uids = entry.getValue();
+            // 需要在群里
+            if (uids.contains(suid)) {
+                UserPreview preview = new UserPreview();
+                preview.setGroup(true);
+                preview.setUid(group.getGroupId());
+                preview.setName(group.getName());
+                collect.add(preview);
+            }
+        }
         // 查找自己并设置屏蔽列表
         collect.stream()
                 .filter(user -> user.getUid().equals(suid))
@@ -280,10 +291,9 @@ public class SocketManager implements InitializingBean {
         int time = Constants.FREQUENT_SPEECHES_MUTE_TIME;
         if (redisManager.incrSpeak(user.getUid()) > Constants.FREQUENT_SPEECH_THRESHOLD) {
             redisManager.setMute(user.getUid(), time);
-            WsMsg.build(Callback.BRUSH_SCREEN.format(time), MessageType.MUTE, time).send(user, Remote.ASYNC);
+            user.send(WsMsg.build(Callback.BRUSH_SCREEN.format(time), MessageType.MUTE, time), Remote.ASYNC);
         }
     }
-
 
     /**
      * 保存聊天记录
@@ -411,7 +421,7 @@ public class SocketManager implements InitializingBean {
         long muteTime = redisManager.getMuteTime(user.getUid());
         if (muteTime > 0) {
             Callback tips = Callback.MUTE_LIMIT.format(muteTime);
-            WsMsg.build(tips, MessageType.MUTE, muteTime).send(user, Remote.ASYNC);
+            user.send(WsMsg.build(tips, MessageType.MUTE, muteTime), Remote.ASYNC);
         }
     }
 
@@ -438,10 +448,19 @@ public class SocketManager implements InitializingBean {
         }
     }
 
+    /**
+     * 初始化群组
+     */
     @Override
     public void afterPropertiesSet() {
-        // 初始化群组
-        List<SysGroup> list = sysGroupMapper.selectList(Wrappers.emptyWrapper());
-
+        List<SysGroup> groups = sysGroupMapper.selectList(Wrappers.emptyWrapper());
+        List<SysGroupUser> groupUsers = sysGroupUserMapper.selectList(Wrappers.emptyWrapper());
+        for (SysGroup group : groups) {
+            List<String> collect = groupUsers.stream()
+                    .filter(e -> e.getGroupId().equals(group.getGroupId()))
+                    .map(SysGroupUser::getUid)
+                    .collect(Collectors.toList());
+            this.groups.put(group, collect);
+        }
     }
 }

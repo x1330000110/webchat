@@ -4,12 +4,14 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Opt;
 import cn.hutool.json.JSONUtil;
 import com.socket.client.model.enums.Callback;
+import com.socket.client.model.enums.Remote;
 import com.socket.secure.util.AES;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.enums.UserRole;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.subject.Subject;
 
@@ -160,5 +162,34 @@ public class WsUser extends SysUser {
         WsMsg wsmsg = JSONUtil.toBean(AES.decrypt(message, httpSession), WsMsg.class);
         wsmsg.setUid(getUid());
         return wsmsg;
+    }
+
+    /**
+     * 将消息发送至目标用户（目标不在线调用此方法没有任何效果）
+     *
+     * @param wsmsg 消息
+     * @param type  发送方式
+     */
+    @SneakyThrows
+    public void send(WsMsg wsmsg, Remote type) {
+        // 目标不在线
+        if (!online) {
+            return;
+        }
+        // 会话已关闭
+        if (!session.isOpen()) {
+            return;
+        }
+        // 发送消息
+        String encrypt = this.encrypt(wsmsg);
+        switch (type) {
+            case ASYNC:
+                session.getAsyncRemote().sendText(encrypt);
+                break;
+            case SYNC:
+                session.getBasicRemote().sendText(encrypt);
+            default:
+                // ignore
+        }
     }
 }
