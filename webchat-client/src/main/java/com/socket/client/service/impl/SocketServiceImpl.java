@@ -45,8 +45,7 @@ public class SocketServiceImpl implements SocketService {
         // 传递消息
         if (self != null) {
             Collection<UserPreview> userList = socketManager.getPreviews(self);
-            WsMsg sysmsg = WsMsg.build(Callback.JOIN_INIT.format(), MessageType.INIT, userList);
-            self.send(sysmsg);
+            self.send(Callback.JOIN_INIT.format(), MessageType.INIT, userList);
             // 用户加入通知
             socketManager.sendAll(Callback.USER_LOGIN.format(self), MessageType.JOIN, self);
             socketManager.checkMute(self);
@@ -105,8 +104,7 @@ public class SocketServiceImpl implements SocketService {
         // 目标屏蔽了你
         if (socketManager.shield(target, self)) {
             self.send(wsmsg.reject());
-            WsMsg sysmsg = WsMsg.build(Callback.SELF_SHIELD.format(), MessageType.WARNING);
-            self.send(sysmsg);
+            self.sendError(Callback.SELF_SHIELD, MessageType.WARNING);
             return;
         }
         // 发送至目标
@@ -125,7 +123,7 @@ public class SocketServiceImpl implements SocketService {
             request.dialogue(wsmsg.getContent()).addCallback(result -> {
                 if (result != null) {
                     // AI消息
-                    WsMsg aimsg = WsMsg.build(Constants.SYSTEM_UID, wsmsg.getUid(), result, MessageType.TEXT);
+                    WsMsg aimsg = new WsMsg(Constants.SYSTEM_UID, wsmsg.getUid(), result, MessageType.TEXT);
                     self.send(aimsg);
                     socketManager.cacheRecord(aimsg, true);
                 }
@@ -189,8 +187,7 @@ public class SocketServiceImpl implements SocketService {
                 socketManager.pushNotice(wsmsg, self);
                 break;
             default:
-                WsMsg sysmsg = WsMsg.build(Callback.INVALID_COMMAND.format(), MessageType.DANGER);
-                self.send(sysmsg);
+                self.sendError(Callback.INVALID_COMMAND, MessageType.DANGER);
         }
     }
 
@@ -200,7 +197,7 @@ public class SocketServiceImpl implements SocketService {
     private void shield(WsUser target) {
         boolean shield = socketManager.shieldTarget(self, target);
         Callback tips = shield ? Callback.SHIELD_USER.format(target) : Callback.CANCEL_SHIELD.format(target);
-        self.send(WsMsg.build(tips, MessageType.SHIELD, target));
+        self.send(tips, MessageType.SHIELD, target);
     }
 
     /**
@@ -223,8 +220,7 @@ public class SocketServiceImpl implements SocketService {
             }
             return;
         }
-        Callback callback = Callback.WITHDRAW_FAILURE.format(Constants.WITHDRAW_MESSAGE_TIME);
-        self.send(WsMsg.build(callback, MessageType.WARNING));
+        self.sendError(Callback.WITHDRAW_FAILURE, MessageType.WARNING, Constants.WITHDRAW_MESSAGE_TIME);
     }
 
     /**
@@ -254,14 +250,12 @@ public class SocketServiceImpl implements SocketService {
         long time = socketManager.addMute(wsmsg);
         // 禁言
         if (time > 0) {
-            WsMsg sysmsg = WsMsg.build(Callback.MUTE_LIMIT.format(time), MessageType.MUTE, time);
-            target.send(sysmsg);
+            target.send(Callback.MUTE_LIMIT.format(time), MessageType.MUTE, time);
             socketManager.sendAll(Callback.G_MUTE_LIMIT.format(target, time), MessageType.PRIMARY, target);
             return;
         }
         // 取消禁言
-        WsMsg sysmg = WsMsg.build(Callback.C_MUTE_LIMIT.format(), MessageType.MUTE, time);
-        target.send(sysmg);
+        target.send(Callback.C_MUTE_LIMIT.format(), MessageType.MUTE, time);
         socketManager.sendAll(Callback.GC_MUTE_LIMIT.format(target, time), MessageType.PRIMARY, target);
     }
 
@@ -292,7 +286,7 @@ public class SocketServiceImpl implements SocketService {
         socketManager.updateRole(target, target.isAdmin() ? UserRole.USER : UserRole.ADMIN);
         // 通知目标
         Callback cb = (target.isAdmin() ? Callback.AUTH_ADMIN : Callback.AUTH_USER).format();
-        target.send(WsMsg.build(cb, MessageType.ROLE, target));
+        target.send(cb, MessageType.ROLE, target);
         // 广播消息
         Callback gcb = (target.isAdmin() ? Callback.G_AUTH_ADMIN : Callback.G_AUTH_USER).format(target);
         socketManager.sendAll(gcb, MessageType.ROLE, target);

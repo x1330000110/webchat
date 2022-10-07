@@ -111,7 +111,7 @@ public class SocketManager implements InitializingBean, UserChangeListener {
      * @param sender 发起者信息
      */
     public void sendAll(Callback tips, MessageType type, SysUser sender) {
-        WsMsg sysmsg = WsMsg.build(tips, type, sender);
+        WsMsg sysmsg = new WsMsg(tips, type, sender);
         for (WsUser wsuser : users.values()) {
             if (!wsuser.getUid().equals(sender.getUid())) {
                 wsuser.send(sysmsg);
@@ -286,7 +286,7 @@ public class SocketManager implements InitializingBean, UserChangeListener {
         int time = Constants.FREQUENT_SPEECHES_MUTE_TIME;
         if (redisManager.incrSpeak(user.getUid()) > Constants.FREQUENT_SPEECH_THRESHOLD) {
             redisManager.setMute(user.getUid(), time);
-            user.send(WsMsg.build(Callback.BRUSH_SCREEN.format(time), MessageType.MUTE, time));
+            user.send(Callback.BRUSH_SCREEN.format(time), MessageType.MUTE, time);
         }
     }
 
@@ -413,10 +413,10 @@ public class SocketManager implements InitializingBean, UserChangeListener {
      * 检查指定用户禁言情况，若用户被禁言将发送一条系统通知
      */
     public void checkMute(WsUser user) {
-        long muteTime = redisManager.getMuteTime(user.getUid());
-        if (muteTime > 0) {
-            Callback tips = Callback.MUTE_LIMIT.format(muteTime);
-            user.send(WsMsg.build(tips, MessageType.MUTE, muteTime));
+        long time = redisManager.getMuteTime(user.getUid());
+        if (time > 0) {
+            Callback tips = Callback.MUTE_LIMIT.format(time);
+            user.send(tips, MessageType.MUTE, time);
         }
     }
 

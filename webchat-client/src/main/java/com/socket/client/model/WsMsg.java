@@ -49,8 +49,12 @@ public class WsMsg {
 
     /**
      * 系统消息
+     *
+     * @param callback 内容
+     * @param type     消息类型
+     * @param data     额外数据
      */
-    WsMsg(Callback callback, MessageType type, Object data) {
+    public WsMsg(Callback callback, MessageType type, Object data) {
         this.sysmsg = true;
         this.content = callback.getReason();
         this.type = type;
@@ -59,49 +63,26 @@ public class WsMsg {
 
     /**
      * 用户消息
-     */
-    WsMsg(String uid, String target, String content, MessageType type, String mid) {
-        this.uid = uid;
-        this.target = target;
-        this.content = content;
-        this.type = type;
-        this.mid = mid;
-    }
-
-    /**
-     * 构造用户消息
      *
      * @param uid     发起者
      * @param target  目标
      * @param content 内容
      * @param type    消息类型
      */
-    public static WsMsg build(String uid, String target, String content, MessageType type) {
-        String mid = MD5.create().digestHex(uid + content + type.getName() + target + System.currentTimeMillis());
-        return new WsMsg(uid, target, content, type, mid);
+    public WsMsg(String uid, String target, String content, MessageType type) {
+        this.uid = uid;
+        this.target = target;
+        this.content = content;
+        this.type = type;
+        this.mid = generateMid();
     }
 
     /**
-     * 构造系统消息
-     *
-     * @param callback 内容
-     * @param type     消息类型
+     * 生成消息MID
      */
-    public static WsMsg build(Callback callback, MessageType type) {
-        return new WsMsg(callback, type, null);
+    private String generateMid() {
+        return MD5.create().digestHex(uid + content + type.getName() + target + System.currentTimeMillis());
     }
-
-    /**
-     * 构造系统消息
-     *
-     * @param callback 内容
-     * @param type     消息类型
-     * @param data     额外数据
-     */
-    public static WsMsg build(Callback callback, MessageType type, Object data) {
-        return new WsMsg(callback, type, data);
-    }
-
 
     /**
      * 转为未送达的消息

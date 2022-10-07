@@ -6,6 +6,7 @@ import cn.hutool.json.JSONUtil;
 import com.socket.client.model.enums.Callback;
 import com.socket.secure.util.AES;
 import com.socket.webchat.model.SysUser;
+import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.model.enums.UserRole;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -116,6 +117,28 @@ public class WsUser extends SysUser {
         if (online && session.isOpen()) {
             session.getAsyncRemote().sendText(AES.encrypt(JSONUtil.toJsonStr(wsmsg), httpSession));
         }
+    }
+
+    /**
+     * 发送回调通知
+     *
+     * @param callback 回调消息
+     * @param type     消息类型
+     * @date 额外数据
+     */
+    public void send(Callback callback, MessageType type, Object data) {
+        this.send(new WsMsg(callback, type, data));
+    }
+
+    /**
+     * 发送回调错误
+     *
+     * @param callback 回调消息
+     * @param type     消息类型
+     * @param objs     参数
+     */
+    public void sendError(Callback callback, MessageType type, Object... objs) {
+        this.send(new WsMsg(callback.format(objs), type, null));
     }
 
     /**
