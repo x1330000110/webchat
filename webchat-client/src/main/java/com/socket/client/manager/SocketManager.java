@@ -1,7 +1,6 @@
 package com.socket.client.manager;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.lang.Opt;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -92,13 +91,8 @@ public class SocketManager implements InitializingBean {
     public void sendGroup(WsMsg wsmsg, WsUser sender) {
         List<String> exclude = redisManager.getShield(sender.getUid());
         String uid = sender.getUid();
-        // 查找目标群组
-        SysGroup group = groups.keySet().stream()
-                .filter(e -> e.getGroupId().equals(wsmsg.getTarget()))
-                .findFirst()
-                .orElseThrow(() -> new SocketException(Callback.USER_NOT_FOUND, MessageType.DANGER));
         // 向群内所有人发送消息
-        for (String tuid : groups.get(group)) {
+        for (String tuid : groups.get(getSysGroup(wsmsg.getTarget()))) {
             // 自己
             if (uid.equals(tuid)) {
                 continue;
@@ -145,18 +139,35 @@ public class SocketManager implements InitializingBean {
     /**
      * 通过uid获取用户信息
      *
-     * @param uid 用户uid
+     * @param wsmsg 消息
      * @return {@link WsUser}
+     * @throws SocketException 找不到用户
      */
-    public WsUser getUser(String uid) {
-        WsUser onlineUser = getOnline(uid);
-        if (onlineUser != null) {
-            return onlineUser;
+    public WsUser getTarget(WsMsg wsmsg) {
+        String target = wsmsg.getTarget();
+        if (wsmsg.isGroup()) {
+            return new WsUser(getSysGroup(target).toWsUser());
+        }
+        WsUser online = getOnline(target);
+        if (online != null) {
+            return online;
         }
         LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(SysUser::getUid, uid);
+        wrapper.eq(SysUser::getUid, target);
         SysUser sysUser = sysUserMapper.selectOne(wrapper);
-        return Opt.ofNullable(sysUser).map(WsUser::new).get();
+        return Optional.ofNullable(sysUser)
+                .map(WsUser::new)
+                .orElseThrow(() -> new SocketException(Callback.USER_NOT_FOUND, MessageType.DANGER));
+    }
+
+    /**
+     * 获取群组对象
+     */
+    private SysGroup getSysGroup(String groupId) {
+        return groups.keySet().stream()
+                .filter(e -> e.getGroupId().equals(groupId))
+                .findFirst()
+                .orElseThrow(() -> new SocketException(Callback.USER_NOT_FOUND, MessageType.DANGER));
     }
 
     /**

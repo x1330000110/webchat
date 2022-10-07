@@ -71,12 +71,9 @@ public class SocketServiceImpl implements SocketService {
     @OnMessage
     public void onMessage(String message) {
         WsMsg wsmsg = self.decrypt(message);
-        WsUser target = socketManager.getUser(wsmsg.getTarget());
-        // 自己是游客
+        WsUser target = socketManager.getTarget(wsmsg);
+        // 游客检查
         Assert.notGuest(self, Callback.REJECT_EXECUTE, MessageType.DANGER);
-        // 目标不存在
-        Assert.notNull(target, Callback.USER_NOT_FOUND, MessageType.DANGER);
-        // 目标是游客
         Assert.notGuest(target, Callback.INVALID_COMMAND, MessageType.DANGER);
         // 系统消息
         if (wsmsg.isSysmsg()) {

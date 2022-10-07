@@ -9,9 +9,7 @@ import com.socket.secure.util.AES;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.enums.UserRole;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.SneakyThrows;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.subject.Subject;
 
@@ -28,6 +26,7 @@ import static javax.websocket.CloseReason.CloseCodes;
  * websocket会话数据
  */
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class WsUser extends SysUser {
     /**
      * WebSocket Session
