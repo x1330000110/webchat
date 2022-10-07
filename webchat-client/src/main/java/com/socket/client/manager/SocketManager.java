@@ -8,6 +8,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.socket.client.mapper.SysGroupMapper;
+import com.socket.client.mapper.SysGroupUserMapper;
 import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
@@ -45,8 +47,10 @@ public class SocketManager implements InitializingBean {
     private final ConcurrentHashMap<String, List<String>> groups = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, WsUser> onlines = new ConcurrentHashMap<>();
     private final KafkaTemplate<String, String> kafkaTemplate;
+    private final SysGroupUserMapper sysGroupUserMapper;
     private final SysUserLogMapper sysUserLogMapper;
     private final ShieldUserMapper shieldUserMapper;
+    private final SysGroupMapper sysGroupMapper;
     private final RecordService recordService;
     private final SysUserMapper sysUserMapper;
     private final RedisManager redisManager;
@@ -146,7 +150,6 @@ public class SocketManager implements InitializingBean {
         }
         LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(SysUser::getUid, uid);
-        wrapper.eq(SysUser::isDeleted, 0);
         SysUser sysUser = sysUserMapper.selectOne(wrapper);
         return Opt.ofNullable(sysUser).map(WsUser::new).get();
     }
@@ -158,9 +161,7 @@ public class SocketManager implements InitializingBean {
      */
     public Collection<UserPreview> getPreviews(WsUser self) {
         // 用户列表
-        LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(SysUser::isDeleted, 0);
-        List<SysUser> userList = sysUserMapper.selectList(wrapper);
+        List<SysUser> userList = sysUserMapper.selectList(Wrappers.lambdaQuery());
         // 消息发起者
         String suid = self.getUid();
         // 与此用户关联的所有未读消息
@@ -438,16 +439,7 @@ public class SocketManager implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
-        // 添加群组信息 暂时固定
-        SysUser sys = new SysUser();
-        final String uid = Constants.GROUP;
-        sys.setUid(uid);
-        sys.setName("公共群组");
-        // 初始化所有用户
-        LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(SysUser::isDeleted, 0);
-        onlines.put(uid, new WsUser(sys));
-        List<SysUser> list = sysUserMapper.selectList(wrapper);
-        groups.put(uid, list.stream().map(SysUser::getUid).collect(Collectors.toList()));
+        // 初始化群组
+        Wrappers.lambdaQuery();
     }
 }

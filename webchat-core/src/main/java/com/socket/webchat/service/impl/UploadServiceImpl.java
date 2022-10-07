@@ -79,17 +79,17 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
     @Override
     public <T extends OutputStream> T writeStream(String mid, T stream) {
         // 获取消息文件
-        LambdaQueryWrapper<ChatRecordFile> w1 = Wss.lambdaQuery();
-        w1.eq(ChatRecordFile::getMid, mid);
-        ChatRecordFile file = getOne(w1);
+        LambdaQueryWrapper<ChatRecordFile> wrapper1 = Wrappers.lambdaQuery();
+        wrapper1.eq(ChatRecordFile::getMid, mid);
+        ChatRecordFile file = getOne(wrapper1);
         // 检查记录
         if (file == null) {
             return null;
         }
         // 查询消息发起与类型
-        LambdaQueryWrapper<ChatRecord> w2 = Wss.lambdaQuery();
-        w2.eq(ChatRecord::getMid, mid);
-        ChatRecord record = chatRecordMapper.selectOne(w2);
+        LambdaQueryWrapper<ChatRecord> wrapper2 = Wrappers.lambdaQuery();
+        wrapper2.eq(ChatRecord::getMid, mid);
+        ChatRecord record = chatRecordMapper.selectOne(wrapper2);
         // 检查来源
         if (Wss.checkMessagePermission(record)) {
             // 检查文件类型过期时间

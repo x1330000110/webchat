@@ -1,6 +1,7 @@
 package com.socket.webchat.controller;
 
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.secure.filter.anno.Encrypted;
 import com.socket.webchat.constant.Announce;
 import com.socket.webchat.custom.RedisClient;
@@ -74,7 +75,7 @@ public class UserController {
         if (Wss.getUser().getRole() != UserRole.OWNER) {
             return HttpStatus.UNAUTHORIZED.message("权限不足");
         }
-        LambdaUpdateWrapper<SysUser> wrapper = Wss.lambdaUpdate();
+        LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(SysUser::getUid, condition.getUid());
         wrapper.set(SysUser::isDeleted, 1);
         return HttpStatus.of(sysUserService.update(wrapper), "操作成功", "找不到此用户");

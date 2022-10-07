@@ -12,11 +12,7 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.http.useragent.Platform;
 import cn.hutool.http.useragent.UserAgentParser;
 import cn.hutool.json.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.webchat.constant.Constants;
-import com.socket.webchat.model.BaseModel;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
 import org.apache.shiro.SecurityUtils;
@@ -136,21 +132,5 @@ public class Wss {
     public static <T> String selecterMax(Func1<T, ?> lambda) {
         String column = columnToString(lambda);
         return StrUtil.format("MAX({}) AS {}", column, column);
-    }
-
-    /**
-     * 查询构造器（已设置删除标记）
-     */
-    public static <T extends BaseModel> LambdaQueryWrapper<T> lambdaQuery() {
-        LambdaQueryWrapper<T> wrapper = Wrappers.lambdaQuery();
-        return wrapper.eq(BaseModel::isDeleted, 0);
-    }
-
-    /**
-     * 更新构造器（已设置删除标记）
-     */
-    public static <T extends BaseModel> LambdaUpdateWrapper<T> lambdaUpdate() {
-        LambdaUpdateWrapper<T> wrapper = Wrappers.lambdaUpdate();
-        return wrapper.eq(BaseModel::isDeleted, 0);
     }
 }

@@ -72,8 +72,6 @@ public class CustomRealm extends AuthorizingRealm {
         if (user == null) {
             return null;
         }
-        // 限制登录检查
-        Assert.isFalse(user.isDeleted(), "该账号已被永久限制登录", AccountException::new);
         // 验证密码
         return new SimpleAuthenticationInfo(user, user.getHash(), super.getName());
     }

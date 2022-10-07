@@ -19,8 +19,13 @@ import java.io.IOException;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler({UnknownAccountException.class, IncorrectCredentialsException.class})
-    public HttpStatus isIncorrectCredentialsException(Exception e) {
+    @ExceptionHandler(UnknownAccountException.class)
+    public HttpStatus isUnknownAccountException() {
+        return HttpStatus.FAILURE.message("账号不存在或已被注销");
+    }
+
+    @ExceptionHandler(IncorrectCredentialsException.class)
+    public HttpStatus isIncorrectCredentialsException() {
         return HttpStatus.FAILURE.message("用户名密码不正确");
     }
 
