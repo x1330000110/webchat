@@ -161,7 +161,6 @@ public class WsUser extends SysUser {
      * @param wsmsg 消息
      */
     public void send(WsMsg wsmsg) {
-        // 目标不在线
         if (online && session.isOpen()) {
             session.getAsyncRemote().sendText(AES.encrypt(JSONUtil.toJsonStr(wsmsg), httpSession));
         }
