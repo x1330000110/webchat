@@ -138,11 +138,17 @@ public class Wss {
         return StrUtil.format("MAX({}) AS {}", column, column);
     }
 
+    /**
+     * 查询构造器（已设置删除标记）
+     */
     public static <T extends BaseModel> LambdaQueryWrapper<T> lambdaQuery() {
         LambdaQueryWrapper<T> wrapper = Wrappers.lambdaQuery();
         return wrapper.eq(BaseModel::isDeleted, 0);
     }
 
+    /**
+     * 更新构造器（已设置删除标记）
+     */
     public static <T extends BaseModel> LambdaUpdateWrapper<T> lambdaUpdate() {
         LambdaUpdateWrapper<T> wrapper = Wrappers.lambdaUpdate();
         return wrapper.eq(BaseModel::isDeleted, 0);
