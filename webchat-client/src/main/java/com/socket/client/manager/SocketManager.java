@@ -418,10 +418,14 @@ public class SocketManager implements InitializingBean, UserChangeListener {
     /**
      * 移除在线用户
      *
-     * @param user 用户信息
+     * @param user        用户信息
+     * @param deleteCache 删除缓存
      */
-    public void remove(WsUser user) {
+    public void remove(WsUser user, boolean deleteCache) {
         user.logout(null);
+        if (deleteCache) {
+            users.remove(user.getUid());
+        }
     }
 
     /**

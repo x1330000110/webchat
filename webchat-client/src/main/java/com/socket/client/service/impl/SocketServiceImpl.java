@@ -57,7 +57,7 @@ public class SocketServiceImpl implements SocketService {
         // 退出通知
         if (self != null) {
             socketManager.sendAll(Callback.USER_LOGOUT.format(self), MessageType.EXIT, self);
-            socketManager.remove(self);
+            socketManager.remove(self, false);
         }
     }
 
@@ -263,6 +263,7 @@ public class SocketServiceImpl implements SocketService {
         // 永久限制登录处理
         if (Constants.FOREVER.equalsIgnoreCase(wsmsg.getContent())) {
             target.logout(Callback.LIMIT_FOREVER);
+            socketManager.remove(target, true);
             return;
         }
         long time = socketManager.addLock(wsmsg);
