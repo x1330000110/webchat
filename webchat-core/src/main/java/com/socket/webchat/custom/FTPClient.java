@@ -126,8 +126,8 @@ public class FTPClient {
                     .filter(maps::containsKey)
                     .collect(Collectors.toList());
             maps.forEach((hash, path) -> {
-                if (collect.contains(hash) && !ftp.delFile(path)) {
-                    log.warn("移除FTP文件失败：{}", path);
+                if (collect.contains(hash)) {
+                    ftp.delFile(path);
                 }
             });
         } catch (IOException | IORuntimeException e) {
