@@ -5,7 +5,6 @@ import cn.hutool.core.lang.Opt;
 import cn.hutool.json.JSONUtil;
 import com.socket.client.model.enums.Callback;
 import com.socket.secure.util.AES;
-import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.enums.UserRole;
 import lombok.AccessLevel;
@@ -69,46 +68,6 @@ public class WsUser extends SysUser {
     }
 
     /**
-     * 构建ws用户信息
-     *
-     * @param subject  shiro subject
-     * @param session  Websocket session
-     * @param hsession Http Session
-     */
-    public WsUser(Session session, Subject subject, HttpSession hsession, String platform) {
-        this((SysUser) subject.getPrincipal());
-        this.subject = subject;
-        this.session = session;
-        this.httpSession = hsession;
-        this.platform = platform;
-        this.online = true;
-    }
-
-    /**
-     * 退出聊天室
-     *
-     * @param reason 原因（强制退出时填写）
-     * @param objs   参数
-     */
-    public void logout(Callback reason, Object... objs) {
-        // 始终清除ws会话
-        if (session != null) {
-            try {
-                String str = Opt.ofNullable(reason).peek(e -> e.format(objs)).map(Callback::getReason).get();
-                session.close(new CloseReason(CloseCodes.NORMAL_CLOSURE, str));
-            } catch (IOException e) {
-                log.warn(e.getMessage());
-            }
-            this.session = null;
-        }
-        // 原因为null为自主退出 无需立即终止session
-        if (reason != null && subject != null) {
-            subject.logout();
-            this.subject = null;
-        }
-    }
-
-    /**
      * 测试当前用户会话是否指定目标用户（在线状态）
      *
      * @param target 用户信息
@@ -140,13 +99,6 @@ public class WsUser extends SysUser {
     }
 
     /**
-     * 检查当前用户是否是群组
-     */
-    public boolean isGroup() {
-        return Objects.equals(getUid(), Constants.GROUP);
-    }
-
-    /**
      * 解密消息
      */
     public WsMsg decrypt(String message) {
@@ -164,5 +116,43 @@ public class WsUser extends SysUser {
         if (online && session.isOpen()) {
             session.getAsyncRemote().sendText(AES.encrypt(JSONUtil.toJsonStr(wsmsg), httpSession));
         }
+    }
+
+    /**
+     * 设置登录数据
+     *
+     * @param session     ws session
+     * @param httpSession http session
+     * @param platform    登录平台
+     */
+    public void login(Session session, HttpSession httpSession, String platform) {
+        this.session = session;
+        this.httpSession = httpSession;
+        this.platform = platform;
+    }
+
+    /**
+     * 清除登录数据
+     *
+     * @param reason 原因（强制退出时填写）
+     * @param objs   参数
+     */
+    public void logout(Callback reason, Object... objs) {
+        // 始终清除ws会话
+        if (session != null) {
+            try {
+                String str = Opt.ofNullable(reason).peek(e -> e.format(objs)).map(Callback::getReason).get();
+                session.close(new CloseReason(CloseCodes.NORMAL_CLOSURE, str));
+            } catch (IOException e) {
+                log.warn(e.getMessage());
+            }
+            this.session = null;
+        }
+        // 原因为null为自主退出 无需立即终止session
+        if (reason != null && subject != null) {
+            subject.logout();
+            this.subject = null;
+        }
+        this.online = false;
     }
 }

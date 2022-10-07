@@ -54,16 +54,15 @@ public class UserPreview extends SysUser {
     }
 
     /**
-     * 填充Ws用户数据
+     * 填充访问时间
      *
-     * @param logs    日志列表
-     * @param onlines 在线用户列表
+     * @param logs 日志列表
      */
-    public void fill(Map<String, Date> logs, Map<String, WsUser> onlines) {
-        Optional.ofNullable(onlines.get(getUid())).ifPresent(user -> {
-            this.online = true;
-            this.platform = user.getPlatform();
-        });
+    public void setLastTime(Map<String, Date> logs) {
         Optional.ofNullable(logs.get(getUid())).ifPresent(date -> this.lastTime = date.getTime());
+    }
+
+    public void setLastTime(Date time) {
+        this.lastTime = time.getTime();
     }
 }

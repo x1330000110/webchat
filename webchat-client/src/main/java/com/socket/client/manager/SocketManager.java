@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SocketManager implements InitializingBean {
     private final ConcurrentHashMap<SysGroup, List<String>> groups = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, WsUser> onlines = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, WsUser> users = new ConcurrentHashMap<>();
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final SysGroupUserMapper sysGroupUserMapper;
     private final SysUserLogMapper sysUserLogMapper;
@@ -60,24 +60,25 @@ public class SocketManager implements InitializingBean {
      * @return 已加入的用户对象
      */
     public WsUser join(Session session, Map<String, Object> properties) {
-        // 构建聊天室用户
+        // 查找用户
         Subject subject = (Subject) properties.get(Constants.SUBJECT);
-        HttpSession httpSession = (HttpSession) properties.get(Constants.HTTP_SESSION);
-        String platform = (String) properties.get(Constants.PLATFORM);
-        WsUser user = new WsUser(session, subject, httpSession, platform);
+        SysUser principal = (SysUser) subject.getPrincipal();
+        String uid = principal.getUid();
+        WsUser user = getUser(uid);
         // 检查登录限制（会话缓存检查）
-        long time = redisManager.getLockTime(user.getUid());
+        long time = redisManager.getLockTime(uid);
         if (time > 0) {
             user.logout(Callback.LOGIN_LIMIT, time);
             return null;
         }
         // 检查重复登录
-        WsUser repeat = onlines.get(user.getUid());
-        if (repeat != null) {
-            repeat.logout(Callback.REPEAT_LOGIN);
+        if (user.isOnline()) {
+            user.logout(Callback.REPEAT_LOGIN);
         }
         // 登录到聊天室
-        onlines.put(user.getUid(), user);
+        HttpSession hs = (HttpSession) properties.get(Constants.HTTP_SESSION);
+        String platform = (String) properties.get(Constants.PLATFORM);
+        user.login(session, hs, platform);
         return user;
     }
 
@@ -92,20 +93,12 @@ public class SocketManager implements InitializingBean {
         String uid = sender.getUid();
         // 向群内所有人发送消息
         for (String tuid : groups.get(getSysGroup(wsmsg.getTarget()))) {
-            // 自己
-            if (uid.equals(tuid)) {
+            // 过滤自己 || 已屏蔽
+            if (uid.equals(tuid) || exclude.contains(tuid)) {
                 continue;
             }
-            // 已屏蔽
-            if (exclude.contains(tuid)) {
-                continue;
-            }
-            WsUser wsuser = onlines.get(tuid);
-            // 不在线
-            if (wsuser == null) {
-                continue;
-            }
-            wsuser.send(wsmsg);
+            // 发送
+            getUser(tuid).send(wsmsg);
         }
     }
 
@@ -118,7 +111,7 @@ public class SocketManager implements InitializingBean {
      */
     public void sendAll(Callback tips, MessageType type, SysUser sender) {
         WsMsg sysmsg = WsMsg.build(tips, type, sender);
-        for (WsUser wsuser : onlines.values()) {
+        for (WsUser wsuser : users.values()) {
             if (!wsuser.getUid().equals(sender.getUid())) {
                 wsuser.send(sysmsg);
             }
@@ -131,8 +124,8 @@ public class SocketManager implements InitializingBean {
      * @param uid 用户uid
      * @return {@link WsUser}
      */
-    public WsUser getOnline(String uid) {
-        return onlines.get(uid);
+    public WsUser getUser(String uid) {
+        return users.get(uid);
     }
 
     /**
@@ -147,9 +140,9 @@ public class SocketManager implements InitializingBean {
         if (wsmsg.isGroup()) {
             return getSysGroup(target).toWsUser();
         }
-        WsUser online = getOnline(target);
-        if (online != null) {
-            return online;
+        WsUser user = getUser(target);
+        if (user.isOnline()) {
+            return user;
         }
         LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(SysUser::getUid, target);
@@ -175,8 +168,6 @@ public class SocketManager implements InitializingBean {
      * @param self 当前登录的用户
      */
     public Collection<UserPreview> getPreviews(WsUser self) {
-        // 用户列表
-        List<SysUser> userList = sysUserMapper.selectList(Wrappers.emptyWrapper());
         // 消息发起者
         String suid = self.getUid();
         // 与此用户关联的所有未读消息
@@ -184,16 +175,13 @@ public class SocketManager implements InitializingBean {
         // 登录记录
         Map<String, Date> logs = this.getUserLoginLogs();
         // 链接数据
-        List<UserPreview> collect = userList.stream()
+        List<UserPreview> collect = users.values().stream()
                 .map(UserPreview::new)
-                // 补全状态
-                .peek(user -> user.fill(logs, onlines))
-                // 同步未读消息
+                .peek(user -> user.setLastTime(logs))
                 .peek(user -> this.syncUnreadMessage(user, messages, suid))
-                // 转为List
                 .collect(Collectors.toList());
         // 添加游客到列表（数据库不包含游客信息）
-        onlines.values().stream()
+        users.values().stream()
                 .filter(WsUser::isGuest)
                 .map(UserPreview::new)
                 .forEach(collect::add);
@@ -242,7 +230,7 @@ public class SocketManager implements InitializingBean {
             if (records != null && (first = records.first()) != null) {
                 MessageType type = first.getType();
                 preview.setPreview(type == MessageType.TEXT ? first.getContent() : '[' + type.getPreview() + ']');
-                preview.setLastTime(first.getCreateTime().getTime());
+                preview.setLastTime(first.getCreateTime());
                 preview.setUnreads(Math.min(count, 99));
             }
         }
@@ -443,7 +431,6 @@ public class SocketManager implements InitializingBean {
      */
     public void remove(WsUser user) {
         user.logout(null);
-        onlines.remove(user.getUid());
     }
 
     /**
@@ -460,10 +447,11 @@ public class SocketManager implements InitializingBean {
     }
 
     /**
-     * 初始化群组
+     * 初始化数据
      */
     @Override
     public void afterPropertiesSet() {
+        // 缓存群组
         List<SysGroup> groups = sysGroupMapper.selectList(Wrappers.emptyWrapper());
         List<SysGroupUser> groupUsers = sysGroupUserMapper.selectList(Wrappers.emptyWrapper());
         for (SysGroup group : groups) {
@@ -473,5 +461,8 @@ public class SocketManager implements InitializingBean {
                     .collect(Collectors.toList());
             this.groups.put(group, collect);
         }
+        // 缓存用户
+        List<SysUser> userList = sysUserMapper.selectList(Wrappers.emptyWrapper());
+        userList.stream().map(WsUser::new).forEach(e -> users.put(e.getUid(), e));
     }
 }

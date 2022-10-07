@@ -121,7 +121,7 @@ public class SocketServiceImpl implements SocketService {
         boolean sysuid = Constants.SYSTEM_UID.equals(wsmsg.getTarget());
         boolean text = wsmsg.getType() == MessageType.TEXT;
         // 判断AI消息
-        if (sysuid && text && socketManager.getOnline(Constants.SYSTEM_UID) == null) {
+        if (sysuid && text && socketManager.getUser(Constants.SYSTEM_UID).isOnline()) {
             robot.dialogue(wsmsg.getContent()).addCallback(result -> {
                 if (result != null) {
                     // AI消息
