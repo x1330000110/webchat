@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.client.mapper.SysGroupMapper;
 import com.socket.client.mapper.SysGroupUserMapper;
+import com.socket.client.model.SysGroup;
 import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
@@ -161,7 +162,7 @@ public class SocketManager implements InitializingBean {
      */
     public Collection<UserPreview> getPreviews(WsUser self) {
         // 用户列表
-        List<SysUser> userList = sysUserMapper.selectList(Wrappers.lambdaQuery());
+        List<SysUser> userList = sysUserMapper.selectList(Wrappers.emptyWrapper());
         // 消息发起者
         String suid = self.getUid();
         // 与此用户关联的所有未读消息
@@ -440,6 +441,7 @@ public class SocketManager implements InitializingBean {
     @Override
     public void afterPropertiesSet() {
         // 初始化群组
-        Wrappers.lambdaQuery();
+        List<SysGroup> list = sysGroupMapper.selectList(Wrappers.emptyWrapper());
+
     }
 }
