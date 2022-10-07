@@ -3,7 +3,6 @@ package com.socket.client.manager;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -12,7 +11,10 @@ import com.socket.client.mapper.SysGroupMapper;
 import com.socket.client.mapper.SysGroupUserMapper;
 import com.socket.client.model.*;
 import com.socket.client.model.enums.Callback;
+import com.socket.client.util.Assert;
 import com.socket.webchat.constant.Constants;
+import com.socket.webchat.custom.listener.UserChangeEvent;
+import com.socket.webchat.custom.listener.UserChangeListener;
 import com.socket.webchat.mapper.ShieldUserMapper;
 import com.socket.webchat.mapper.SysUserLogMapper;
 import com.socket.webchat.mapper.SysUserMapper;
@@ -40,7 +42,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class SocketManager implements InitializingBean {
+public class SocketManager implements InitializingBean, UserChangeListener {
     private final ConcurrentHashMap<SysGroup, List<String>> groups = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, WsUser> users = new ConcurrentHashMap<>();
     private final KafkaTemplate<String, String> kafkaTemplate;
@@ -63,10 +65,9 @@ public class SocketManager implements InitializingBean {
         // 查找用户
         Subject subject = (Subject) properties.get(Constants.SUBJECT);
         SysUser principal = (SysUser) subject.getPrincipal();
-        String uid = principal.getUid();
-        WsUser user = getUser(uid);
+        WsUser user = getUser(principal.getUid());
         // 检查登录限制（会话缓存检查）
-        long time = redisManager.getLockTime(uid);
+        long time = redisManager.getLockTime(user.getUid());
         if (time > 0) {
             user.logout(Callback.LOGIN_LIMIT, time);
             return null;
@@ -125,7 +126,9 @@ public class SocketManager implements InitializingBean {
      * @return {@link WsUser}
      */
     public WsUser getUser(String uid) {
-        return users.get(uid);
+        WsUser user = users.get(uid);
+        Assert.notNull(user, Callback.USER_NOT_FOUND);
+        return user;
     }
 
     /**
@@ -137,19 +140,12 @@ public class SocketManager implements InitializingBean {
      */
     public WsUser getTarget(WsMsg wsmsg) {
         String target = wsmsg.getTarget();
+        // 群组
         if (wsmsg.isGroup()) {
             return getSysGroup(target).toWsUser();
         }
-        WsUser user = getUser(target);
-        if (user.isOnline()) {
-            return user;
-        }
-        LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(SysUser::getUid, target);
-        SysUser sysUser = sysUserMapper.selectOne(wrapper);
-        return Optional.ofNullable(sysUser)
-                .map(WsUser::new)
-                .orElseThrow(() -> new SocketException(Callback.USER_NOT_FOUND, MessageType.DANGER));
+        // 查找用户
+        return getUser(target);
     }
 
     /**
@@ -464,5 +460,21 @@ public class SocketManager implements InitializingBean {
         // 缓存用户
         List<SysUser> userList = sysUserMapper.selectList(Wrappers.emptyWrapper());
         userList.stream().map(WsUser::new).forEach(e -> users.put(e.getUid(), e));
+    }
+
+    @Override
+    public void onUserChange(UserChangeEvent event) {
+        SysUser user = event.getUser();
+        System.out.println("变动事件：" + user);
+        SysUser ws = users.get(user.getUid());
+        // 用户存在则更新资料
+        if (ws != null) {
+            Optional.ofNullable(user.getName()).ifPresent(ws::setName);
+            Optional.ofNullable(user.getHeadimgurl()).ifPresent(ws::setHeadimgurl);
+            return;
+        }
+        // 添加到缓存
+        WsUser wsuser = new WsUser(user);
+        users.put(wsuser.getUid(), wsuser);
     }
 }

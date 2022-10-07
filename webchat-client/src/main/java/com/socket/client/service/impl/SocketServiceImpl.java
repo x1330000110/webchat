@@ -72,8 +72,8 @@ public class SocketServiceImpl implements SocketService {
         WsMsg wsmsg = self.decrypt(message);
         WsUser target = socketManager.getTarget(wsmsg);
         // 游客检查
-        Assert.notGuest(self, Callback.REJECT_EXECUTE, MessageType.DANGER);
-        Assert.notGuest(target, Callback.INVALID_COMMAND, MessageType.DANGER);
+        Assert.notGuest(self, Callback.REJECT_EXECUTE);
+        Assert.notGuest(target, Callback.INVALID_COMMAND);
         // 系统消息
         if (wsmsg.isSysmsg()) {
             this.parseSysMsg(wsmsg, target);
@@ -87,7 +87,7 @@ public class SocketServiceImpl implements SocketService {
     @Override
     public void parseUserMsg(WsMsg wsmsg, WsUser target) {
         // 禁言状态无法发送消息
-        Assert.isFalse(socketManager.isMute(self), Callback.SELF_MUTE, MessageType.DANGER);
+        Assert.isFalse(socketManager.isMute(self), Callback.SELF_MUTE);
         // HTML脚本过滤
         wsmsg.checkMessage();
         // AI消息智能回复
@@ -101,7 +101,7 @@ public class SocketServiceImpl implements SocketService {
             return;
         }
         // 你屏蔽了目标
-        Assert.isFalse(socketManager.shield(self, target), Callback.TARGET_SHIELD, MessageType.INFO);
+        Assert.isFalse(socketManager.shield(self, target), Callback.TARGET_SHIELD);
         // 目标屏蔽了你
         if (socketManager.shield(target, self)) {
             self.send(wsmsg.reject());
@@ -161,7 +161,7 @@ public class SocketServiceImpl implements SocketService {
     @Override
     public void parseAdminSysMsg(WsMsg wsmsg, WsUser target) {
         // 管理员权限检查
-        Assert.isAdmin(self, target, Callback.REJECT_EXECUTE, MessageType.DANGER);
+        Assert.isAdmin(self, target, Callback.REJECT_EXECUTE);
         switch (wsmsg.getType()) {
             case MUTE:
                 this.mute(target, wsmsg);
@@ -177,7 +177,7 @@ public class SocketServiceImpl implements SocketService {
     @Override
     public void parseOwnerSysMsg(WsMsg wsmsg, WsUser target) {
         // 所有者权限检查
-        Assert.isOwner(self, Callback.REJECT_EXECUTE, MessageType.DANGER);
+        Assert.isOwner(self, Callback.REJECT_EXECUTE);
         switch (wsmsg.getType()) {
             case ROLE:
                 this.switchRole(target);
@@ -232,8 +232,8 @@ public class SocketServiceImpl implements SocketService {
      */
     private void forwardWebRTC(WsUser target, WsMsg wsmsg) {
         // 屏蔽检查
-        Assert.isFalse(socketManager.shield(self, target), Callback.TARGET_SHIELD, MessageType.INFO);
-        Assert.isFalse(socketManager.shield(target, self), Callback.TARGET_SHIELD, MessageType.WARNING);
+        Assert.isFalse(socketManager.shield(self, target), Callback.TARGET_SHIELD);
+        Assert.isFalse(socketManager.shield(target, self), Callback.TARGET_SHIELD);
         target.send(wsmsg);
     }
 

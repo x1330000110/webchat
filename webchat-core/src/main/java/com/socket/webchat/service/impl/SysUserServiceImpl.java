@@ -15,6 +15,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.FTPClient;
 import com.socket.webchat.custom.RedisClient;
+import com.socket.webchat.custom.listener.UserChangeEvent;
 import com.socket.webchat.exception.AccountException;
 import com.socket.webchat.exception.UploadException;
 import com.socket.webchat.mapper.SysUserLogMapper;
@@ -34,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.authc.UsernamePasswordToken;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
@@ -48,6 +50,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 @RequiredArgsConstructor
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
+    private final ApplicationEventPublisher publisher;
     private final SysUserLogMapper sysUserLogMapper;
     private final RedisClient<Object> redisClient;
     private final FTPClient client;
@@ -88,11 +91,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         Assert.equals(condition.getCode(), redisClient.get(key), "验证码不正确", IllegalStateException::new);
         redisClient.remove(key);
         // 注册
-        SysUser init = SysUser.newUser();
-        init.setName(condition.getName());
-        init.setEmail(condition.getEmail());
-        init.setHash(Bcrypt.digest(condition.getPass()));
-        super.save(init);
+        SysUser user = SysUser.newUser();
+        user.setName(condition.getName());
+        user.setEmail(condition.getEmail());
+        user.setHash(Bcrypt.digest(condition.getPass()));
+        super.save(user);
+        // 推送变动事件
+        publisher.publishEvent(new UserChangeEvent(publisher, user));
         // 通过邮箱登录
         this.login(new LoginCondition(condition.getEmail(), condition.getPass()));
     }
@@ -146,22 +151,24 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     }
 
     @Override
-    public SysUser updateMaterial(SysUser sysUser) {
+    public void updateMaterial(SysUser user) {
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
         // 清空uid
-        sysUser.setUid(null);
+        user.setUid(null);
         // 修改头像使用 /updateAvatar
-        sysUser.setHeadimgurl(null);
+        user.setHeadimgurl(null);
         // 修改邮箱使用 /updateEmail
-        sysUser.setEmail(null);
+        user.setEmail(null);
         // 若生日不为空 优先使用基于生日的年龄
-        if (sysUser.getBirth() != null) {
-            LocalDateTime time = sysUser.getBirth().atStartOfDay();
+        if (user.getBirth() != null) {
+            LocalDateTime time = user.getBirth().atStartOfDay();
             long between = LocalDateTimeUtil.between(time, LocalDateTime.now(), ChronoUnit.YEARS);
-            sysUser.setAge(Math.toIntExact(between));
+            user.setAge(Math.toIntExact(between));
         }
         wrapper.eq(SysUser::getUid, Wss.getUserId());
-        return super.update(sysUser, wrapper) ? sysUser : null;
+        Assert.isTrue(super.update(user, wrapper), "修改失败", IllegalStateException::new);
+        // 推送变动事件
+        publisher.publishEvent(new UserChangeEvent(publisher, user.setUid(Wss.getUserId())));
     }
 
     @Override
@@ -186,11 +193,14 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(SysUser::getUid, Wss.getUserId());
         wrapper.set(SysUser::getHeadimgurl, path);
-        return super.update(wrapper) ? path : null;
+        Assert.isTrue(super.update(wrapper), "修改失败", IllegalStateException::new);
+        // 推送变动事件
+        publisher.publishEvent(new UserChangeEvent(publisher, Wss.getUser().setHeadimgurl(path)));
+        return path;
     }
 
     @Override
-    public String updateEmail(EmailCondition condition) {
+    public void updateEmail(EmailCondition condition) {
         // 验证原邮箱
         SysUser user = Wss.getUser();
         String selfemail = user.getEmail();
@@ -210,7 +220,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         wrapper.clear();
         wrapper.eq(SysUser::getUid, user.getUid());
         wrapper.set(SysUser::getEmail, newemail);
-        return super.update(wrapper) ? condition.getNewcode() : null;
+        Assert.isTrue(super.update(wrapper), "修改失败", IllegalStateException::new);
+        Wss.getUser().setEmail(newemail);
     }
 
     @Override

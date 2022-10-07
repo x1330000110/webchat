@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.RedisClient;
+import com.socket.webchat.custom.listener.UserChangeEvent;
 import com.socket.webchat.exception.AccountException;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.WxUser;
@@ -21,6 +22,7 @@ import com.socket.webchat.util.Assert;
 import com.socket.webchat.util.Bcrypt;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletResponse;
@@ -34,6 +36,7 @@ import java.io.IOException;
 @Service
 @RequiredArgsConstructor
 public class WxloginServiceImpl implements WxloginService {
+    private final ApplicationEventPublisher publisher;
     private final WxAuth2Request wxAuth2Request;
     private final SysUserService sysUserService;
     private final RedisClient<String> redisClient;
@@ -55,6 +58,8 @@ public class WxloginServiceImpl implements WxloginService {
                 user.setName(StrUtil.sub(wxuser.getNickname(), 0, 6));
                 user.setHash(Bcrypt.digest(Constants.WX_DEFAULT_PASSWORD));
                 sysUserService.save(user);
+                // 推送变动事件
+                publisher.publishEvent(new UserChangeEvent(publisher, user));
             }
             // 设置用户UID到Redis
             return redisClient.setIfPresent(key, user.getUid(), Constants.QR_CODE_EXPIRATION_TIME) ? user : null;

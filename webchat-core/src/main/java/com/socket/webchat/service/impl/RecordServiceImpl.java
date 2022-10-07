@@ -1,6 +1,5 @@
 package com.socket.webchat.service.impl;
 
-import cn.hutool.core.lang.Opt;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -71,7 +70,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         wrapper1.eq(ChatRecordOffset::getUid, userId);
         wrapper1.eq(ChatRecordOffset::getTarget, target);
         ChatRecordOffset limit = chatRecordOffsetMapper.selectOne(wrapper1);
-        Opt.ofNullable(limit).ifPresent(e -> wrapper.gt(BaseModel::getId, e.getOffset()));
+        Optional.ofNullable(limit).ifPresent(e -> wrapper.gt(BaseModel::getId, e.getOffset()));
         // 限制结束边界id
         ChatRecord offset = null;
         if (mid != null) {

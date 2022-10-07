@@ -42,10 +42,9 @@ public interface SysUserService extends IService<SysUser> {
     /**
      * 更新用户资料（只能更新自己）
      *
-     * @param sysUser 用户信息
-     * @return 是否成功
+     * @param user 用户信息
      */
-    SysUser updateMaterial(SysUser sysUser);
+    void updateMaterial(SysUser user);
 
     /**
      * 修改用户头像（只能修改自己）
@@ -59,9 +58,8 @@ public interface SysUserService extends IService<SysUser> {
      * 修改邮箱
      *
      * @param condition 邮箱参数
-     * @return 新邮箱（如果成功）
      */
-    String updateEmail(EmailCondition condition);
+    void updateEmail(EmailCondition condition);
 
     /**
      * 用户个人信息

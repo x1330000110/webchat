@@ -21,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/user")
@@ -33,28 +32,22 @@ public class UserController {
     @Encrypted
     @PostMapping(value = "/material")
     public HttpStatus material(@RequestBody SysUser sysUser) {
-        SysUser user = sysUserService.updateMaterial(sysUser);
-        Optional.ofNullable(user).ifPresent(u -> Wss.updatePrincipal(Wss.getUser()::setName, u.getName()));
-        return HttpStatus.state(user != null, "修改");
+        sysUserService.updateMaterial(sysUser);
+        return HttpStatus.SUCCESS.message("修改成功");
     }
 
     @Encrypted
     @PostMapping("/avatar")
     public HttpStatus updateAvatar(MultipartFile blob) throws IOException {
         String mapping = sysUserService.updateAvatar(blob.getBytes());
-        if (mapping == null) {
-            return HttpStatus.FAILURE.message("修改失败");
-        }
-        Wss.updatePrincipal(Wss.getUser()::setHeadimgurl, mapping);
         return HttpStatus.SUCCESS.body("修改成功", mapping);
     }
 
     @Encrypted
     @PostMapping("/email")
     public HttpStatus updateEmail(@RequestBody EmailCondition condition) {
-        String email = sysUserService.updateEmail(condition);
-        Optional.ofNullable(email).ifPresent(e -> Wss.updatePrincipal(Wss.getUser()::setEmail, e));
-        return HttpStatus.state(email != null, "修改");
+        sysUserService.updateEmail(condition);
+        return HttpStatus.SUCCESS.message("修改成功");
     }
 
     @PostMapping("/logout")

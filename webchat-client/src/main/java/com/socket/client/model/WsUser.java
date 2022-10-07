@@ -39,7 +39,7 @@ public class WsUser extends SysUser {
      */
     private HttpSession httpSession;
     /**
-     * Shiro Subject
+     * Shiro SysUser
      */
     private Subject subject;
     /**
@@ -129,6 +129,7 @@ public class WsUser extends SysUser {
         this.session = session;
         this.httpSession = httpSession;
         this.platform = platform;
+        this.online = true;
     }
 
     /**
