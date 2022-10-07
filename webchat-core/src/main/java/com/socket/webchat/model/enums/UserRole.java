@@ -18,11 +18,7 @@ public enum UserRole implements IEnum<String> {
     /**
      * 用户
      */
-    USER,
-    /**
-     * 游客
-     */
-    GUEST;
+    USER;
 
     public String getRole() {
         return name().toLowerCase();

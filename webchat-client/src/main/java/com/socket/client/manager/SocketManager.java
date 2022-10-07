@@ -176,11 +176,6 @@ public class SocketManager implements InitializingBean, UserChangeListener {
                 .peek(user -> user.setLastTime(logs))
                 .peek(user -> this.syncUnreadMessage(user, messages, suid))
                 .collect(Collectors.toList());
-        // 添加游客到列表（数据库不包含游客信息）
-        users.values().stream()
-                .filter(WsUser::isGuest)
-                .map(UserPreview::new)
-                .forEach(collect::add);
         // 添加群组到列表
         for (Map.Entry<SysGroup, List<String>> entry : groups.entrySet()) {
             SysGroup group = entry.getKey();

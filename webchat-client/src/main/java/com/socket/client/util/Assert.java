@@ -6,12 +6,6 @@ import com.socket.client.model.enums.Callback;
 import com.socket.webchat.model.enums.MessageType;
 
 public class Assert {
-    public static void notGuest(WsUser target, Callback callback) {
-        if (target.isGuest()) {
-            throw new SocketException(callback.format(), MessageType.DANGER);
-        }
-    }
-
     public static void isAdmin(WsUser t1, WsUser t2, Callback callback) {
         if (t1.isAdmin() && t2.isOwner()) {
             throw new SocketException(callback.format(), MessageType.DANGER);

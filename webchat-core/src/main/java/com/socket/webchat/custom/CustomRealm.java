@@ -13,7 +13,6 @@ import com.socket.webchat.model.BaseModel;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.SysUserLog;
 import com.socket.webchat.model.enums.RedisTree;
-import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.util.Assert;
 import com.socket.webchat.util.Bcrypt;
 import com.socket.webchat.util.Requests;
@@ -30,7 +29,6 @@ import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.springframework.stereotype.Component;
-import org.springframework.util.function.SupplierUtils;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -63,11 +61,9 @@ public class CustomRealm extends AuthorizingRealm {
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
         String uid = (String) token.getPrincipal();
-        SysUser user = uid == null ? SysUser.newGuest() : SupplierUtils.resolve(() -> {
-            LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
-            wrapper.eq(uid.contains("@") ? SysUser::getEmail : SysUser::getUid, uid);
-            return sysUserMapper.selectOne(wrapper);
-        });
+        LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(uid.contains("@") ? SysUser::getEmail : SysUser::getUid, uid);
+        SysUser user = sysUserMapper.selectOne(wrapper);
         // 无效账号
         if (user == null) {
             return null;
@@ -85,10 +81,6 @@ public class CustomRealm extends AuthorizingRealm {
             @Override
             public boolean doCredentialsMatch(AuthenticationToken token, AuthenticationInfo info) {
                 SysUser user = info.getPrincipals().oneByType(SysUser.class);
-                // 游客登录
-                if (user.getRole() == UserRole.GUEST) {
-                    return true;
-                }
                 String input = new String((char[]) token.getCredentials());
                 // 微信默认密码登录
                 if (StrUtil.equals(input, Constants.WX_DEFAULT_PASSWORD)) {

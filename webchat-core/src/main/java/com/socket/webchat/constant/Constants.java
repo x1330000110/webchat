@@ -47,13 +47,13 @@ public interface Constants {
     /**
      * 允许的消息撤回时间（单位：秒）
      */
-    int WITHDRAW_MESSAGE_TIME = 120;
+    int WITHDRAW_TIME = 120;
     /**
      * 文件过期时间（单位：天）
      */
     int FILE_EXPIRED_DAYS = 3;
     /**
-     * 客户端群组标识
+     * 客户端群组前缀标识
      */
     String GROUP = "Group";
     /**

@@ -52,8 +52,8 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         LambdaQueryWrapper<ChatRecord> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ChatRecord::isSysmsg, 0);
         // 若查询群组，获取所有目标为群组的消息
-        if (Constants.GROUP.equals(target)) {
-            wrapper.eq(ChatRecord::getTarget, Constants.GROUP);
+        if (Wss.isGroup(target)) {
+            wrapper.eq(ChatRecord::getTarget, target);
         } else {
             // 反之仅获取相互发送的消息
             wrapper.and(ew -> ew.eq(ChatRecord::isReject, false).or().eq(ChatRecord::getUid, userId));
@@ -103,7 +103,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         wrapper.eq(ChatRecord::getUid, uid);
         // 未送达的消息无撤回时间限制
         wrapper.and(ew -> {
-            String condition = StrUtil.format("NOW() - INTERVAL {} SECOND", Constants.WITHDRAW_MESSAGE_TIME);
+            String condition = StrUtil.format("NOW() - INTERVAL {} SECOND", Constants.WITHDRAW_TIME);
             String column = Wss.columnToString(ChatRecord::getCreateTime);
             ew.eq(ChatRecord::isReject, true).or().getExpression().add(() -> column, SqlKeyword.GE, () -> condition);
         });
@@ -122,7 +122,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         wrapper.select(Wss.selecterMax(BaseModel::getId));
         LambdaQueryWrapper<ChatRecord> lambda = wrapper.lambda();
         // 群组特殊条件
-        if (Constants.GROUP.equals(target)) {
+        if (Wss.isGroup(target)) {
             lambda.eq(ChatRecord::getTarget, target);
         } else {
             // 私聊查找相互发送的消息
@@ -219,7 +219,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         deleted.setUid(userId);
         // 确保移除的目标不是自己（自己可能是发起者或目标）
         String uid = record.getUid(), target = record.getTarget();
-        deleted.setTarget(Constants.GROUP.equals(target) ? Constants.GROUP : uid.equals(userId) ? target : uid);
+        deleted.setTarget(Wss.isGroup(target) || uid.equals(userId) ? target : uid);
         deleted.setMid(record.getMid());
         deleted.setRecordTime(record.getCreateTime());
         return chatRecordDeletedMapper.insert(deleted) == 1;

@@ -70,9 +70,6 @@ public class SocketServiceImpl implements SocketService {
     public void onMessage(String message) {
         WsMsg wsmsg = self.decrypt(message);
         WsUser target = socketManager.getTarget(wsmsg);
-        // 游客检查
-        Assert.notGuest(self, Callback.REJECT_EXECUTE);
-        Assert.notGuest(target, Callback.INVALID_COMMAND);
         // 系统消息
         if (wsmsg.isSysmsg()) {
             this.parseSysMsg(wsmsg, target);

@@ -109,7 +109,7 @@ public class Wss {
         if (userId == null) {
             return false;
         }
-        return Constants.GROUP.equals(record.getTarget()) || userId.equals(record.getUid()) || userId.equals(record.getTarget());
+        return Wss.isGroup(record.getTarget()) || userId.equals(record.getUid()) || userId.equals(record.getTarget());
     }
 
     /**
@@ -132,5 +132,12 @@ public class Wss {
     public static <T> String selecterMax(Func1<T, ?> lambda) {
         String column = columnToString(lambda);
         return StrUtil.format("MAX({}) AS {}", column, column);
+    }
+
+    /**
+     * 检查目标是否为群组
+     */
+    public static boolean isGroup(String target) {
+        return target != null && target.startsWith(Constants.GROUP);
     }
 }
