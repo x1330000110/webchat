@@ -208,6 +208,7 @@ public class SocketManager implements InitializingBean {
                 preview.setGroup(true);
                 preview.setUid(group.getGroupId());
                 preview.setName(group.getName());
+                preview.setOnline(true);
                 collect.add(preview);
             }
         }
