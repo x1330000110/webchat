@@ -12,7 +12,6 @@ import com.socket.client.mapper.SysGroupMapper;
 import com.socket.client.mapper.SysGroupUserMapper;
 import com.socket.client.model.*;
 import com.socket.client.model.enums.Callback;
-import com.socket.client.model.enums.Remote;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.mapper.ShieldUserMapper;
 import com.socket.webchat.mapper.SysUserLogMapper;
@@ -106,7 +105,7 @@ public class SocketManager implements InitializingBean {
             if (wsuser == null) {
                 continue;
             }
-            wsuser.send(wsmsg, Remote.ASYNC);
+            wsuser.send(wsmsg);
         }
     }
 
@@ -121,7 +120,7 @@ public class SocketManager implements InitializingBean {
         WsMsg sysmsg = WsMsg.build(tips, type, sender);
         for (WsUser wsuser : onlines.values()) {
             if (!wsuser.getUid().equals(sender.getUid())) {
-                wsuser.send(sysmsg, Remote.ASYNC);
+                wsuser.send(sysmsg);
             }
         }
     }
@@ -303,7 +302,7 @@ public class SocketManager implements InitializingBean {
         int time = Constants.FREQUENT_SPEECHES_MUTE_TIME;
         if (redisManager.incrSpeak(user.getUid()) > Constants.FREQUENT_SPEECH_THRESHOLD) {
             redisManager.setMute(user.getUid(), time);
-            user.send(WsMsg.build(Callback.BRUSH_SCREEN.format(time), MessageType.MUTE, time), Remote.ASYNC);
+            user.send(WsMsg.build(Callback.BRUSH_SCREEN.format(time), MessageType.MUTE, time));
         }
     }
 
@@ -433,7 +432,7 @@ public class SocketManager implements InitializingBean {
         long muteTime = redisManager.getMuteTime(user.getUid());
         if (muteTime > 0) {
             Callback tips = Callback.MUTE_LIMIT.format(muteTime);
-            user.send(WsMsg.build(tips, MessageType.MUTE, muteTime), Remote.ASYNC);
+            user.send(WsMsg.build(tips, MessageType.MUTE, muteTime));
         }
     }
 

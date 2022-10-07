@@ -6,7 +6,6 @@ import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
 import com.socket.client.model.enums.Callback;
-import com.socket.client.model.enums.Remote;
 import com.socket.client.service.SocketService;
 import com.socket.client.util.Assert;
 import com.socket.webchat.constant.Constants;
@@ -47,7 +46,7 @@ public class SocketServiceImpl implements SocketService {
         if (self != null) {
             Collection<UserPreview> userList = socketManager.getPreviews(self);
             WsMsg sysmsg = WsMsg.build(Callback.JOIN_INIT.format(), MessageType.INIT, userList);
-            self.send(sysmsg, Remote.ASYNC);
+            self.send(sysmsg);
             // 用户加入通知
             socketManager.sendAll(Callback.USER_LOGIN.format(self), MessageType.JOIN, self);
             socketManager.checkMute(self);
@@ -98,21 +97,21 @@ public class SocketServiceImpl implements SocketService {
         // 群组消息
         if (wsmsg.isGroup()) {
             socketManager.sendGroup(wsmsg, self);
-            self.send(wsmsg.accept(), Remote.ASYNC);
+            self.send(wsmsg.accept());
             return;
         }
         // 你屏蔽了目标
         Assert.isFalse(socketManager.shield(self, target), Callback.TARGET_SHIELD, MessageType.INFO);
         // 目标屏蔽了你
         if (socketManager.shield(target, self)) {
-            self.send(wsmsg.reject(), Remote.SYNC);
+            self.send(wsmsg.reject());
             WsMsg sysmsg = WsMsg.build(Callback.SELF_SHIELD.format(), MessageType.WARNING);
-            self.send(sysmsg, Remote.ASYNC);
+            self.send(sysmsg);
             return;
         }
         // 发送至目标
-        target.send(wsmsg, Remote.ASYNC);
-        self.send(wsmsg.accept(), Remote.ASYNC);
+        target.send(wsmsg);
+        self.send(wsmsg.accept());
     }
 
     /**
@@ -127,7 +126,7 @@ public class SocketServiceImpl implements SocketService {
                 if (result != null) {
                     // AI消息
                     WsMsg aimsg = WsMsg.build(Constants.SYSTEM_UID, wsmsg.getUid(), result, MessageType.TEXT);
-                    self.send(aimsg, Remote.ASYNC);
+                    self.send(aimsg);
                     socketManager.cacheRecord(aimsg, true);
                 }
             }, exception -> log.warn(exception.getMessage()));
@@ -191,7 +190,7 @@ public class SocketServiceImpl implements SocketService {
                 break;
             default:
                 WsMsg sysmsg = WsMsg.build(Callback.INVALID_COMMAND.format(), MessageType.DANGER);
-                self.send(sysmsg, Remote.ASYNC);
+                self.send(sysmsg);
         }
     }
 
@@ -201,7 +200,7 @@ public class SocketServiceImpl implements SocketService {
     private void shield(WsUser target) {
         boolean shield = socketManager.shieldTarget(self, target);
         Callback tips = shield ? Callback.SHIELD_USER.format(target) : Callback.CANCEL_SHIELD.format(target);
-        self.send(WsMsg.build(tips, MessageType.SHIELD, target), Remote.ASYNC);
+        self.send(WsMsg.build(tips, MessageType.SHIELD, target));
     }
 
     /**
@@ -216,16 +215,16 @@ public class SocketServiceImpl implements SocketService {
                 socketManager.sendGroup(wsmsg, self);
             } else if (!socketManager.shield(target, self)) {
                 // 仅通知目标撤回此消息（若目标已将此用户屏蔽，则忽略此撤回消息）
-                target.send(wsmsg, Remote.ASYNC);
+                target.send(wsmsg);
             }
             // 若这是一条未能送达是消息 则不提示任何回调
             if (!record.isReject()) {
-                self.send(wsmsg, Remote.ASYNC);
+                self.send(wsmsg);
             }
             return;
         }
         Callback callback = Callback.WITHDRAW_FAILURE.format(Constants.WITHDRAW_MESSAGE_TIME);
-        self.send(WsMsg.build(callback, MessageType.WARNING), Remote.ASYNC);
+        self.send(WsMsg.build(callback, MessageType.WARNING));
     }
 
     /**
@@ -235,7 +234,7 @@ public class SocketServiceImpl implements SocketService {
         // 屏蔽检查
         Assert.isFalse(socketManager.shield(self, target), Callback.TARGET_SHIELD, MessageType.INFO);
         Assert.isFalse(socketManager.shield(target, self), Callback.TARGET_SHIELD, MessageType.WARNING);
-        target.send(wsmsg, Remote.SYNC);
+        target.send(wsmsg);
     }
 
     /**
@@ -256,13 +255,13 @@ public class SocketServiceImpl implements SocketService {
         // 禁言
         if (time > 0) {
             WsMsg sysmsg = WsMsg.build(Callback.MUTE_LIMIT.format(time), MessageType.MUTE, time);
-            target.send(sysmsg, Remote.ASYNC);
+            target.send(sysmsg);
             socketManager.sendAll(Callback.G_MUTE_LIMIT.format(target, time), MessageType.PRIMARY, target);
             return;
         }
         // 取消禁言
         WsMsg sysmg = WsMsg.build(Callback.C_MUTE_LIMIT.format(), MessageType.MUTE, time);
-        target.send(sysmg, Remote.ASYNC);
+        target.send(sysmg);
         socketManager.sendAll(Callback.GC_MUTE_LIMIT.format(target, time), MessageType.PRIMARY, target);
     }
 
@@ -293,7 +292,7 @@ public class SocketServiceImpl implements SocketService {
         socketManager.updateRole(target, target.isAdmin() ? UserRole.USER : UserRole.ADMIN);
         // 通知目标
         Callback cb = (target.isAdmin() ? Callback.AUTH_ADMIN : Callback.AUTH_USER).format();
-        target.send(WsMsg.build(cb, MessageType.ROLE, target), Remote.ASYNC);
+        target.send(WsMsg.build(cb, MessageType.ROLE, target));
         // 广播消息
         Callback gcb = (target.isAdmin() ? Callback.G_AUTH_ADMIN : Callback.G_AUTH_USER).format(target);
         socketManager.sendAll(gcb, MessageType.ROLE, target);
@@ -305,7 +304,7 @@ public class SocketServiceImpl implements SocketService {
     private void setAlias(WsUser target, WsMsg wsmsg) {
         String alias = wsmsg.getContent();
         if (socketManager.updateAlias(target, alias)) {
-            self.send(wsmsg, Remote.ASYNC);
+            self.send(wsmsg);
             socketManager.sendGroup(wsmsg, self);
         }
     }
