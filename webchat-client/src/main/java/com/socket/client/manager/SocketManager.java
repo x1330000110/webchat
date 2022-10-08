@@ -430,10 +430,10 @@ public class SocketManager implements InitializingBean, UserChangeListener {
     /**
      * 推送公告
      *
-     * @param wsMsg 系统消息
+     * @param wsmsg 系统消息
      */
-    public void pushNotice(WsMsg wsMsg, SysUser sender) {
-        String content = wsMsg.getContent();
+    public void pushNotice(WsMsg wsmsg, SysUser sender) {
+        String content = wsmsg.getContent();
         redisManager.pushNotice(content);
         if (StrUtil.isNotEmpty(content)) {
             this.sendAll(content, MessageType.ANNOUNCE, sender);
