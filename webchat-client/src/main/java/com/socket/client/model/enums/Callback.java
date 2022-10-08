@@ -36,30 +36,30 @@ public enum Callback {
     CANCEL_SHIELD("您已取消屏蔽 {} 消息"),
     MANUAL("{}");
 
-    private final String tips;
+    private final String message;
 
     Callback(String tips) {
-        this.tips = tips;
-    }
-
-    public String get(long time) {
-        return StrUtil.format(tips, Wss.universal(time));
-    }
-
-    public String get(WsUser user) {
-        return String.format(tips, user.getName());
-    }
-
-    public String get(WsUser user, long time) {
-        return String.format(tips, user.getName(), Wss.universal(time));
+        this.message = tips;
     }
 
     public String get() {
-        return tips;
+        return message;
     }
 
-    public String get(String s) {
-        return String.format(tips, s);
+    public String format(String s) {
+        return String.format(message, s);
+    }
+
+    public String format(long time) {
+        return StrUtil.format(message, Wss.universal(time));
+    }
+
+    public String format(WsUser user) {
+        return String.format(message, user.getName());
+    }
+
+    public String format(WsUser user, long time) {
+        return String.format(message, user.getName(), Wss.universal(time));
     }
 
 }
