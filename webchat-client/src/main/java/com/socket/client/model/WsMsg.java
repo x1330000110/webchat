@@ -2,7 +2,6 @@ package com.socket.client.model;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.MD5;
-import com.socket.client.model.enums.Callback;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.util.Wss;
@@ -55,9 +54,9 @@ public class WsMsg {
      * @param type     消息类型
      * @param data     额外数据
      */
-    public WsMsg(Callback callback, MessageType type, Object data) {
+    public WsMsg(String callback, MessageType type, Object data) {
         this.sysmsg = true;
-        this.content = callback.getReason();
+        this.content = callback;
         this.type = type;
         this.data = data;
     }

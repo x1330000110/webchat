@@ -69,12 +69,12 @@ public class SocketManager implements InitializingBean, UserChangeListener {
         // 检查登录限制（会话缓存检查）
         long time = redisManager.getLockTime(user.getUid());
         if (time > 0) {
-            user.logout(Callback.LOGIN_LIMIT, time);
+            user.logout(Callback.LOGIN_LIMIT.get(time));
             return null;
         }
         // 检查重复登录
         if (user.isOnline()) {
-            user.logout(Callback.REPEAT_LOGIN);
+            user.logout(Callback.REPEAT_LOGIN.get());
         }
         // 登录到聊天室
         HttpSession hs = (HttpSession) properties.get(Constants.HTTP_SESSION);
@@ -106,12 +106,12 @@ public class SocketManager implements InitializingBean, UserChangeListener {
     /**
      * 向所有用户发送系统消息（排除自己）
      *
-     * @param tips   消息内容
-     * @param type   消息类型
-     * @param sender 发起者信息
+     * @param content 消息内容
+     * @param type    消息类型
+     * @param sender  发起者信息
      */
-    public void sendAll(Callback tips, MessageType type, SysUser sender) {
-        WsMsg sysmsg = new WsMsg(tips, type, sender);
+    public void sendAll(String content, MessageType type, SysUser sender) {
+        WsMsg sysmsg = new WsMsg(content, type, sender);
         for (WsUser wsuser : users.values()) {
             if (!wsuser.getUid().equals(sender.getUid())) {
                 wsuser.send(sysmsg);
@@ -155,7 +155,7 @@ public class SocketManager implements InitializingBean, UserChangeListener {
         return groups.keySet().stream()
                 .filter(e -> e.getGroupId().equals(groupId))
                 .findFirst()
-                .orElseThrow(() -> new SocketException(Callback.USER_NOT_FOUND, MessageType.DANGER));
+                .orElseThrow(() -> new SocketException(Callback.USER_NOT_FOUND.get(), MessageType.DANGER));
     }
 
     /**
@@ -281,7 +281,7 @@ public class SocketManager implements InitializingBean, UserChangeListener {
         int time = Constants.FREQUENT_SPEECHES_MUTE_TIME;
         if (redisManager.incrSpeak(user.getUid()) > Constants.FREQUENT_SPEECH_THRESHOLD) {
             redisManager.setMute(user.getUid(), time);
-            user.send(Callback.BRUSH_SCREEN.format(time), MessageType.MUTE, time);
+            user.send(Callback.BRUSH_SCREEN.get(time), MessageType.MUTE, time);
         }
     }
 
@@ -410,8 +410,7 @@ public class SocketManager implements InitializingBean, UserChangeListener {
     public void checkMute(WsUser user) {
         long time = redisManager.getMuteTime(user.getUid());
         if (time > 0) {
-            Callback tips = Callback.MUTE_LIMIT.format(time);
-            user.send(tips, MessageType.MUTE, time);
+            user.send(Callback.MUTE_LIMIT.get(time), MessageType.MUTE, time);
         }
     }
 
@@ -437,7 +436,7 @@ public class SocketManager implements InitializingBean, UserChangeListener {
         String content = wsMsg.getContent();
         redisManager.pushNotice(content);
         if (StrUtil.isNotEmpty(content)) {
-            this.sendAll(Callback.MANUAL.format(content), MessageType.ANNOUNCE, sender);
+            this.sendAll(Callback.MANUAL.get(content), MessageType.ANNOUNCE, sender);
         }
     }
 

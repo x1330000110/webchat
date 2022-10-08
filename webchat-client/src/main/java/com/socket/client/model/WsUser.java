@@ -1,9 +1,7 @@
 package com.socket.client.model;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.lang.Opt;
 import cn.hutool.json.JSONUtil;
-import com.socket.client.model.enums.Callback;
 import com.socket.secure.util.AES;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.enums.MessageType;
@@ -119,19 +117,19 @@ public class WsUser extends SysUser {
      * @param type     消息类型
      * @date 额外数据
      */
-    public void send(Callback callback, MessageType type, Object data) {
-        this.send(new WsMsg(callback, type, data));
+    public void send(String callback, MessageType type) {
+        this.send(callback, type, null);
     }
 
     /**
-     * 发送回调错误
+     * 发送回调通知
      *
      * @param callback 回调消息
      * @param type     消息类型
-     * @param objs     参数
+     * @date 额外数据
      */
-    public void sendError(Callback callback, MessageType type, Object... objs) {
-        this.send(new WsMsg(callback.format(objs), type, null));
+    public void send(String callback, MessageType type, Object data) {
+        this.send(new WsMsg(callback, type, data));
     }
 
     /**
@@ -152,14 +150,12 @@ public class WsUser extends SysUser {
      * 清除登录数据
      *
      * @param reason 原因（强制退出时填写）
-     * @param objs   参数
      */
-    public void logout(Callback reason, Object... objs) {
+    public void logout(String reason) {
         // 始终清除ws会话
         if (session != null) {
             try {
-                String str = Opt.ofNullable(reason).peek(e -> e.format(objs)).map(Callback::getReason).get();
-                session.close(new CloseReason(CloseCodes.NORMAL_CLOSURE, str));
+                session.close(new CloseReason(CloseCodes.NORMAL_CLOSURE, reason));
             } catch (IOException e) {
                 log.warn(e.getMessage());
             }

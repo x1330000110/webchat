@@ -45,9 +45,9 @@ public class SocketServiceImpl implements SocketService {
         // 传递消息
         if (self != null) {
             Collection<UserPreview> userList = socketManager.getPreviews(self);
-            self.send(Callback.JOIN_INIT.format(), MessageType.INIT, userList);
+            self.send(Callback.JOIN_INIT.get(), MessageType.INIT, userList);
             // 用户加入通知
-            socketManager.sendAll(Callback.USER_LOGIN.format(self), MessageType.JOIN, self);
+            socketManager.sendAll(Callback.USER_LOGIN.get(self), MessageType.JOIN, self);
             socketManager.checkMute(self);
         }
     }
@@ -56,7 +56,7 @@ public class SocketServiceImpl implements SocketService {
     public void onClose() {
         // 退出通知
         if (self != null) {
-            socketManager.sendAll(Callback.USER_LOGOUT.format(self), MessageType.EXIT, self);
+            socketManager.sendAll(Callback.USER_LOGOUT.get(self), MessageType.EXIT, self);
             socketManager.remove(self, false);
         }
     }
@@ -101,7 +101,7 @@ public class SocketServiceImpl implements SocketService {
         // 目标屏蔽了你
         if (socketManager.shield(target, self)) {
             self.send(wsmsg.reject());
-            self.sendError(Callback.SELF_SHIELD, MessageType.WARNING);
+            self.send(Callback.SELF_SHIELD.get(), MessageType.WARNING);
             return;
         }
         // 发送至目标
@@ -184,7 +184,7 @@ public class SocketServiceImpl implements SocketService {
                 socketManager.pushNotice(wsmsg, self);
                 break;
             default:
-                self.sendError(Callback.INVALID_COMMAND, MessageType.DANGER);
+                self.send(Callback.INVALID_COMMAND.get(), MessageType.DANGER);
         }
     }
 
@@ -193,8 +193,8 @@ public class SocketServiceImpl implements SocketService {
      */
     private void shield(WsUser target) {
         boolean shield = socketManager.shieldTarget(self, target);
-        Callback tips = shield ? Callback.SHIELD_USER.format(target) : Callback.CANCEL_SHIELD.format(target);
-        self.send(tips, MessageType.SHIELD, target);
+        Callback tips = shield ? Callback.SHIELD_USER : Callback.CANCEL_SHIELD;
+        self.send(tips.get(target), MessageType.SHIELD, target);
     }
 
     /**
@@ -217,7 +217,7 @@ public class SocketServiceImpl implements SocketService {
             }
             return;
         }
-        self.sendError(Callback.WITHDRAW_FAILURE, MessageType.WARNING, Constants.WITHDRAW_TIME);
+        self.send(Callback.WITHDRAW_FAILURE.get(), MessageType.WARNING, Constants.WITHDRAW_TIME);
     }
 
     /**
@@ -247,13 +247,13 @@ public class SocketServiceImpl implements SocketService {
         long time = socketManager.addMute(wsmsg);
         // 禁言
         if (time > 0) {
-            target.send(Callback.MUTE_LIMIT.format(time), MessageType.MUTE, time);
-            socketManager.sendAll(Callback.G_MUTE_LIMIT.format(target, time), MessageType.PRIMARY, target);
+            target.send(Callback.MUTE_LIMIT.get(time), MessageType.MUTE, time);
+            socketManager.sendAll(Callback.G_MUTE_LIMIT.get(target, time), MessageType.PRIMARY, target);
             return;
         }
         // 取消禁言
-        target.send(Callback.C_MUTE_LIMIT.format(), MessageType.MUTE, time);
-        socketManager.sendAll(Callback.GC_MUTE_LIMIT.format(target, time), MessageType.PRIMARY, target);
+        target.send(Callback.C_MUTE_LIMIT.get(), MessageType.MUTE, time);
+        socketManager.sendAll(Callback.GC_MUTE_LIMIT.get(target, time), MessageType.PRIMARY, target);
     }
 
     /**
@@ -262,7 +262,7 @@ public class SocketServiceImpl implements SocketService {
     private void lock(WsUser target, WsMsg wsmsg) {
         // 永久限制登录处理
         if (Constants.FOREVER.equalsIgnoreCase(wsmsg.getContent())) {
-            target.logout(Callback.LIMIT_FOREVER);
+            target.logout(Callback.LIMIT_FOREVER.get());
             socketManager.remove(target, true);
             return;
         }
@@ -270,11 +270,11 @@ public class SocketServiceImpl implements SocketService {
         // 向所有人发布消息
         if (time > 0) {
             // 大于0强制下线
-            target.logout(Callback.LOGIN_LIMIT, time);
-            socketManager.sendAll(Callback.G_LOGIN_LIMIT.format(target, time), MessageType.DANGER, target);
+            target.logout(Callback.LOGIN_LIMIT.get(time));
+            socketManager.sendAll(Callback.G_LOGIN_LIMIT.get(target, time), MessageType.DANGER, target);
             return;
         }
-        socketManager.sendAll(Callback.GC_LOGIN_LIMIT.format(target, time), MessageType.DANGER, target);
+        socketManager.sendAll(Callback.GC_LOGIN_LIMIT.get(target, time), MessageType.DANGER, target);
     }
 
     /**
@@ -283,10 +283,10 @@ public class SocketServiceImpl implements SocketService {
     private void switchRole(WsUser target) {
         socketManager.updateRole(target, target.isAdmin() ? UserRole.USER : UserRole.ADMIN);
         // 通知目标
-        Callback cb = (target.isAdmin() ? Callback.AUTH_ADMIN : Callback.AUTH_USER).format();
+        String cb = (target.isAdmin() ? Callback.AUTH_ADMIN : Callback.AUTH_USER).get();
         target.send(cb, MessageType.ROLE, target);
         // 广播消息
-        Callback gcb = (target.isAdmin() ? Callback.G_AUTH_ADMIN : Callback.G_AUTH_USER).format(target);
+        String gcb = (target.isAdmin() ? Callback.G_AUTH_ADMIN : Callback.G_AUTH_USER).get(target);
         socketManager.sendAll(gcb, MessageType.ROLE, target);
     }
 

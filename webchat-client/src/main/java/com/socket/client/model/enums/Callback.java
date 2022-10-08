@@ -3,7 +3,6 @@ package com.socket.client.model.enums;
 import cn.hutool.core.util.StrUtil;
 import com.socket.client.model.WsUser;
 import com.socket.webchat.util.Wss;
-import lombok.Getter;
 
 /**
  * 服务器回调消息枚举
@@ -45,39 +44,29 @@ public enum Callback {
     MANUAL("{}");
 
     private final String tips;
-    @Getter
-    private String reason;
 
     Callback(String tips) {
         this.tips = tips;
     }
 
-    /**
-     * 消息构建器，使用枚举后必须调用此方法<br>
-     * 传入{@link Number}时将格式化为通用时间<br>
-     * 传入{@link WsUser}时消息指定用户<br>
-     * 也可同时传入，但{@link WsUser}必须在前面<br>
-     */
-    public Callback format(Object... obj) {
-        if (obj.length > 1 && obj[0] instanceof WsUser && obj[1] instanceof Number) {
-            WsUser user = (WsUser) obj[0];
-            long time = ((Number) obj[1]).longValue();
-            this.reason = StrUtil.format(tips, user.getName(), Wss.universal(time));
-            return this;
-        }
-        if (obj.length > 0) {
-            if (obj[0] instanceof Number) {
-                long time = ((Number) obj[0]).longValue();
-                this.reason = StrUtil.format(tips, Wss.universal(time));
-            } else if (obj[0] instanceof WsUser) {
-                WsUser user = (WsUser) obj[0];
-                this.reason = StrUtil.format(tips, user.getName());
-            } else if (obj[0] instanceof String) {
-                this.reason = (String) obj[0];
-            }
-        } else {
-            this.reason = this.tips;
-        }
-        return this;
+    public String get(long time) {
+        return StrUtil.format(tips, Wss.universal(time));
     }
+
+    public String get(WsUser user) {
+        return String.format(tips, user.getName());
+    }
+
+    public String get(WsUser user, long time) {
+        return String.format(tips, user.getName(), Wss.universal(time));
+    }
+
+    public String get() {
+        return tips;
+    }
+
+    public String get(String s) {
+        return String.format(tips, s);
+    }
+
 }
