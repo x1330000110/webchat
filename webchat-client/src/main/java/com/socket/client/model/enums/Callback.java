@@ -33,8 +33,7 @@ public enum Callback {
     TARGET_SHIELD("消息未发出，您屏蔽了对方"),
     SELF_SHIELD("消息已发出，但被对方拒收了"),
     SHIELD_USER("您已将 {} 消息屏蔽"),
-    CANCEL_SHIELD("您已取消屏蔽 {} 消息"),
-    MANUAL("{}");
+    CANCEL_SHIELD("您已取消屏蔽 {} 消息");
 
     private final String message;
 
@@ -44,10 +43,6 @@ public enum Callback {
 
     public String get() {
         return message;
-    }
-
-    public String format(String s) {
-        return String.format(message, s);
     }
 
     public String format(long time) {

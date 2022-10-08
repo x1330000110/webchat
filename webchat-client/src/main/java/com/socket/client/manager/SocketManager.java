@@ -436,7 +436,7 @@ public class SocketManager implements InitializingBean, UserChangeListener {
         String content = wsMsg.getContent();
         redisManager.pushNotice(content);
         if (StrUtil.isNotEmpty(content)) {
-            this.sendAll(Callback.MANUAL.format(content), MessageType.ANNOUNCE, sender);
+            this.sendAll(content, MessageType.ANNOUNCE, sender);
         }
     }
 
