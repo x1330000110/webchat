@@ -48,6 +48,10 @@ public class UserPreview extends SysUser {
      * 是否为群组
      */
     private boolean group;
+    /**
+     * 群组成员
+     */
+    private List<String> members;
 
     public UserPreview(SysUser sysUser) {
         BeanUtil.copyProperties(sysUser, this);

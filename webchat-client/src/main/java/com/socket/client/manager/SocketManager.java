@@ -184,6 +184,7 @@ public class SocketManager implements InitializingBean, UserChangeListener {
             if (uids.contains(suid)) {
                 UserPreview preview = new UserPreview();
                 preview.setGroup(true);
+                preview.setMembers(uids);
                 preview.setUid(group.getGroupId());
                 preview.setName(group.getName());
                 preview.setOnline(true);
