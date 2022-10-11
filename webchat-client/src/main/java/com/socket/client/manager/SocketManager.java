@@ -487,7 +487,7 @@ public class SocketManager implements InitializingBean, UserChangeListener {
      *
      * @param wsuser 发起者
      * @param wsmsg  消息
-     * @return
+     * @return 是否通过
      */
     public boolean verifyMessage(WsUser wsuser, WsMsg wsmsg) {
         String content = wsmsg.getContent();

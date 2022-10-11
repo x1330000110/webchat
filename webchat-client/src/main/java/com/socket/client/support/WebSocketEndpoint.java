@@ -78,8 +78,6 @@ public class WebSocketEndpoint {
         if (!socketManager.verifyMessage(self, wsmsg)) {
             return;
         }
-        // AI消息智能回复
-        this.parseAiMessage(wsmsg);
         // 发言标记
         socketManager.operateMark(self);
         // 群组消息
@@ -96,6 +94,8 @@ public class WebSocketEndpoint {
             self.send(wsmsg.reject());
             return;
         }
+        // AI消息智能回复
+        this.parseAiMessage(wsmsg);
         // 发送至目标
         target.send(wsmsg);
         self.send(wsmsg.accept());
