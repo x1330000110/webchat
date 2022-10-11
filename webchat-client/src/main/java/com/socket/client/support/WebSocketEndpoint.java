@@ -75,9 +75,7 @@ public class WebSocketEndpoint {
         // 禁言状态无法发送消息
         Assert.isFalse(socketManager.isMute(self), Callback.SELF_MUTE);
         // 消息检查
-        socketManager.checkMessage(self, wsmsg);
-        if (wsmsg.isReject()) {
-            self.send(Callback.SENSITIVE_KEYWORDS.get(), MessageType.WARNING);
+        if (!socketManager.verifyMessage(self, wsmsg)) {
             return;
         }
         // AI消息智能回复
@@ -94,8 +92,8 @@ public class WebSocketEndpoint {
         Assert.isFalse(socketManager.shield(self, target), Callback.TARGET_SHIELD);
         // 目标屏蔽了你
         if (socketManager.shield(target, self)) {
-            self.send(wsmsg.reject());
             self.send(Callback.SELF_SHIELD.get(), MessageType.WARNING);
+            self.send(wsmsg.reject());
             return;
         }
         // 发送至目标

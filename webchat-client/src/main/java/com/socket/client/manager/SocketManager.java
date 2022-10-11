@@ -487,18 +487,22 @@ public class SocketManager implements InitializingBean, UserChangeListener {
      *
      * @param wsuser 发起者
      * @param wsmsg  消息
+     * @return
      */
-    public void checkMessage(WsUser wsuser, WsMsg wsmsg) {
+    public boolean verifyMessage(WsUser wsuser, WsMsg wsmsg) {
         String content = wsmsg.getContent();
         if (content == null) {
-            return;
+            return true;
         }
         content = content.replaceAll("</?\\w+(\\s.+?)?>", "");
         content = StrUtil.sub(content, 0, Constants.MAX_MESSAGE_LENGTH);
         if (keywordSupport.containsSensitive(content)) {
+            wsuser.send(Callback.SENSITIVE_KEYWORDS.get(), MessageType.WARNING);
             wsuser.send(wsmsg.reject());
+            return false;
         }
         wsmsg.setContent(content);
+        return true;
     }
 
     /**
