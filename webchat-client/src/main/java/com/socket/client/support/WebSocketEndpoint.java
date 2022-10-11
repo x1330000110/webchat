@@ -77,6 +77,7 @@ public class WebSocketEndpoint {
         // 消息检查
         socketManager.checkMessage(self, wsmsg);
         if (wsmsg.isReject()) {
+            self.send(Callback.SENSITIVE_KEYWORDS.get(), MessageType.DANGER);
             return;
         }
         // AI消息智能回复

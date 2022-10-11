@@ -497,7 +497,6 @@ public class SocketManager implements InitializingBean, UserChangeListener {
         content = StrUtil.sub(content, 0, Constants.MAX_MESSAGE_LENGTH);
         if (keywordSupport.containsSensitive(content)) {
             wsuser.send(wsmsg.reject());
-            wsuser.send(Callback.SENSITIVE_KEYWORDS.get(), MessageType.DANGER);
         }
         wsmsg.setContent(content);
     }
