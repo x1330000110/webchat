@@ -386,8 +386,8 @@ public class SocketManager implements InitializingBean, UserChangeListener {
      * @param wsmsg 消息
      * @return 撤回的消息
      */
-    public ChatRecord removeMessage(WsMsg wsmsg) {
-        ChatRecord record = recordService.withdrawMessage(wsmsg.getUid(), wsmsg.getContent());
+    public ChatRecord withdrawMessage(WsMsg wsmsg) {
+        ChatRecord record = recordService.removeMessage(wsmsg.getUid(), wsmsg.getContent());
         // 未找到相关消息
         if (record == null) {
             return null;

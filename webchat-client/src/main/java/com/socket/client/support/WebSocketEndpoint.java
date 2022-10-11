@@ -183,7 +183,7 @@ public class WebSocketEndpoint {
      * 撤回消息
      */
     private void withdraw(WsUser target, WsMsg wsmsg) {
-        ChatRecord record = socketManager.removeMessage(wsmsg);
+        ChatRecord record = socketManager.withdrawMessage(wsmsg);
         // 转发系统消息
         if (record != null) {
             // 若此撤回的消息指向群组，则通知群组内所有人撤回此消息
