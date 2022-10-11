@@ -6,10 +6,7 @@ import com.socket.secure.util.AES;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.model.enums.UserRole;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.subject.Subject;
 
@@ -18,6 +15,7 @@ import javax.websocket.CloseReason;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import static javax.websocket.CloseReason.CloseCodes;
 
@@ -105,9 +103,7 @@ public class WsUser extends SysUser {
      * @param wsmsg 消息
      */
     public void send(WsMsg wsmsg) {
-        if (online && session.isOpen()) {
-            session.getAsyncRemote().sendText(AES.encrypt(JSONUtil.toJsonStr(wsmsg), httpSession));
-        }
+        send(wsmsg, true);
     }
 
     /**
@@ -129,7 +125,19 @@ public class WsUser extends SysUser {
      * @date 额外数据
      */
     public void send(String callback, MessageType type, Object data) {
-        this.send(new WsMsg(callback, type, data));
+        this.send(new WsMsg(callback, type, data), false);
+    }
+
+    @SneakyThrows
+    private void send(WsMsg wsmsg, boolean async) {
+        Supplier<String> supplier = () -> AES.encrypt(JSONUtil.toJsonStr(wsmsg), httpSession);
+        if (online && session.isOpen()) {
+            if (async) {
+                session.getAsyncRemote().sendText(supplier.get());
+            } else {
+                session.getBasicRemote().sendText(supplier.get());
+            }
+        }
     }
 
     /**
