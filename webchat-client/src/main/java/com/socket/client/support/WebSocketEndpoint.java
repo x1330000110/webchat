@@ -8,8 +8,10 @@ import com.socket.client.model.WsUser;
 import com.socket.client.model.enums.Callback;
 import com.socket.client.util.Assert;
 import com.socket.webchat.constant.Constants;
+import com.socket.webchat.custom.support.OwnerSettingSupport;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.enums.MessageType;
+import com.socket.webchat.model.enums.Setting;
 import com.socket.webchat.model.enums.UserRole;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,7 @@ import java.util.Collection;
 @Service
 @ServerEndpoint(value = "/user/room", configurator = SocketConfig.class)
 public class WebSocketEndpoint {
+    private static OwnerSettingSupport settingSupport;
     private static SocketManager socketManager;
     private WsUser self;
 
@@ -74,8 +77,15 @@ public class WebSocketEndpoint {
     public void parseUserMsg(WsMsg wsmsg, WsUser target) {
         // 禁言状态无法发送消息
         Assert.isFalse(socketManager.isMute(self), Callback.SELF_MUTE);
+        // 所有者全员禁言检查
+        if (settingSupport.getSetting(Setting.ALL_MUTE)) {
+            self.send(Callback.ALL_MUTE.get(), MessageType.WARNING);
+            self.send(wsmsg.reject());
+            return;
+        }
         // 消息检查
-        if (!socketManager.verifyMessage(self, wsmsg)) {
+        boolean sensitive = settingSupport.getSetting(Setting.SENSITIVE_WORDS);
+        if (!socketManager.verifyMessage(self, wsmsg, sensitive)) {
             return;
         }
         // 发言标记
@@ -95,7 +105,9 @@ public class WebSocketEndpoint {
             return;
         }
         // AI消息智能回复
-        this.parseAiMessage(wsmsg);
+        if (settingSupport.getSetting(Setting.AI_MESSAGE)) {
+            this.parseAiMessage(wsmsg);
+        }
         // 发送至目标
         target.send(wsmsg);
         self.send(wsmsg.accept());
@@ -286,5 +298,10 @@ public class WebSocketEndpoint {
     @Autowired
     private void setSocketManager(SocketManager manager) {
         WebSocketEndpoint.socketManager = manager;
+    }
+
+    @Autowired
+    public void setSettingSupport(OwnerSettingSupport support) {
+        WebSocketEndpoint.settingSupport = support;
     }
 }

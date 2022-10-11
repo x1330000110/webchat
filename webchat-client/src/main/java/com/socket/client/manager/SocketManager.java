@@ -481,18 +481,19 @@ public class SocketManager implements InitializingBean, UserChangeListener {
     /**
      * 检查消息合法性
      *
-     * @param wsuser 发起者
-     * @param wsmsg  消息
+     * @param wsuser    发起者
+     * @param wsmsg     消息
+     * @param sensitive 敏感关键词检查
      * @return 是否通过
      */
-    public boolean verifyMessage(WsUser wsuser, WsMsg wsmsg) {
+    public boolean verifyMessage(WsUser wsuser, WsMsg wsmsg, boolean sensitive) {
         String content = wsmsg.getContent();
         if (content == null) {
             return true;
         }
         content = content.replaceAll("</?\\w+(\\s.+?)?>", "");
         content = StrUtil.sub(content, 0, Constants.MAX_MESSAGE_LENGTH);
-        if (keywordSupport.containsSensitive(content)) {
+        if (sensitive && keywordSupport.containsSensitive(content)) {
             wsuser.send(Callback.SENSITIVE_KEYWORDS.get(), MessageType.WARNING);
             wsuser.send(wsmsg.reject());
             return false;

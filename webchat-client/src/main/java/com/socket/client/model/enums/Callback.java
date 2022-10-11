@@ -31,6 +31,7 @@ public enum Callback {
     G_AUTH_ADMIN("{} 已被所有者任命为管理员"),
     G_AUTH_USER("{} 已被所有者取消管理员权限"),
     TARGET_SHIELD("消息未发出，您屏蔽了对方"),
+    ALL_MUTE("所有者开启了全员禁言"),
     SELF_SHIELD("消息已发出，但被对方拒收了"),
     SHIELD_USER("您已将 {} 消息屏蔽"),
     SENSITIVE_KEYWORDS("消息包含敏感关键词，请检查后重新发送"),
