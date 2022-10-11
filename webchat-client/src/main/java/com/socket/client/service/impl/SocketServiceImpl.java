@@ -63,7 +63,7 @@ public class SocketServiceImpl implements SocketService {
 
     @OnError
     public void onError(Throwable e) {
-        e.printStackTrace();
+        log.error("", e);
     }
 
     @OnMessage
