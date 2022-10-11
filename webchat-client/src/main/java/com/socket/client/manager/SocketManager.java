@@ -402,8 +402,8 @@ public class SocketManager implements InitializingBean, UserChangeListener {
      * @param target 目标
      * @return 未读消息数
      */
-    public int getUnreadCount(WsUser sender, String target) {
-        return redisManager.getUnreadCount(sender.getUid(), target);
+    public int getUnreadCount(WsUser sender, WsUser target) {
+        return redisManager.getUnreadCount(sender.getUid(), target.getUid());
     }
 
     /**

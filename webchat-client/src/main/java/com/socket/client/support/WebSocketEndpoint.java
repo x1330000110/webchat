@@ -217,7 +217,7 @@ public class WebSocketEndpoint {
      */
     private void choose(WsUser target, WsMsg wsmsg) {
         self.setChoose(wsmsg.getTarget());
-        if (!wsmsg.isGroup() && socketManager.getUnreadCount(self, target.getUid()) > 0) {
+        if (!wsmsg.isGroup() && socketManager.getUnreadCount(self, target) > 0) {
             socketManager.readAllMessage(self, target, false);
         }
     }
