@@ -97,6 +97,27 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
     }
 
     @Override
+    public boolean removeMessage(String mid) {
+        LambdaUpdateWrapper<ChatRecord> wrapper = Wrappers.lambdaUpdate();
+        wrapper.eq(ChatRecord::getMid, mid);
+        ChatRecord record = getOne(wrapper);
+        // 检查消息权限
+        if (!Wss.checkMessagePermission(record)) {
+            return false;
+        }
+        // 添加删除标记
+        ChatRecordDeleted deleted = new ChatRecordDeleted();
+        String userId = Wss.getUserId();
+        deleted.setUid(userId);
+        // 确保移除的目标不是自己（自己可能是发起者或目标）
+        String uid = record.getUid(), target = record.getTarget();
+        deleted.setTarget(Wss.isGroup(target) || uid.equals(userId) ? target : uid);
+        deleted.setMid(record.getMid());
+        deleted.setRecordTime(record.getCreateTime());
+        return chatRecordDeletedMapper.insert(deleted) == 1;
+    }
+
+    @Override
     public ChatRecord removeMessage(String uid, String mid) {
         LambdaQueryWrapper<ChatRecord> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ChatRecord::getMid, mid);
@@ -202,26 +223,5 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
             }
         }
         return mss;
-    }
-
-    @Override
-    public boolean removeMessage(String mid) {
-        LambdaUpdateWrapper<ChatRecord> wrapper = Wrappers.lambdaUpdate();
-        wrapper.eq(ChatRecord::getMid, mid);
-        ChatRecord record = getOne(wrapper);
-        // 检查消息权限
-        if (!Wss.checkMessagePermission(record)) {
-            return false;
-        }
-        // 添加删除标记
-        ChatRecordDeleted deleted = new ChatRecordDeleted();
-        String userId = Wss.getUserId();
-        deleted.setUid(userId);
-        // 确保移除的目标不是自己（自己可能是发起者或目标）
-        String uid = record.getUid(), target = record.getTarget();
-        deleted.setTarget(Wss.isGroup(target) || uid.equals(userId) ? target : uid);
-        deleted.setMid(record.getMid());
-        deleted.setRecordTime(record.getCreateTime());
-        return chatRecordDeletedMapper.insert(deleted) == 1;
     }
 }
