@@ -48,7 +48,7 @@ public class MessageController {
     @Encrypted
     @PostMapping("/remove")
     public HttpStatus remove(@RequestBody MessageCondition condition) {
-        boolean state = recordService.removeMessageWithSelf(condition.getMid());
+        boolean state = recordService.removeMessage(condition.getMid());
         return HttpStatus.of(state, "操作成功", "权限不足");
     }
 

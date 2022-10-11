@@ -205,7 +205,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
     }
 
     @Override
-    public boolean removeMessageWithSelf(String mid) {
+    public boolean removeMessage(String mid) {
         LambdaUpdateWrapper<ChatRecord> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(ChatRecord::getMid, mid);
         ChatRecord record = getOne(wrapper);
