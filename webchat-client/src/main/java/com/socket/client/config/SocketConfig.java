@@ -28,7 +28,6 @@ public class SocketConfig extends ServerEndpointConfig.Configurator {
         ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
         container.setMaxTextMessageBufferSize(512000);
         container.setMaxBinaryMessageBufferSize(512000);
-        container.setMaxSessionIdleTimeout(30 * 60000L);
         return container;
     }
 

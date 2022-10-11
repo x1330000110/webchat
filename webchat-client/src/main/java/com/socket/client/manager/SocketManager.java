@@ -203,10 +203,10 @@ public class SocketManager implements InitializingBean, UserChangeListener {
      * 获取所有用户登录最新时间
      */
     private Map<String, Date> getUserLoginLogs() {
-        QueryWrapper<SysUserLog> w2 = Wrappers.query();
-        w2.select(Wss.columnToString(SysUserLog::getUid), Wss.selecterMax(BaseModel::getCreateTime));
-        w2.lambda().groupBy(SysUserLog::getUid);
-        List<SysUserLog> userLogs = sysUserLogMapper.selectList(w2);
+        QueryWrapper<SysUserLog> wrapper = Wrappers.query();
+        wrapper.select(Wss.columnToString(SysUserLog::getUid), Wss.selecterMax(BaseModel::getCreateTime));
+        wrapper.lambda().groupBy(SysUserLog::getUid);
+        List<SysUserLog> userLogs = sysUserLogMapper.selectList(wrapper);
         return userLogs.stream().collect(Collectors.toMap(SysUserLog::getUid, BaseModel::getCreateTime));
     }
 
