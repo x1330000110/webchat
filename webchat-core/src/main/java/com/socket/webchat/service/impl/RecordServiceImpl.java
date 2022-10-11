@@ -54,6 +54,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         // 若查询群组，获取所有目标为群组的消息
         if (Wss.isGroup(target)) {
             wrapper.eq(ChatRecord::getTarget, target);
+            wrapper.eq(ChatRecord::isReject, false);
         } else {
             // 反之仅获取相互发送的消息
             wrapper.and(ew -> ew.eq(ChatRecord::isReject, false).or().eq(ChatRecord::getUid, userId));
