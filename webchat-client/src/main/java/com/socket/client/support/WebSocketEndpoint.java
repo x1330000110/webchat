@@ -1,4 +1,4 @@
-package com.socket.client.service.impl;
+package com.socket.client.support;
 
 import com.socket.client.config.SocketConfig;
 import com.socket.client.manager.SocketManager;
@@ -6,7 +6,6 @@ import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
 import com.socket.client.model.enums.Callback;
-import com.socket.client.service.SocketService;
 import com.socket.client.util.Assert;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.ChatRecord;
@@ -22,20 +21,20 @@ import javax.websocket.server.ServerEndpoint;
 import java.util.Collection;
 
 /**
- * websocket服务处理
+ * Ws聊天室用户与消息处理
  */
 @Slf4j
 @Service
 @ServerEndpoint(value = "/user/room", configurator = SocketConfig.class)
-public class SocketServiceImpl implements SocketService {
+public class WebSocketEndpoint {
     private static SocketManager socketManager;
     private static XiaoBingAPIRequest request;
     private WsUser self;
 
     @Autowired
-    private void setAutowired(SocketManager socketManager, XiaoBingAPIRequest request) {
-        SocketServiceImpl.socketManager = socketManager;
-        SocketServiceImpl.request = request;
+    private void setEndpoint(SocketManager manager, XiaoBingAPIRequest request) {
+        WebSocketEndpoint.socketManager = manager;
+        WebSocketEndpoint.request = request;
     }
 
     @OnOpen
@@ -80,7 +79,6 @@ public class SocketServiceImpl implements SocketService {
         socketManager.cacheRecord(wsmsg, wsmsg.isReject() || wsmsg.isGroup() || target.chooseTarget(self));
     }
 
-    @Override
     public void parseUserMsg(WsMsg wsmsg, WsUser target) {
         // 禁言状态无法发送消息
         Assert.isFalse(socketManager.isMute(self), Callback.SELF_MUTE);
@@ -128,7 +126,6 @@ public class SocketServiceImpl implements SocketService {
         }
     }
 
-    @Override
     public void parseSysMsg(WsMsg wsmsg, WsUser target) {
         switch (wsmsg.getType()) {
             case SHIELD:
@@ -153,7 +150,6 @@ public class SocketServiceImpl implements SocketService {
         }
     }
 
-    @Override
     public void parseAdminSysMsg(WsMsg wsmsg, WsUser target) {
         // 管理员权限检查
         Assert.isAdmin(self, target, Callback.REJECT_EXECUTE);
@@ -169,7 +165,6 @@ public class SocketServiceImpl implements SocketService {
         }
     }
 
-    @Override
     public void parseOwnerSysMsg(WsMsg wsmsg, WsUser target) {
         // 所有者权限检查
         Assert.isOwner(self, Callback.REJECT_EXECUTE);
