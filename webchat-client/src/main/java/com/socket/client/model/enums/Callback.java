@@ -38,8 +38,8 @@ public enum Callback {
 
     private final String message;
 
-    Callback(String tips) {
-        this.message = tips;
+    Callback(String message) {
+        this.message = message;
     }
 
     public String get() {
@@ -51,11 +51,11 @@ public enum Callback {
     }
 
     public String format(WsUser user) {
-        return String.format(message, user.getName());
+        return StrUtil.format(message, user.getName());
     }
 
     public String format(WsUser user, long time) {
-        return String.format(message, user.getName(), Wss.universal(time));
+        return StrUtil.format(message, user.getName(), Wss.universal(time));
     }
 
 }
