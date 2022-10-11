@@ -1,8 +1,6 @@
 package com.socket.client.model;
 
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.MD5;
-import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.util.Wss;
 import lombok.Data;
@@ -105,15 +103,5 @@ public class WsMsg {
      */
     public boolean isGroup() {
         return Wss.isGroup(target);
-    }
-
-    /**
-     * HTML脚本过滤器
-     */
-    public void checkMessage() {
-        if (content != null) {
-            this.content = content.replaceAll("</?\\w+(\\s.+?)?>", "");
-            this.content = StrUtil.sub(content, 0, Constants.MAX_MESSAGE_LENGTH);
-        }
     }
 }

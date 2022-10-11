@@ -11,6 +11,7 @@ import com.socket.client.mapper.SysGroupMapper;
 import com.socket.client.mapper.SysGroupUserMapper;
 import com.socket.client.model.*;
 import com.socket.client.model.enums.Callback;
+import com.socket.client.support.keyword.SensitiveKeywordShieldSupport;
 import com.socket.client.util.Assert;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.listener.UserChangeEvent;
@@ -21,6 +22,7 @@ import com.socket.webchat.mapper.SysUserMapper;
 import com.socket.webchat.model.*;
 import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.model.enums.UserRole;
+import com.socket.webchat.request.XiaoBingAPIRequest;
 import com.socket.webchat.service.RecordService;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +55,9 @@ public class SocketManager implements InitializingBean, UserChangeListener {
     private final RecordService recordService;
     private final SysUserMapper sysUserMapper;
     private final RedisManager redisManager;
+
+    private final SensitiveKeywordShieldSupport keywordSupport;
+    private final XiaoBingAPIRequest request;
 
     /**
      * 加入用户
@@ -475,5 +480,42 @@ public class SocketManager implements InitializingBean, UserChangeListener {
         // 添加到缓存
         WsUser wsuser = new WsUser(user);
         users.put(wsuser.getUid(), wsuser);
+    }
+
+    /**
+     * 检查消息合法性
+     *
+     * @param wsuser 发起者
+     * @param wsmsg  消息
+     */
+    public void checkMessage(WsUser wsuser, WsMsg wsmsg) {
+        String content = wsmsg.getContent();
+        if (content == null) {
+            return;
+        }
+        content = content.replaceAll("</?\\w+(\\s.+?)?>", "");
+        content = StrUtil.sub(content, 0, Constants.MAX_MESSAGE_LENGTH);
+        if (keywordSupport.containsSensitive(content)) {
+            wsuser.send(wsmsg.reject());
+            wsuser.send(Callback.SENSITIVE_KEYWORDS.get(), MessageType.DANGER);
+        }
+        wsmsg.setContent(content);
+    }
+
+    /**
+     * 发送AI消息
+     *
+     * @param target 发送目标
+     * @param wsmsg  消息
+     */
+    public void sendAIMessage(WsUser target, WsMsg wsmsg) {
+        request.dialogue(wsmsg.getContent()).addCallback(result -> {
+            if (result != null) {
+                // AI消息
+                WsMsg aimsg = new WsMsg(Constants.SYSTEM_UID, wsmsg.getUid(), result, MessageType.TEXT);
+                target.send(aimsg);
+                cacheRecord(aimsg, true);
+            }
+        }, exception -> log.warn(exception.getMessage()));
     }
 }

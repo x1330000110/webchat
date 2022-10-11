@@ -11,7 +11,6 @@ import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.model.enums.UserRole;
-import com.socket.webchat.request.XiaoBingAPIRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,14 +27,7 @@ import java.util.Collection;
 @ServerEndpoint(value = "/user/room", configurator = SocketConfig.class)
 public class WebSocketEndpoint {
     private static SocketManager socketManager;
-    private static XiaoBingAPIRequest request;
     private WsUser self;
-
-    @Autowired
-    private void setEndpoint(SocketManager manager, XiaoBingAPIRequest request) {
-        WebSocketEndpoint.socketManager = manager;
-        WebSocketEndpoint.request = request;
-    }
 
     @OnOpen
     public void onOpen(Session session, EndpointConfig config) {
@@ -82,8 +74,11 @@ public class WebSocketEndpoint {
     public void parseUserMsg(WsMsg wsmsg, WsUser target) {
         // 禁言状态无法发送消息
         Assert.isFalse(socketManager.isMute(self), Callback.SELF_MUTE);
-        // HTML脚本过滤
-        wsmsg.checkMessage();
+        // 消息检查
+        socketManager.checkMessage(self, wsmsg);
+        if (wsmsg.isReject()) {
+            return;
+        }
         // AI消息智能回复
         this.parseAiMessage(wsmsg);
         // 发言标记
@@ -115,14 +110,7 @@ public class WebSocketEndpoint {
         boolean text = wsmsg.getType() == MessageType.TEXT;
         // 判断AI消息
         if (sysuid && text && !socketManager.getUser(Constants.SYSTEM_UID).isOnline()) {
-            request.dialogue(wsmsg.getContent()).addCallback(result -> {
-                if (result != null) {
-                    // AI消息
-                    WsMsg aimsg = new WsMsg(Constants.SYSTEM_UID, wsmsg.getUid(), result, MessageType.TEXT);
-                    self.send(aimsg);
-                    socketManager.cacheRecord(aimsg, true);
-                }
-            }, exception -> log.warn(exception.getMessage()));
+            socketManager.sendAIMessage(self, wsmsg);
         }
     }
 
@@ -294,5 +282,10 @@ public class WebSocketEndpoint {
             self.send(wsmsg);
             socketManager.sendGroup(wsmsg, self);
         }
+    }
+
+    @Autowired
+    private void setSocketManager(SocketManager manager) {
+        WebSocketEndpoint.socketManager = manager;
     }
 }
