@@ -33,6 +33,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.belerweb</groupId>
+            <artifactId>pinyin4j</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.socket</groupId>
             <artifactId>webchat-core</artifactId>
             <version>4.0.1</version>
