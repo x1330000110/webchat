@@ -19,13 +19,24 @@ public class OwnerSettingSupport {
         this.map = setting.withMap(RedisTree.SETTING.get());
     }
 
-    public void switchState(Setting setting) {
+    /**
+     * 切换设置
+     *
+     * @param setting 设置
+     */
+    public void switchSetting(Setting setting) {
         String key = setting.getKey();
         Boolean state = map.get(key);
         map.put(key, state == null || !state);
     }
 
-    public boolean getState(Setting setting) {
+    /**
+     * 获取设置
+     *
+     * @param setting 设置
+     * @return 启用返回true
+     */
+    public boolean getSetting(Setting setting) {
         return map.getOrDefault(setting.getKey(), false);
     }
 }
