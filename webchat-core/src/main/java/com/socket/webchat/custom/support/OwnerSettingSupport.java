@@ -20,17 +20,6 @@ public class OwnerSettingSupport {
     }
 
     /**
-     * 切换设置
-     *
-     * @param setting 设置
-     */
-    public void switchSetting(Setting setting) {
-        String key = setting.getKey();
-        Boolean state = map.get(key);
-        map.put(key, state == null || !state);
-    }
-
-    /**
      * 获取设置
      *
      * @param setting 设置
@@ -38,5 +27,14 @@ public class OwnerSettingSupport {
      */
     public boolean getSetting(Setting setting) {
         return map.getOrDefault(setting.getKey(), false);
+    }
+
+    /**
+     * 切换设置
+     *
+     * @param setting 设置
+     */
+    public void switchSetting(Setting setting) {
+        map.put(setting.getKey(), !getSetting(setting));
     }
 }
