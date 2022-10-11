@@ -131,8 +131,10 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         });
         ChatRecord record = getOne(wrapper);
         if (record != null) {
-            record.setDeleted(true);
-            super.updateById(record);
+            LambdaUpdateWrapper<ChatRecord> wrapper1 = Wrappers.lambdaUpdate();
+            wrapper1.eq(BaseModel::getId, record.getId());
+            wrapper1.set(BaseModel::isDeleted, 1);
+            super.update(wrapper1);
             return record;
         }
         return null;
