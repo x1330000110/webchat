@@ -15,7 +15,11 @@ public class SensitiveKeywordShieldSupport {
             "nima",
             "siquanjia",
             "meimu",
-            "guer"
+            "guer",
+            "zhibo",
+            "zhizhang",
+            "naotan",
+            "shabi"
     };
 
     /**
