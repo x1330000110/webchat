@@ -16,7 +16,6 @@ public class SensitiveKeywordShieldSupport {
             "siquanjia",
             "meimu",
             "guer",
-            "zhibo",
             "zhizhang",
             "naotan",
             "shabi"
