@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.core.enums.SqlKeyword;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.webchat.constant.Constants;
-import com.socket.webchat.custom.RedisClient;
+import com.socket.webchat.custom.cilent.RedisClient;
 import com.socket.webchat.mapper.ChatRecordDeletedMapper;
 import com.socket.webchat.mapper.ChatRecordMapper;
 import com.socket.webchat.mapper.ChatRecordOffsetMapper;

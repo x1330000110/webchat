@@ -13,8 +13,8 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.webchat.constant.Constants;
-import com.socket.webchat.custom.FTPClient;
-import com.socket.webchat.custom.RedisClient;
+import com.socket.webchat.custom.cilent.FTPClient;
+import com.socket.webchat.custom.cilent.RedisClient;
 import com.socket.webchat.custom.listener.UserChangeEvent;
 import com.socket.webchat.exception.AccountException;
 import com.socket.webchat.exception.UploadException;
@@ -115,10 +115,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             Assert.notEmpty(email, "该账号未绑定邮箱信息", IllegalStateException::new);
         }
         // 检查重复发送间隔
-        String key = RedisTree.INTERIM_EMAIL.concat(email);
+        String key = RedisTree.EMAIL_TEMP.concat(email);
         Assert.isFalse(redisClient.exist(key), "验证码发送过于频繁", IllegalStateException::new);
         // 检查发送次数上限
-        key = RedisTree.LIMIT_EMAIL.concat(email);
+        key = RedisTree.EMAIL_LIMIT.concat(email);
         long count = redisClient.incr(key, 1, Constants.EMAIL_LIMIT_SENDING_INTERVAL, TimeUnit.HOURS);
         Assert.isTrue(count <= 3, "该账号验证码每日发送次数已达上限", IllegalStateException::new);
         redisClient.set(key, -1, Constants.EMAIL_SENDING_INTERVAL);

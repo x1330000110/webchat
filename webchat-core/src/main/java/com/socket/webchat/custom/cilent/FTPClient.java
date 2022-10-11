@@ -1,4 +1,4 @@
-package com.socket.webchat.custom;
+package com.socket.webchat.custom.cilent;
 
 import cn.hutool.core.io.IORuntimeException;
 import cn.hutool.crypto.SecureUtil;

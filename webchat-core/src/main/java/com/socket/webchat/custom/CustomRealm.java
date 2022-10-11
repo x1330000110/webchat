@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.webchat.constant.Constants;
+import com.socket.webchat.custom.cilent.RedisClient;
 import com.socket.webchat.exception.AccountException;
 import com.socket.webchat.exception.OffsiteLoginException;
 import com.socket.webchat.mapper.SysUserLogMapper;

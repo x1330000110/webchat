@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.client.model.enums.SocketTree;
 import com.socket.webchat.constant.Announce;
 import com.socket.webchat.constant.Constants;
-import com.socket.webchat.custom.RedisClient;
+import com.socket.webchat.custom.cilent.RedisClient;
 import com.socket.webchat.mapper.ShieldUserMapper;
 import com.socket.webchat.model.ShieldUser;
 import com.socket.webchat.model.enums.RedisTree;
@@ -109,7 +109,7 @@ public class RedisManager {
      * @param content 公告
      */
     public void pushNotice(String content) {
-        RedisMap<String, String> map = redisClient.withMap(RedisTree.ANNOUNCE.concat());
+        RedisMap<String, String> map = redisClient.withMap(RedisTree.ANNOUNCE.get());
         // 公告为空删除
         if (content.isEmpty()) {
             map.clear();

@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.secure.filter.anno.Encrypted;
 import com.socket.webchat.constant.Announce;
-import com.socket.webchat.custom.RedisClient;
+import com.socket.webchat.custom.cilent.RedisClient;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.condition.EmailCondition;
 import com.socket.webchat.model.condition.UserCondition;
@@ -76,7 +76,7 @@ public class UserController {
 
     @GetMapping("/notice")
     public HttpStatus getNotice(String digest) {
-        RedisMap<String, String> map = redisClient.withMap(RedisTree.ANNOUNCE.concat());
+        RedisMap<String, String> map = redisClient.withMap(RedisTree.ANNOUNCE.get());
         Object dg = map.get(Announce.digest);
         // 散列id不同 表示发布新内容
         if (dg != null && !dg.equals(digest)) {

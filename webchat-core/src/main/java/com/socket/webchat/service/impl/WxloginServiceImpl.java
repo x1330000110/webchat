@@ -8,7 +8,7 @@ import cn.hutool.extra.qrcode.QrConfig;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.webchat.constant.Constants;
-import com.socket.webchat.custom.RedisClient;
+import com.socket.webchat.custom.cilent.RedisClient;
 import com.socket.webchat.custom.listener.UserChangeEvent;
 import com.socket.webchat.exception.AccountException;
 import com.socket.webchat.model.SysUser;
@@ -45,7 +45,7 @@ public class WxloginServiceImpl implements WxloginService {
     public SysUser authorize(String code, String uuid) {
         WxUser wxuser = wxAuth2Request.getUserInfo(code);
         Assert.notNull(wxuser.getOpenid(), "无效的openId", AccountException::new);
-        String key = RedisTree.WX_UUID.concat(uuid);
+        String key = RedisTree.WXUUID.concat(uuid);
         // 二维码过期判断
         if (redisClient.exist(key)) {
             // 检查用户数据 不存在将被注册
@@ -69,7 +69,7 @@ public class WxloginServiceImpl implements WxloginService {
 
     @Override
     public boolean login(String uuid) {
-        String key = RedisTree.WX_UUID.concat(uuid);
+        String key = RedisTree.WXUUID.concat(uuid);
         String uid = redisClient.get(key);
         // key不存在（已过期）
         Assert.notNull(uid, "二维码已过期", AccountException::new);
@@ -94,7 +94,7 @@ public class WxloginServiceImpl implements WxloginService {
 
     @Override
     public String getWxFastUrl(String uuid) {
-        redisClient.set(RedisTree.WX_UUID.concat(uuid), StrUtil.EMPTY, Constants.QR_CODE_EXPIRATION_TIME);
+        redisClient.set(RedisTree.WXUUID.concat(uuid), StrUtil.EMPTY, Constants.QR_CODE_EXPIRATION_TIME);
         return wxAuth2Request.getWxLoginURL(uuid);
     }
 }

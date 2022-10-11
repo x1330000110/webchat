@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.webchat.constant.Constants;
-import com.socket.webchat.custom.FTPClient;
+import com.socket.webchat.custom.cilent.FTPClient;
 import com.socket.webchat.exception.UploadException;
 import com.socket.webchat.mapper.ChatRecordFileMapper;
 import com.socket.webchat.mapper.ChatRecordMapper;

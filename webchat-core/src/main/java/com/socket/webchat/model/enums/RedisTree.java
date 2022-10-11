@@ -7,43 +7,47 @@ public enum RedisTree {
     /**
      * 记录发送的邮箱和对应验证码
      */
-    EMAIL("email:"),
+    EMAIL,
     /**
      * 记录所有发送次数上限的邮箱信息
      */
-    LIMIT_EMAIL("email:limit"),
+    EMAIL_LIMIT,
     /**
      * 记录所有发送间隔太短的邮箱信息
      */
-    INTERIM_EMAIL("email:temp"),
+    EMAIL_TEMP,
     /**
      * 微信UUID轮询标识
      */
-    WX_UUID("wxuuid:"),
+    WXUUID,
     /**
      * 未读消息标记
      */
-    UNREAD("unread:"),
-    /**
-     * 公告信息
-     */
-    ANNOUNCE("announce"),
+    UNREAD,
     /**
      * 临时限制登录
      */
-    LOCK("lock:");
+    LOCK,
+    /**
+     * 公告信息
+     */
+    ANNOUNCE,
+    /**
+     * 所有者设置
+     */
+    SETTING;
 
     private final String dir;
 
-    RedisTree(String dir) {
-        this.dir = dir;
+    RedisTree() {
+        this.dir = name();
     }
 
-    public String concat() {
+    public String get() {
         return dir;
     }
 
     public String concat(String end) {
-        return dir + end;
+        return dir + ":" + end;
     }
 }
