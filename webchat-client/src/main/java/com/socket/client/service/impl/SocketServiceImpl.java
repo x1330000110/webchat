@@ -33,9 +33,9 @@ public class SocketServiceImpl implements SocketService {
     private WsUser self;
 
     @Autowired
-    private void setAutowired(SocketManager socketManager, XiaoBingAPIRequest robot) {
+    private void setAutowired(SocketManager socketManager, XiaoBingAPIRequest request) {
         SocketServiceImpl.socketManager = socketManager;
-        SocketServiceImpl.request = robot;
+        SocketServiceImpl.request = request;
     }
 
     @OnOpen
