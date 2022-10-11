@@ -24,7 +24,7 @@ public interface RecordService extends IService<ChatRecord> {
      * @param mid 消息id
      * @return 成功删除，返回被删除的消息
      */
-    ChatRecord withdrawMessage(String uid, String mid);
+    ChatRecord removeMessage(String uid, String mid);
 
     /**
      * 删除指定用户所有消息（更新消息标记offset）

@@ -97,7 +97,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
     }
 
     @Override
-    public ChatRecord withdrawMessage(String uid, String mid) {
+    public ChatRecord removeMessage(String uid, String mid) {
         LambdaQueryWrapper<ChatRecord> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ChatRecord::getMid, mid);
         wrapper.eq(ChatRecord::getUid, uid);
