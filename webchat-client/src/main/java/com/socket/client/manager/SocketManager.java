@@ -388,14 +388,10 @@ public class SocketManager implements InitializingBean, UserChangeListener {
      */
     public ChatRecord withdrawMessage(WsMsg wsmsg) {
         ChatRecord record = recordService.removeMessage(wsmsg.getUid(), wsmsg.getContent());
-        // 未找到相关消息
-        if (record == null) {
-            return null;
-        }
-        // 未读消息计数器-1
-        if (record.isUnread()) {
-            redisManager.setUnreadCount(wsmsg.getTarget(), wsmsg.getUid(), -1);
-        }
+        // 未读计数器-1
+        Optional.ofNullable(record).filter(ChatRecord::isUnread).ifPresent(msg -> {
+            redisManager.setUnreadCount(msg.getTarget(), msg.getUid(), -1);
+        });
         return record;
     }
 
