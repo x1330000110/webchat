@@ -104,7 +104,7 @@ public class WsUser extends SysUser {
      * @param wsmsg 消息
      */
     public void send(WsMsg wsmsg) {
-        send(wsmsg, true);
+        this.send(wsmsg, true);
     }
 
     /**
@@ -185,8 +185,8 @@ public class WsUser extends SysUser {
      * @param wsmsg 消息
      */
     public void reject(Callback reson, WsMsg wsmsg) {
-        send(reson.get(), MessageType.WARNING);
+        this.send(reson.get(), MessageType.WARNING);
         wsmsg.setReject(true);
-        send(wsmsg);
+        this.send(wsmsg);
     }
 }
