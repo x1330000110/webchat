@@ -81,17 +81,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public void register(RegisterCondition condition) {
-        // 检查
-        LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(SysUser::getName, StrUtil.trim(condition.getName()));
-        Assert.isNull(this.get(wrapper), "昵称已被使用", IllegalStateException::new);
         // 验证邮箱
         String key = RedisTree.EMAIL.concat(condition.getEmail());
         Assert.equals(condition.getCode(), redisClient.get(key), "验证码不正确", IllegalStateException::new);
         redisClient.remove(key);
         // 注册
         SysUser user = SysUser.newUser();
-        user.setName(condition.getName());
+        user.setName("用户" + user.getUid());
         user.setEmail(condition.getEmail());
         user.setHash(Bcrypt.digest(condition.getPass()));
         super.save(user);
