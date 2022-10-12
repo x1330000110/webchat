@@ -28,6 +28,7 @@ import com.socket.webchat.model.condition.PasswordCondition;
 import com.socket.webchat.model.condition.RegisterCondition;
 import com.socket.webchat.model.enums.FilePath;
 import com.socket.webchat.model.enums.RedisTree;
+import com.socket.webchat.service.SysGroupService;
 import com.socket.webchat.service.SysUserService;
 import com.socket.webchat.util.*;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +52,7 @@ import java.util.concurrent.TimeUnit;
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
     private final ApplicationEventPublisher publisher;
     private final SysUserLogMapper sysUserLogMapper;
+    private final SysGroupService sysGroupService;
     private final RedisClient<Object> redisClient;
     private final FTPClient client;
     private final Email sender;
@@ -95,6 +97,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         publisher.publishEvent(new UserChangeEvent(publisher, user));
         // 通过邮箱登录
         this.login(new LoginCondition(condition.getEmail(), condition.getPass()));
+        // 加入默认群组
+        sysGroupService.joinGroup(Constants.GROUP, user.getUid());
     }
 
     @Override
