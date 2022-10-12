@@ -54,7 +54,7 @@ public class OwnerController {
     }
 
     @PostMapping("/switchSetting")
-    public HttpStatus switchSetting(SettingCondition condition) {
+    public HttpStatus switchSetting(@RequestBody SettingCondition condition) {
         settingSupport.switchSetting(condition.getSetting());
         return HttpStatus.SUCCESS.body();
     }
