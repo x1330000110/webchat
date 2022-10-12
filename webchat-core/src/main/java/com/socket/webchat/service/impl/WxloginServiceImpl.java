@@ -16,6 +16,7 @@ import com.socket.webchat.model.WxUser;
 import com.socket.webchat.model.condition.LoginCondition;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.request.WxAuth2Request;
+import com.socket.webchat.service.SysGroupService;
 import com.socket.webchat.service.SysUserService;
 import com.socket.webchat.service.WxloginService;
 import com.socket.webchat.util.Assert;
@@ -36,10 +37,11 @@ import java.io.IOException;
 @Service
 @RequiredArgsConstructor
 public class WxloginServiceImpl implements WxloginService {
+    private final RedisClient<String> redisClient;
     private final ApplicationEventPublisher publisher;
+    private final SysGroupService sysGroupService;
     private final WxAuth2Request wxAuth2Request;
     private final SysUserService sysUserService;
-    private final RedisClient<String> redisClient;
 
     @Override
     public SysUser authorize(String code, String uuid) {
@@ -58,6 +60,8 @@ public class WxloginServiceImpl implements WxloginService {
                 user.setName(StrUtil.sub(wxuser.getNickname(), 0, 6));
                 user.setHash(Bcrypt.digest(Constants.WX_DEFAULT_PASSWORD));
                 sysUserService.save(user);
+                // 加入默认群组
+                sysGroupService.joinGroup(Constants.GROUP, user.getUid());
                 // 推送变动事件
                 publisher.publishEvent(new UserChangeEvent(publisher, user));
             }

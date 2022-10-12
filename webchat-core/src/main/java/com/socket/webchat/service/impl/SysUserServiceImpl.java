@@ -93,12 +93,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         user.setEmail(condition.getEmail());
         user.setHash(Bcrypt.digest(condition.getPass()));
         super.save(user);
+        // 加入默认群组
+        sysGroupService.joinGroup(Constants.GROUP, user.getUid());
         // 推送变动事件
         publisher.publishEvent(new UserChangeEvent(publisher, user));
         // 通过邮箱登录
         this.login(new LoginCondition(condition.getEmail(), condition.getPass()));
-        // 加入默认群组
-        sysGroupService.joinGroup(Constants.GROUP, user.getUid());
     }
 
     @Override
