@@ -1,18 +1,13 @@
 package com.socket.webchat.controller;
 
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.secure.filter.anno.Encrypted;
 import com.socket.webchat.constant.Announce;
 import com.socket.webchat.custom.cilent.RedisClient;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.condition.EmailCondition;
-import com.socket.webchat.model.condition.UserCondition;
 import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.model.enums.RedisTree;
-import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.service.SysUserService;
-import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import org.apache.shiro.SecurityUtils;
 import org.springframework.data.redis.support.collections.RedisMap;
@@ -60,18 +55,6 @@ public class UserController {
     public HttpStatus userInfo(@PathVariable String uid) {
         SysUser user = sysUserService.getUserInfo(uid);
         return HttpStatus.SUCCESS.body(user);
-    }
-
-    @Encrypted
-    @PostMapping("/remove")
-    public HttpStatus removeUser(@RequestBody UserCondition condition) {
-        if (Wss.getUser().getRole() != UserRole.OWNER) {
-            return HttpStatus.UNAUTHORIZED.message("权限不足");
-        }
-        LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
-        wrapper.eq(SysUser::getUid, condition.getUid());
-        wrapper.set(SysUser::isDeleted, 1);
-        return HttpStatus.of(sysUserService.update(wrapper), "操作成功", "找不到此用户");
     }
 
     @GetMapping("/notice")
