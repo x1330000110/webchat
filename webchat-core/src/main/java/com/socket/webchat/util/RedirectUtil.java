@@ -1,14 +1,13 @@
 package com.socket.webchat.util;
 
+import com.socket.webchat.exception.RedirectException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @ControllerAdvice
 public class RedirectUtil {
-    private static final RedirectException EXCEPTION = new RedirectException();
 
     /**
      * 转发快捷操作，调用此方法将不会向下继续执行代码且不返回任何结果
@@ -21,7 +20,7 @@ public class RedirectUtil {
             response.sendRedirect(url);
         } catch (IOException ignored) {
         }
-        throw EXCEPTION;
+        throw new RedirectException();
     }
 
     /**
@@ -50,14 +49,5 @@ public class RedirectUtil {
         if (obj == null) {
             redirect(response, url);
         }
-    }
-
-    @ExceptionHandler(RedirectException.class)
-    private void isRedirectException() {
-        // Ignore
-    }
-
-    static class RedirectException extends RuntimeException {
-        // Inner exception class
     }
 }

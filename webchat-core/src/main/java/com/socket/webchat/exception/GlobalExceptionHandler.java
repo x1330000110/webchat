@@ -64,6 +64,11 @@ public class GlobalExceptionHandler {
         response.sendRedirect("/error");
     }
 
+    @ExceptionHandler(RedirectException.class)
+    public void isRedirectException() {
+        // Ignore
+    }
+
     @ExceptionHandler(Exception.class)
     public HttpStatus isException(Exception e) {
         e.printStackTrace();
