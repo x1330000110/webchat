@@ -463,8 +463,8 @@ public class SocketManager implements InitializingBean, UserChangeListener {
     @Override
     public void onUserChange(UserChangeEvent event) {
         SysUser user = event.getUser();
-        System.out.println("变动事件：" + user);
-        SysUser ws = users.get(user.getUid());
+        String uid = user.getUid();
+        SysUser ws = users.get(uid);
         // 用户存在则更新资料
         if (ws != null) {
             Optional.ofNullable(user.getName()).ifPresent(ws::setName);
@@ -473,7 +473,12 @@ public class SocketManager implements InitializingBean, UserChangeListener {
         }
         // 添加到缓存
         WsUser wsuser = new WsUser(user);
-        users.put(wsuser.getUid(), wsuser);
+        users.put(uid, wsuser);
+        // 检查默认群组是否存在新用户（不存在添加）
+        List<String> groupUsers = groups.get(getSysGroup(Constants.GROUP));
+        if (!groupUsers.contains(uid)) {
+            groupUsers.add(uid);
+        }
     }
 
     /**
