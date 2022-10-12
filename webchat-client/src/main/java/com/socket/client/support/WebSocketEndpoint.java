@@ -79,7 +79,7 @@ public class WebSocketEndpoint {
         Assert.isFalse(socketManager.isMute(self), Callback.SELF_MUTE);
         // 所有者全员禁言检查
         if (settingSupport.getSetting(Setting.ALL_MUTE)) {
-            self.reject(Callback.ALL_MUTE.get(), wsmsg);
+            self.reject(Callback.ALL_MUTE, wsmsg);
             return;
         }
         // 消息检查
@@ -99,7 +99,7 @@ public class WebSocketEndpoint {
         Assert.isFalse(socketManager.shield(self, target), Callback.TARGET_SHIELD);
         // 目标屏蔽了你
         if (socketManager.shield(target, self)) {
-            self.reject(Callback.SELF_SHIELD.get(), wsmsg);
+            self.reject(Callback.SELF_SHIELD, wsmsg);
             return;
         }
         // AI消息智能回复

@@ -2,6 +2,7 @@ package com.socket.client.model;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONUtil;
+import com.socket.client.model.enums.Callback;
 import com.socket.secure.util.AES;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.enums.MessageType;
@@ -183,8 +184,8 @@ public class WsUser extends SysUser {
      * @param reson 原因
      * @param wsmsg 消息
      */
-    public void reject(String reson, WsMsg wsmsg) {
-        send(reson, MessageType.WARNING);
+    public void reject(Callback reson, WsMsg wsmsg) {
+        send(reson.get(), MessageType.WARNING);
         wsmsg.setReject(true);
         send(wsmsg);
     }

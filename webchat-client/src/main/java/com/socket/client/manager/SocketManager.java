@@ -494,7 +494,7 @@ public class SocketManager implements InitializingBean, UserChangeListener {
         content = content.replaceAll("</?\\w+(\\s.+?)?>", "");
         content = StrUtil.sub(content, 0, Constants.MAX_MESSAGE_LENGTH);
         if (sensitive && keywordSupport.containsSensitive(content)) {
-            wsuser.reject(Callback.SENSITIVE_KEYWORDS.get(), wsmsg);
+            wsuser.reject(Callback.SENSITIVE_KEYWORDS, wsmsg);
             return false;
         }
         wsmsg.setContent(content);
