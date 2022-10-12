@@ -83,22 +83,6 @@ public class WsMsg {
     }
 
     /**
-     * 转为未送达的消息
-     */
-    public WsMsg reject() {
-        this.reject = true;
-        return this;
-    }
-
-    /**
-     * 转为已送达的消息
-     */
-    public WsMsg accept() {
-        this.reject = false;
-        return this;
-    }
-
-    /**
      * 消息发送的目标是否为群组
      */
     public boolean isGroup() {

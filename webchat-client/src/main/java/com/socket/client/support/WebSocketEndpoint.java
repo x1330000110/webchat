@@ -79,8 +79,7 @@ public class WebSocketEndpoint {
         Assert.isFalse(socketManager.isMute(self), Callback.SELF_MUTE);
         // 所有者全员禁言检查
         if (settingSupport.getSetting(Setting.ALL_MUTE)) {
-            self.send(Callback.ALL_MUTE.get(), MessageType.WARNING);
-            self.send(wsmsg.reject());
+            self.reject(Callback.ALL_MUTE.get(), wsmsg);
             return;
         }
         // 消息检查
@@ -93,15 +92,14 @@ public class WebSocketEndpoint {
         // 群组消息
         if (wsmsg.isGroup()) {
             socketManager.sendGroup(wsmsg, self);
-            self.send(wsmsg.accept());
+            self.send(wsmsg);
             return;
         }
         // 你屏蔽了目标
         Assert.isFalse(socketManager.shield(self, target), Callback.TARGET_SHIELD);
         // 目标屏蔽了你
         if (socketManager.shield(target, self)) {
-            self.send(Callback.SELF_SHIELD.get(), MessageType.WARNING);
-            self.send(wsmsg.reject());
+            self.reject(Callback.SELF_SHIELD.get(), wsmsg);
             return;
         }
         // AI消息智能回复
@@ -110,7 +108,7 @@ public class WebSocketEndpoint {
         }
         // 发送至目标
         target.send(wsmsg);
-        self.send(wsmsg.accept());
+        self.send(wsmsg);
     }
 
     /**

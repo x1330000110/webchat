@@ -176,4 +176,16 @@ public class WsUser extends SysUser {
         }
         this.online = false;
     }
+
+    /**
+     * 发送拒绝消息
+     *
+     * @param reson 原因
+     * @param wsmsg 消息
+     */
+    public void reject(String reson, WsMsg wsmsg) {
+        send(reson, MessageType.WARNING);
+        wsmsg.setReject(true);
+        send(wsmsg);
+    }
 }
