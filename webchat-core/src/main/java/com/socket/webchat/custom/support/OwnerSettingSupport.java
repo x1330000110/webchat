@@ -3,6 +3,7 @@ package com.socket.webchat.custom.support;
 import com.socket.webchat.custom.cilent.RedisClient;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.model.enums.Setting;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.support.collections.RedisMap;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class OwnerSettingSupport {
+    @Getter
     private RedisMap<String, Boolean> map;
 
     @Autowired

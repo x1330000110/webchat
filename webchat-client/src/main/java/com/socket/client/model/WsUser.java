@@ -6,7 +6,6 @@ import com.socket.client.model.enums.Callback;
 import com.socket.secure.util.AES;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.enums.MessageType;
-import com.socket.webchat.model.enums.UserRole;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.subject.Subject;
@@ -73,20 +72,6 @@ public class WsUser extends SysUser {
      */
     public boolean chooseTarget(WsUser target) {
         return Objects.equals(target.getUid(), choose);
-    }
-
-    /**
-     * 当前登录的用户是否是管理员
-     */
-    public boolean isAdmin() {
-        return getRole() == UserRole.ADMIN || isOwner();
-    }
-
-    /**
-     * 检查当前用户是否是所有者
-     */
-    public boolean isOwner() {
-        return getRole() == UserRole.OWNER;
     }
 
     /**

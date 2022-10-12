@@ -2,21 +2,21 @@ package com.socket.webchat.controller;
 
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.socket.secure.exception.InvalidRequestException;
 import com.socket.secure.filter.anno.Encrypted;
+import com.socket.webchat.custom.support.OwnerSettingSupport;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.condition.MessageCondition;
+import com.socket.webchat.model.condition.SettingCondition;
 import com.socket.webchat.model.condition.UserCondition;
 import com.socket.webchat.model.enums.HttpStatus;
-import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.service.RecordService;
 import com.socket.webchat.service.SysUserService;
+import com.socket.webchat.util.Assert;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 所有者权限控制器
@@ -25,15 +25,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/owner")
 public class OwnerController {
+    private final OwnerSettingSupport settingSupport;
     private final SysUserService sysUserService;
     private final RecordService recordService;
+
+    @ModelAttribute
+    public void checkPermission() {
+        Assert.isTrue(Wss.getUser().isOwner(), "权限不足", InvalidRequestException::new);
+    }
 
     @Encrypted
     @PostMapping("/deleteUser")
     public HttpStatus deleteUser(@RequestBody UserCondition condition) {
-        if (Wss.getUser().getRole() != UserRole.OWNER) {
-            return HttpStatus.UNAUTHORIZED.message("权限不足");
-        }
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(SysUser::getUid, condition.getUid());
         wrapper.set(SysUser::isDeleted, 1);
@@ -46,10 +49,18 @@ public class OwnerController {
         LambdaUpdateWrapper<ChatRecord> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(ChatRecord::getMid, condition.getMid());
         // 所有者可直接移除消息
-        if (Wss.getUser().getRole() == UserRole.OWNER) {
-            boolean state = recordService.remove(wrapper);
-            return HttpStatus.of(state, "操作成功", "找不到相关记录");
-        }
-        return HttpStatus.UNAUTHORIZED.body("权限不足");
+        boolean state = recordService.remove(wrapper);
+        return HttpStatus.of(state, "操作成功", "找不到相关记录");
+    }
+
+    @PostMapping("/switchSetting")
+    public HttpStatus switchSetting(SettingCondition condition) {
+        settingSupport.switchSetting(condition.getSetting());
+        return HttpStatus.SUCCESS.body();
+    }
+
+    @GetMapping("/setting")
+    public HttpStatus getSetting() {
+        return HttpStatus.SUCCESS.body(settingSupport.getMap());
     }
 }

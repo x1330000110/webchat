@@ -44,6 +44,8 @@ public class SysUser extends BaseModel implements Serializable {
     /**
      * 微信openid
      */
+    @JsonIgnore
+    @PropIgnore
     private String openid;
     /**
      * 手机
@@ -76,5 +78,19 @@ public class SysUser extends BaseModel implements Serializable {
      */
     public static SysUser newUser() {
         return new SysUser().setRole(UserRole.USER).setUid(RandomUtil.randomNumbers(6));
+    }
+
+    /**
+     * 当前登录的用户是否是管理员
+     */
+    public boolean isAdmin() {
+        return getRole() == UserRole.ADMIN || isOwner();
+    }
+
+    /**
+     * 检查当前用户是否是所有者
+     */
+    public boolean isOwner() {
+        return getRole() == UserRole.OWNER;
     }
 }
