@@ -78,7 +78,7 @@ public class WebSocketEndpoint {
         // 禁言状态无法发送消息
         Assert.isFalse(socketManager.isMute(self), Callback.SELF_MUTE);
         // 所有者全员禁言检查
-        if (settingSupport.getSetting(Setting.ALL_MUTE)) {
+        if (settingSupport.getSetting(Setting.ALL_MUTE) && !self.isOwner()) {
             self.reject(Callback.ALL_MUTE, wsmsg);
             return;
         }
