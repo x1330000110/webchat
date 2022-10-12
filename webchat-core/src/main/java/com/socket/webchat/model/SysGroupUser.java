@@ -1,6 +1,5 @@
-package com.socket.client.model;
+package com.socket.webchat.model;
 
-import com.socket.webchat.model.BaseModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

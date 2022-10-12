@@ -1,6 +1,5 @@
-package com.socket.client.model;
+package com.socket.webchat.model;
 
-import com.socket.webchat.model.BaseModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -24,8 +23,8 @@ public class SysGroup extends BaseModel {
      */
     private String owner;
 
-    public WsUser toWsUser() {
-        WsUser user = new WsUser();
+    public SysUser toSysUser() {
+        SysUser user = new SysUser();
         user.setName(name);
         user.setUid(groupId);
         return user;

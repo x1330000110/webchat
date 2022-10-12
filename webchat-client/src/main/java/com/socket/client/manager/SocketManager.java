@@ -7,18 +7,16 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.client.exception.SocketException;
-import com.socket.client.mapper.SysGroupMapper;
-import com.socket.client.mapper.SysGroupUserMapper;
-import com.socket.client.model.*;
+import com.socket.client.model.UserPreview;
+import com.socket.client.model.WsMsg;
+import com.socket.client.model.WsUser;
 import com.socket.client.model.enums.Callback;
 import com.socket.client.support.keyword.SensitiveKeywordShieldSupport;
 import com.socket.client.util.Assert;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.listener.UserChangeEvent;
 import com.socket.webchat.custom.listener.UserChangeListener;
-import com.socket.webchat.mapper.ShieldUserMapper;
-import com.socket.webchat.mapper.SysUserLogMapper;
-import com.socket.webchat.mapper.SysUserMapper;
+import com.socket.webchat.mapper.*;
 import com.socket.webchat.model.*;
 import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.model.enums.UserRole;
@@ -147,7 +145,7 @@ public class SocketManager implements InitializingBean, UserChangeListener {
         String target = wsmsg.getTarget();
         // 群组
         if (wsmsg.isGroup()) {
-            return getSysGroup(target).toWsUser();
+            return new WsUser(getSysGroup(target).toSysUser());
         }
         // 查找用户
         return getUser(target);

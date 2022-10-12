@@ -1,7 +1,7 @@
-package com.socket.client.mapper;
+package com.socket.webchat.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.socket.client.model.SysGroupUser;
+import com.socket.webchat.model.SysGroupUser;
 import org.springframework.stereotype.Repository;
 
 @Repository
