@@ -514,7 +514,7 @@ public class SocketManager implements InitializingBean {
     }
 
     @Component
-    class UserChange implements UserChangeListener {
+    class UserChangeInternal implements UserChangeListener {
         @Override
         public void onUserChange(UserChangeEvent event) {
             SysUser user = users.get(event.getUid());
@@ -533,7 +533,7 @@ public class SocketManager implements InitializingBean {
     }
 
     @Component
-    class GroupChange implements GroupChangeLinstener {
+    class GroupChangeInternal implements GroupChangeLinstener {
         @Override
         public void onGroupChange(GroupChangeEvent event) {
             GroupOperation operation = event.getOperation();
