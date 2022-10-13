@@ -3,6 +3,7 @@ package com.socket.client.manager;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -123,13 +124,24 @@ public class SocketManager implements InitializingBean, UserChangeListener {
     }
 
     /**
-     * 通过uid获取在线用户
+     * 通过uid获取用户（不存在时通过缓存获取）
      *
      * @param uid 用户uid
      * @return {@link WsUser}
      */
     public WsUser getUser(String uid) {
-        WsUser user = users.get(uid);
+        WsUser user = Optional.ofNullable(users.get(uid)).orElseGet(() -> {
+            // 从数据库查询
+            LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
+            wrapper.eq(SysUser::getUid, uid);
+            SysUser find = sysUserMapper.selectOne(wrapper);
+            WsUser wsuser = Optional.ofNullable(find).map(WsUser::new).orElse(null);
+            // 写入缓存
+            Optional.ofNullable(wsuser).ifPresent(e -> users.put(uid, e));
+            // 写入公共群组
+            groups.get(getSysGroup(Constants.GROUP)).add(uid);
+            return wsuser;
+        });
         Assert.notNull(user, Callback.USER_NOT_FOUND);
         return user;
     }
@@ -387,9 +399,9 @@ public class SocketManager implements InitializingBean, UserChangeListener {
     public ChatRecord withdrawMessage(WsMsg wsmsg) {
         ChatRecord record = recordService.removeMessage(wsmsg.getUid(), wsmsg.getContent());
         // 未读计数器-1
-        Optional.ofNullable(record).filter(ChatRecord::isUnread).ifPresent(msg -> {
-            redisManager.setUnreadCount(msg.getTarget(), msg.getUid(), -1);
-        });
+        Optional.ofNullable(record)
+                .filter(ChatRecord::isUnread)
+                .ifPresent(msg -> redisManager.setUnreadCount(msg.getTarget(), msg.getUid(), -1));
         return record;
     }
 
@@ -462,22 +474,13 @@ public class SocketManager implements InitializingBean, UserChangeListener {
 
     @Override
     public void onUserChange(UserChangeEvent event) {
-        SysUser user = event.getUser();
-        String uid = user.getUid();
-        SysUser ws = users.get(uid);
-        // 用户存在则更新资料
-        if (ws != null) {
-            Optional.ofNullable(user.getName()).ifPresent(ws::setName);
-            Optional.ofNullable(user.getHeadimgurl()).ifPresent(ws::setHeadimgurl);
-            return;
-        }
-        // 添加到缓存
-        WsUser wsuser = new WsUser(user);
-        users.put(uid, wsuser);
-        // 检查默认群组是否存在新用户（不存在添加）
-        List<String> groupUsers = groups.get(getSysGroup(Constants.GROUP));
-        if (!groupUsers.contains(uid)) {
-            groupUsers.add(uid);
+        SysUser source = event.getUser();
+        String uid = source.getUid();
+        SysUser user = users.get(uid);
+        // 更新资料
+        if (user != null) {
+            Optional.ofNullable(source.getName()).ifPresent(user::setName);
+            Optional.ofNullable(source.getHeadimgurl()).ifPresent(user::setHeadimgurl);
         }
     }
 

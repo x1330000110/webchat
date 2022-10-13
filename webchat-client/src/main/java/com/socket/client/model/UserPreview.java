@@ -57,11 +57,6 @@ public class UserPreview extends SysUser {
         BeanUtil.copyProperties(sysUser, this);
     }
 
-    /**
-     * 填充访问时间
-     *
-     * @param logs 日志列表
-     */
     public void setLastTime(Map<String, Date> logs) {
         Optional.ofNullable(logs.get(getUid())).ifPresent(date -> this.lastTime = date.getTime());
     }
