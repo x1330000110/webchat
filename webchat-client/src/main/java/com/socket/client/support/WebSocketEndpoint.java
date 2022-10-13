@@ -157,6 +157,9 @@ public class WebSocketEndpoint {
             case LOCK:
                 this.lock(target, wsmsg);
                 break;
+            case FOREVER:
+                this.forever(target);
+                break;
             default:
                 this.parseOwnerSysMsg(wsmsg, target);
         }
@@ -252,12 +255,6 @@ public class WebSocketEndpoint {
      * 限制登陆
      */
     private void lock(WsUser target, WsMsg wsmsg) {
-        // 永久限制登录处理
-        if (Constants.FOREVER.equalsIgnoreCase(wsmsg.getContent())) {
-            target.logout(Callback.LIMIT_FOREVER.get());
-            socketManager.remove(target, true);
-            return;
-        }
         long time = socketManager.addLock(wsmsg);
         // 向所有人发布消息
         if (time > 0) {
@@ -267,6 +264,14 @@ public class WebSocketEndpoint {
             return;
         }
         socketManager.sendAll(Callback.GC_LOGIN_LIMIT.format(target, time), MessageType.DANGER, target);
+    }
+
+    /**
+     * 永久限制登录
+     */
+    private void forever(WsUser target) {
+        target.logout(Callback.LIMIT_FOREVER.get());
+        socketManager.remove(target, true);
     }
 
     /**
