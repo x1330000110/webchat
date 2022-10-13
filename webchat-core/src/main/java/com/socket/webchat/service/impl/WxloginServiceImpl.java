@@ -58,6 +58,8 @@ public class WxloginServiceImpl implements WxloginService {
                 BeanUtil.copyProperties(wxuser, user);
                 user.setName(StrUtil.sub(wxuser.getNickname(), 0, 6));
                 user.setHash(Bcrypt.digest(Constants.WX_DEFAULT_PASSWORD));
+                System.out.println(wxuser);
+                System.out.println(user);
                 sysUserService.save(user);
                 // 加入默认群组
                 sysGroupService.joinGroup(Constants.GROUP, user.getUid());

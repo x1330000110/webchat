@@ -45,7 +45,6 @@ public class SysUser extends BaseModel implements Serializable {
      * 微信openid
      */
     @JsonIgnore
-    @PropIgnore
     private String openid;
     /**
      * 手机
@@ -99,5 +98,10 @@ public class SysUser extends BaseModel implements Serializable {
      */
     public boolean isOwner() {
         return getRole() == UserRole.OWNER;
+    }
+
+    @PropIgnore
+    public String getOpenid() {
+        return openid;
     }
 }
