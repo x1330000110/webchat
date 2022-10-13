@@ -21,7 +21,6 @@ import com.socket.webchat.custom.listener.UserChangeEvent;
 import com.socket.webchat.custom.listener.UserChangeListener;
 import com.socket.webchat.mapper.*;
 import com.socket.webchat.model.*;
-import com.socket.webchat.model.enums.GroupOperation;
 import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.request.XiaoBingAPIRequest;
@@ -546,10 +545,9 @@ public class SocketManager implements InitializingBean {
     class GroupChangeInternal implements GroupChangeLinstener {
         @Override
         public void onGroupChange(GroupChangeEvent event) {
-            GroupOperation operation = event.getOperation();
             SysGroupUser groupUser = event.getGroupUser();
             SysGroup group = event.getGroup();
-            switch (operation) {
+            switch (event.getOperation()) {
                 case CREATE:
                     groups.put(group, new ArrayList<>());
                     break;
