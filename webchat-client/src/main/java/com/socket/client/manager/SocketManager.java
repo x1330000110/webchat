@@ -100,7 +100,7 @@ public class SocketManager implements InitializingBean {
         List<String> exclude = redisManager.getShield(sender.getUid());
         String uid = sender.getUid();
         // 向群内所有人发送消息
-        for (String tuid : groups.get(getSysGroup(wsmsg.getTarget()))) {
+        for (String tuid : getGroupUser(wsmsg.getTarget())) {
             // 过滤自己 || 已屏蔽
             if (uid.equals(tuid) || exclude.contains(tuid)) {
                 continue;
@@ -224,6 +224,16 @@ public class SocketManager implements InitializingBean {
         wrapper.lambda().groupBy(SysUserLog::getUid);
         List<SysUserLog> userLogs = sysUserLogMapper.selectList(wrapper);
         return userLogs.stream().collect(Collectors.toMap(SysUserLog::getUid, BaseModel::getCreateTime));
+    }
+
+    /**
+     * 获取指定群组ID成员列表
+     *
+     * @param groupId 群组id
+     * @return 成员
+     */
+    private List<String> getGroupUser(String groupId) {
+        return groups.get(getSysGroup(groupId));
     }
 
     /**
@@ -547,10 +557,10 @@ public class SocketManager implements InitializingBean {
                     groups.remove(getSysGroup(group.getGroupId()));
                     break;
                 case JOIN:
-                    groups.get(getSysGroup(groupUser.getGroupId())).add(groupUser.getUid());
+                    getGroupUser(groupUser.getGroupId()).add(groupUser.getUid());
                     break;
                 case DELETE:
-                    groups.get(getSysGroup(groupUser.getGroupId())).remove(groupUser.getUid());
+                    getGroupUser(groupUser.getGroupId()).remove(groupUser.getUid());
                     break;
                 default:
                     // ignore
