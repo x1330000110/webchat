@@ -1,6 +1,7 @@
 package com.socket.webchat.custom.listener;
 
 import com.socket.webchat.model.enums.UserOperation;
+import com.socket.webchat.util.Wss;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
@@ -23,6 +24,6 @@ public class UserChangeEvent extends ApplicationEvent {
         super(source);
         this.data = data;
         this.operation = operation;
-        this.uid = "10000";
+        this.uid = Wss.getUserId();
     }
 }
