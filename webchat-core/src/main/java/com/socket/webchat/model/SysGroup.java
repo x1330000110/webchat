@@ -22,11 +22,4 @@ public class SysGroup extends BaseModel {
      * 群所有者uid
      */
     private String owner;
-
-    public SysUser toSysUser() {
-        SysUser user = new SysUser();
-        user.setName(name);
-        user.setUid(groupId);
-        return user;
-    }
 }

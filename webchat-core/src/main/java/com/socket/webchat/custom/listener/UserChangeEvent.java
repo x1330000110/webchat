@@ -1,15 +1,28 @@
 package com.socket.webchat.custom.listener;
 
-import com.socket.webchat.model.SysUser;
+import com.socket.webchat.model.enums.UserOperation;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
+@Getter
 public class UserChangeEvent extends ApplicationEvent {
-    @Getter
-    private final SysUser user;
+    /**
+     * 更新值
+     */
+    private final UserOperation operation;
+    /**
+     * 新数据
+     */
+    private final String data;
+    /**
+     * 触发者
+     */
+    private final String uid;
 
-    public UserChangeEvent(Object source, SysUser user) {
+    public UserChangeEvent(Object source, String data, UserOperation operation) {
         super(source);
-        this.user = user;
+        this.data = data;
+        this.operation = operation;
+        this.uid = "10000";
     }
 }

@@ -28,6 +28,7 @@ import com.socket.webchat.model.condition.PasswordCondition;
 import com.socket.webchat.model.condition.RegisterCondition;
 import com.socket.webchat.model.enums.FilePath;
 import com.socket.webchat.model.enums.RedisTree;
+import com.socket.webchat.model.enums.UserOperation;
 import com.socket.webchat.service.SysGroupService;
 import com.socket.webchat.service.SysUserService;
 import com.socket.webchat.util.*;
@@ -95,8 +96,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         super.save(user);
         // 加入默认群组
         sysGroupService.joinGroup(Constants.GROUP, user.getUid());
-        // 推送变动事件
-        publisher.publishEvent(new UserChangeEvent(publisher, user));
         // 通过邮箱登录
         this.login(new LoginCondition(condition.getEmail(), condition.getPass()));
     }
@@ -152,11 +151,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     public void updateMaterial(SysUser user) {
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
-        // 清空uid
+        // 清空无法修改的字段
         user.setUid(null);
-        // 修改头像使用 /updateAvatar
         user.setHeadimgurl(null);
-        // 修改邮箱使用 /updateEmail
         user.setEmail(null);
         // 若生日不为空 优先使用基于生日的年龄
         if (user.getBirth() != null) {
@@ -167,7 +164,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         wrapper.eq(SysUser::getUid, Wss.getUserId());
         Assert.isTrue(super.update(user, wrapper), "修改失败", IllegalStateException::new);
         // 推送变动事件
-        publisher.publishEvent(new UserChangeEvent(publisher, user.setUid(Wss.getUserId())));
+        publisher.publishEvent(new UserChangeEvent(publisher, user.getName(), UserOperation.NAME));
     }
 
     @Override
@@ -194,7 +191,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         wrapper.set(SysUser::getHeadimgurl, path);
         Assert.isTrue(super.update(wrapper), "修改失败", IllegalStateException::new);
         // 推送变动事件
-        publisher.publishEvent(new UserChangeEvent(publisher, Wss.getUser().setHeadimgurl(path)));
+        publisher.publishEvent(new UserChangeEvent(publisher, path, UserOperation.HEAD_IMG));
         return path;
     }
 

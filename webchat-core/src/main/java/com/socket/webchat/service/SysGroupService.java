@@ -8,8 +8,19 @@ public interface SysGroupService extends IService<SysGroup> {
      * 创建群组
      *
      * @param groupName 群名
+     * @return
      */
-    void createGroup(String groupName);
+    boolean createGroup(String groupName);
+
+    /**
+     * 移除群组内用户
+     *
+     * @param stater  发起者
+     * @param groupId 群组ID
+     * @param uid     用户ID
+     * @return 移除结果
+     */
+    boolean removeUser(String stater, String groupId, String uid);
 
     /**
      * 加入用户
@@ -21,12 +32,11 @@ public interface SysGroupService extends IService<SysGroup> {
     boolean joinGroup(String groupId, String uid);
 
     /**
-     * 移除群组内用户
+     * 移除群组
      *
-     * @param stater  发起者
-     * @param groupId 群组ID
-     * @param uid     用户ID
-     * @return 移除结果
+     * @param owner   所有者id
+     * @param groupId 群组id
+     * @return
      */
-    boolean removeUser(String stater, String groupId, String uid);
+    boolean removeGroup(String owner, String groupId);
 }

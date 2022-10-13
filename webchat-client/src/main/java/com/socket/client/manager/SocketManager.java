@@ -15,10 +15,13 @@ import com.socket.client.model.enums.Callback;
 import com.socket.client.support.keyword.SensitiveKeywordShieldSupport;
 import com.socket.client.util.Assert;
 import com.socket.webchat.constant.Constants;
+import com.socket.webchat.custom.listener.GroupChangeEvent;
+import com.socket.webchat.custom.listener.GroupChangeLinstener;
 import com.socket.webchat.custom.listener.UserChangeEvent;
 import com.socket.webchat.custom.listener.UserChangeListener;
 import com.socket.webchat.mapper.*;
 import com.socket.webchat.model.*;
+import com.socket.webchat.model.enums.GroupOperation;
 import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.request.XiaoBingAPIRequest;
@@ -43,7 +46,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class SocketManager implements InitializingBean, UserChangeListener {
+public class SocketManager implements InitializingBean {
     private final ConcurrentHashMap<SysGroup, List<String>> groups = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, WsUser> users = new ConcurrentHashMap<>();
     private final KafkaTemplate<String, String> kafkaTemplate;
@@ -138,8 +141,6 @@ public class SocketManager implements InitializingBean, UserChangeListener {
             WsUser wsuser = Optional.ofNullable(find).map(WsUser::new).orElse(null);
             // 写入缓存
             Optional.ofNullable(wsuser).ifPresent(e -> users.put(uid, e));
-            // 写入公共群组
-            groups.get(getSysGroup(Constants.GROUP)).add(uid);
             return wsuser;
         });
         Assert.notNull(user, Callback.USER_NOT_FOUND);
@@ -157,7 +158,7 @@ public class SocketManager implements InitializingBean, UserChangeListener {
         String target = wsmsg.getTarget();
         // 群组
         if (wsmsg.isGroup()) {
-            return new WsUser(getSysGroup(target).toSysUser());
+            return new WsUser(SysUser.ofGroup(getSysGroup(target)));
         }
         // 查找用户
         return getUser(target);
@@ -472,18 +473,6 @@ public class SocketManager implements InitializingBean, UserChangeListener {
         userList.stream().map(WsUser::new).forEach(e -> users.put(e.getUid(), e));
     }
 
-    @Override
-    public void onUserChange(UserChangeEvent event) {
-        SysUser source = event.getUser();
-        String uid = source.getUid();
-        SysUser user = users.get(uid);
-        // 更新资料
-        if (user != null) {
-            Optional.ofNullable(source.getName()).ifPresent(user::setName);
-            Optional.ofNullable(source.getHeadimgurl()).ifPresent(user::setHeadimgurl);
-        }
-    }
-
     /**
      * 检查消息合法性
      *
@@ -522,5 +511,50 @@ public class SocketManager implements InitializingBean, UserChangeListener {
                 cacheRecord(aimsg, true);
             }
         }, exception -> log.warn(exception.getMessage()));
+    }
+
+    @Component
+    class UserChange implements UserChangeListener {
+        @Override
+        public void onUserChange(UserChangeEvent event) {
+            SysUser user = users.get(event.getUid());
+            Assert.isFalse(user == null, Callback.USER_NOT_FOUND);
+            switch (event.getOperation()) {
+                case NAME:
+                    user.setName(event.getData());
+                    break;
+                case HEAD_IMG:
+                    user.setHeadimgurl(event.getData());
+                    break;
+                default:
+                    // ignore
+            }
+        }
+    }
+
+    @Component
+    class GroupChange implements GroupChangeLinstener {
+        @Override
+        public void onGroupChange(GroupChangeEvent event) {
+            GroupOperation operation = event.getOperation();
+            SysGroupUser groupUser = event.getGroupUser();
+            SysGroup group = event.getGroup();
+            switch (operation) {
+                case CREATE:
+                    groups.put(group, new ArrayList<>());
+                    break;
+                case DISSOLUTION:
+                    groups.remove(getSysGroup(group.getGroupId()));
+                    break;
+                case JOIN:
+                    groups.get(getSysGroup(groupUser.getGroupId())).add(groupUser.getUid());
+                    break;
+                case DELETE:
+                    groups.get(getSysGroup(groupUser.getGroupId())).remove(groupUser.getUid());
+                    break;
+                default:
+                    // ignore
+            }
+        }
     }
 }

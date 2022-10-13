@@ -9,7 +9,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.cilent.RedisClient;
-import com.socket.webchat.custom.listener.UserChangeEvent;
 import com.socket.webchat.exception.AccountException;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.WxUser;
@@ -62,8 +61,6 @@ public class WxloginServiceImpl implements WxloginService {
                 sysUserService.save(user);
                 // 加入默认群组
                 sysGroupService.joinGroup(Constants.GROUP, user.getUid());
-                // 推送变动事件
-                publisher.publishEvent(new UserChangeEvent(publisher, user));
             }
             // 设置用户UID到Redis
             return redisClient.setIfPresent(key, user.getUid(), Constants.QR_CODE_EXPIRATION_TIME) ? user : null;
