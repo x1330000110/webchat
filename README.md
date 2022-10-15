@@ -11,7 +11,7 @@
 ```
                                                       | -----------> RedisManager
 ---------------                                       |
-webchat-client ------------> PermissionManager -------| -----------> UserManager -----------> RedisManager
+webchat-client ------------> PermissionManager -------| -----------> UserManager
 ---------------                                       |
                                                       | -----------> GroupManager
                        |---> user
