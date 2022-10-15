@@ -9,19 +9,19 @@ public enum SocketTree {
     /**
      * 禁言标记
      */
-    MUTE("mute:"),
+    MUTE("MUTE:"),
     /**
      * 限制登录标记
      */
-    LOCK("lock:"),
+    LOCK("LOCK:"),
     /**
      * 发言标记
      */
-    SPEAK("speak:"),
+    SPEAK("SPEAK:"),
     /**
      * 屏蔽列表
      */
-    SHIELD("shield:");
+    SHIELD("SHIELD:");
 
     private final String prefix;
 
