@@ -119,8 +119,8 @@ public class WsUser extends SysUser {
 
     @SneakyThrows
     private void send(WsMsg wsmsg, boolean async) {
-        Supplier<String> supplier = () -> AES.encrypt(JSONUtil.toJsonStr(wsmsg), httpSession);
         if (online && session.isOpen()) {
+            Supplier<String> supplier = () -> AES.encrypt(JSONUtil.toJsonStr(wsmsg), httpSession);
             if (async) {
                 session.getAsyncRemote().sendText(supplier.get());
             } else {
