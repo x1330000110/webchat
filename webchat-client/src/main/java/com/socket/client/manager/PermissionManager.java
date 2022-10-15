@@ -8,7 +8,7 @@ import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
 import com.socket.client.model.enums.Callback;
-import com.socket.client.support.keyword.SensitiveKeywordShieldSupport;
+import com.socket.client.support.KeywordSupport;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.mapper.ShieldUserMapper;
 import com.socket.webchat.mapper.SysUserLogMapper;
@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Component
 public class PermissionManager {
-    private final SensitiveKeywordShieldSupport keywordSupport;
+    private final KeywordSupport keywordSupport;
 
     private final SysUserLogMapper sysUserLogMapper;
     private final ShieldUserMapper shieldUserMapper;

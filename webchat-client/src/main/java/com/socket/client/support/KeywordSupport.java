@@ -1,4 +1,4 @@
-package com.socket.client.support.keyword;
+package com.socket.client.support;
 
 import cn.hutool.extra.pinyin.PinyinUtil;
 import org.springframework.stereotype.Component;
@@ -9,7 +9,7 @@ import java.util.Arrays;
  * 敏感关键词屏蔽支持
  */
 @Component
-public class SensitiveKeywordShieldSupport {
+public class KeywordSupport {
     private static final String[] pinyins = {
             "sima",
             "nima",

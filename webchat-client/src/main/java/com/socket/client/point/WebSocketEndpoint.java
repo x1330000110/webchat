@@ -1,4 +1,4 @@
-package com.socket.client.support;
+package com.socket.client.point;
 
 import com.socket.client.config.SocketConfig;
 import com.socket.client.manager.GroupManager;
