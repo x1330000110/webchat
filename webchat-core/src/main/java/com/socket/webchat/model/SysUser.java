@@ -80,13 +80,6 @@ public class SysUser extends BaseModel implements Serializable {
     }
 
     /**
-     * 转为用户
-     */
-    public static SysUser ofGroup(SysGroup group) {
-        return new SysUser().setName(group.getName()).setUid(newUser().getUid());
-    }
-
-    /**
      * 当前登录的用户是否是管理员
      */
     public boolean isAdmin() {

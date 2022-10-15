@@ -6,7 +6,10 @@ import com.socket.client.model.enums.Callback;
 import com.socket.secure.util.AES;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.enums.MessageType;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.subject.Subject;
 
@@ -24,7 +27,7 @@ import static javax.websocket.CloseReason.CloseCodes;
  * websocket会话数据
  */
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@NoArgsConstructor
 public class WsUser extends SysUser {
     /**
      * WebSocket Session
