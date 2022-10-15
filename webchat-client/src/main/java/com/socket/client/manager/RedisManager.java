@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * Socket Redis 管理
+ * ws redis管理器
  */
 @Component
 @RequiredArgsConstructor

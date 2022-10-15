@@ -1,7 +1,9 @@
 package com.socket.client.support;
 
 import com.socket.client.config.SocketConfig;
-import com.socket.client.manager.SocketManager;
+import com.socket.client.manager.GroupManager;
+import com.socket.client.manager.PermissionManager;
+import com.socket.client.manager.UserManager;
 import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
@@ -29,20 +31,22 @@ import java.util.Collection;
 @ServerEndpoint(value = "/user/room", configurator = SocketConfig.class)
 public class WebSocketEndpoint {
     private static OwnerSettingSupport settingSupport;
-    private static SocketManager socketManager;
+    private static PermissionManager permissionManager;
+    private static GroupManager groupManager;
+    private static UserManager userManager;
     private WsUser self;
 
     @OnOpen
     public void onOpen(Session session, EndpointConfig config) {
         // 登入
-        this.self = socketManager.join(session, config.getUserProperties());
+        this.self = userManager.join(session, config.getUserProperties());
         // 传递消息
         if (self != null) {
-            Collection<UserPreview> userList = socketManager.getPreviews(self);
+            Collection<UserPreview> userList = permissionManager.getPreviews(self);
             self.send(Callback.JOIN_INIT.get(), MessageType.INIT, userList);
             // 用户加入通知
-            socketManager.sendAll(Callback.USER_LOGIN.format(self), MessageType.JOIN, self);
-            socketManager.checkMute(self);
+            userManager.sendAll(Callback.USER_LOGIN.format(self), MessageType.JOIN, self);
+            permissionManager.checkMute(self);
         }
     }
 
@@ -50,8 +54,8 @@ public class WebSocketEndpoint {
     public void onClose() {
         // 退出通知
         if (self != null) {
-            socketManager.sendAll(Callback.USER_LOGOUT.format(self), MessageType.EXIT, self);
-            socketManager.remove(self, false);
+            userManager.sendAll(Callback.USER_LOGOUT.format(self), MessageType.EXIT, self);
+            userManager.remove(self, false);
         }
     }
 
@@ -63,7 +67,7 @@ public class WebSocketEndpoint {
     @OnMessage
     public void onMessage(String message) {
         WsMsg wsmsg = self.decrypt(message);
-        WsUser target = socketManager.getTarget(wsmsg);
+        WsUser target = permissionManager.getTarget(wsmsg);
         // 系统消息
         if (wsmsg.isSysmsg()) {
             this.parseSysMsg(wsmsg, target);
@@ -71,12 +75,12 @@ public class WebSocketEndpoint {
         }
         // 用户消息
         this.parseUserMsg(wsmsg, target);
-        socketManager.cacheRecord(wsmsg, wsmsg.isReject() || wsmsg.isGroup() || target.chooseTarget(self));
+        userManager.cacheRecord(wsmsg, wsmsg.isReject() || wsmsg.isGroup() || target.chooseTarget(self));
     }
 
     public void parseUserMsg(WsMsg wsmsg, WsUser target) {
         // 禁言状态无法发送消息
-        Assert.isFalse(socketManager.isMute(self), Callback.SELF_MUTE);
+        Assert.isFalse(permissionManager.isMute(self), Callback.SELF_MUTE);
         // 所有者全员禁言检查
         if (settingSupport.getSetting(Setting.ALL_MUTE) && !self.isOwner()) {
             self.reject(Callback.ALL_MUTE, wsmsg);
@@ -84,21 +88,21 @@ public class WebSocketEndpoint {
         }
         // 消息检查
         boolean sensitive = settingSupport.getSetting(Setting.SENSITIVE_WORDS);
-        if (!socketManager.verifyMessage(self, wsmsg, sensitive)) {
+        if (!permissionManager.verifyMessage(self, wsmsg, sensitive)) {
             return;
         }
         // 发言标记
-        socketManager.operateMark(self);
+        permissionManager.operateMark(self);
         // 群组消息
         if (wsmsg.isGroup()) {
-            socketManager.sendGroup(wsmsg, self);
+            groupManager.sendGroup(wsmsg, self);
             self.send(wsmsg);
             return;
         }
         // 你屏蔽了目标
-        Assert.isFalse(socketManager.shield(self, target), Callback.TARGET_SHIELD);
+        Assert.isFalse(permissionManager.shield(self, target), Callback.TARGET_SHIELD);
         // 目标屏蔽了你
-        if (socketManager.shield(target, self)) {
+        if (permissionManager.shield(target, self)) {
             self.reject(Callback.SELF_SHIELD, wsmsg);
             return;
         }
@@ -118,8 +122,8 @@ public class WebSocketEndpoint {
         boolean sysuid = Constants.SYSTEM_UID.equals(wsmsg.getTarget());
         boolean text = wsmsg.getType() == MessageType.TEXT;
         // 判断AI消息
-        if (sysuid && text && !socketManager.getUser(Constants.SYSTEM_UID).isOnline()) {
-            socketManager.sendAIMessage(self, wsmsg);
+        if (sysuid && text && !userManager.getUser(Constants.SYSTEM_UID).isOnline()) {
+            userManager.sendAIMessage(self, wsmsg);
         }
     }
 
@@ -176,7 +180,7 @@ public class WebSocketEndpoint {
                 this.setAlias(target, wsmsg);
                 break;
             case ANNOUNCE:
-                socketManager.pushNotice(wsmsg, self);
+                permissionManager.pushNotice(wsmsg, self);
                 break;
             default:
                 self.send(Callback.INVALID_COMMAND.get(), MessageType.DANGER);
@@ -187,7 +191,7 @@ public class WebSocketEndpoint {
      * 屏蔽指定用户
      */
     private void shield(WsUser target) {
-        boolean shield = socketManager.shieldTarget(self, target);
+        boolean shield = permissionManager.shieldTarget(self, target);
         Callback tips = shield ? Callback.SHIELD_USER : Callback.CANCEL_SHIELD;
         self.send(tips.format(target), MessageType.SHIELD, target);
     }
@@ -196,13 +200,13 @@ public class WebSocketEndpoint {
      * 撤回消息
      */
     private void withdraw(WsUser target, WsMsg wsmsg) {
-        ChatRecord record = socketManager.withdrawMessage(wsmsg);
+        ChatRecord record = userManager.withdrawMessage(wsmsg);
         // 转发系统消息
         if (record != null) {
             // 若此撤回的消息指向群组，则通知群组内所有人撤回此消息
             if (wsmsg.isGroup()) {
-                socketManager.sendGroup(wsmsg, self);
-            } else if (!socketManager.shield(target, self)) {
+                groupManager.sendGroup(wsmsg, self);
+            } else if (!permissionManager.shield(target, self)) {
                 // 仅通知目标撤回此消息（若目标已将此用户屏蔽，则忽略此撤回消息）
                 target.send(wsmsg);
             }
@@ -220,8 +224,8 @@ public class WebSocketEndpoint {
      */
     private void forwardWebRTC(WsUser target, WsMsg wsmsg) {
         // 屏蔽检查
-        Assert.isFalse(socketManager.shield(self, target), Callback.TARGET_SHIELD);
-        Assert.isFalse(socketManager.shield(target, self), Callback.TARGET_SHIELD);
+        Assert.isFalse(permissionManager.shield(self, target), Callback.TARGET_SHIELD);
+        Assert.isFalse(permissionManager.shield(target, self), Callback.TARGET_SHIELD);
         target.send(wsmsg);
     }
 
@@ -230,8 +234,8 @@ public class WebSocketEndpoint {
      */
     private void choose(WsUser target, WsMsg wsmsg) {
         self.setChoose(wsmsg.getTarget());
-        if (!wsmsg.isGroup() && socketManager.getUnreadCount(self, target) > 0) {
-            socketManager.readAllMessage(self, target, false);
+        if (!wsmsg.isGroup() && userManager.getUnreadCount(self, target) > 0) {
+            userManager.readAllMessage(self, target, false);
         }
     }
 
@@ -239,31 +243,31 @@ public class WebSocketEndpoint {
      * 禁言
      */
     private void mute(WsUser target, WsMsg wsmsg) {
-        long time = socketManager.addMute(wsmsg);
+        long time = permissionManager.addMute(wsmsg);
         // 禁言
         if (time > 0) {
             target.send(Callback.MUTE_LIMIT.format(time), MessageType.MUTE, time);
-            socketManager.sendAll(Callback.G_MUTE_LIMIT.format(target, time), MessageType.PRIMARY, target);
+            userManager.sendAll(Callback.G_MUTE_LIMIT.format(target, time), MessageType.PRIMARY, target);
             return;
         }
         // 取消禁言
         target.send(Callback.C_MUTE_LIMIT.get(), MessageType.MUTE, time);
-        socketManager.sendAll(Callback.GC_MUTE_LIMIT.format(target, time), MessageType.PRIMARY, target);
+        userManager.sendAll(Callback.GC_MUTE_LIMIT.format(target, time), MessageType.PRIMARY, target);
     }
 
     /**
      * 限制登陆
      */
     private void lock(WsUser target, WsMsg wsmsg) {
-        long time = socketManager.addLock(wsmsg);
+        long time = permissionManager.addLock(wsmsg);
         // 向所有人发布消息
         if (time > 0) {
             // 大于0强制下线
             target.logout(Callback.LOGIN_LIMIT.format(time));
-            socketManager.sendAll(Callback.G_LOGIN_LIMIT.format(target, time), MessageType.DANGER, target);
+            userManager.sendAll(Callback.G_LOGIN_LIMIT.format(target, time), MessageType.DANGER, target);
             return;
         }
-        socketManager.sendAll(Callback.GC_LOGIN_LIMIT.format(target, time), MessageType.DANGER, target);
+        userManager.sendAll(Callback.GC_LOGIN_LIMIT.format(target, time), MessageType.DANGER, target);
     }
 
     /**
@@ -271,20 +275,20 @@ public class WebSocketEndpoint {
      */
     private void forever(WsUser target) {
         target.logout(Callback.LIMIT_FOREVER.get());
-        socketManager.remove(target, true);
+        userManager.remove(target, true);
     }
 
     /**
      * 切换用户角色
      */
     private void switchRole(WsUser target) {
-        socketManager.updateRole(target, target.isAdmin() ? UserRole.USER : UserRole.ADMIN);
+        permissionManager.updateRole(target, target.isAdmin() ? UserRole.USER : UserRole.ADMIN);
         // 通知目标
         String cb = (target.isAdmin() ? Callback.AUTH_ADMIN : Callback.AUTH_USER).get();
         target.send(cb, MessageType.ROLE, target);
         // 广播消息
         String gcb = (target.isAdmin() ? Callback.G_AUTH_ADMIN : Callback.G_AUTH_USER).format(target);
-        socketManager.sendAll(gcb, MessageType.ROLE, target);
+        userManager.sendAll(gcb, MessageType.ROLE, target);
     }
 
     /**
@@ -292,15 +296,25 @@ public class WebSocketEndpoint {
      */
     private void setAlias(WsUser target, WsMsg wsmsg) {
         String alias = wsmsg.getContent();
-        if (socketManager.updateAlias(target, alias)) {
+        if (permissionManager.updateAlias(target, alias)) {
             self.send(wsmsg);
-            socketManager.sendGroup(wsmsg, self);
+            groupManager.sendGroup(wsmsg, self);
         }
     }
 
     @Autowired
-    private void setSocketManager(SocketManager manager) {
-        WebSocketEndpoint.socketManager = manager;
+    private void setUserManager(UserManager manager) {
+        WebSocketEndpoint.userManager = manager;
+    }
+
+    @Autowired
+    private void setGroupManager(GroupManager manager) {
+        WebSocketEndpoint.groupManager = manager;
+    }
+
+    @Autowired
+    private void setGroupManager(PermissionManager manager) {
+        WebSocketEndpoint.permissionManager = manager;
     }
 
     @Autowired
