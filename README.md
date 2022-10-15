@@ -33,7 +33,7 @@ webchat-secure --------|                               | ----> MappedRepeatValid
 
 基于JDK11
 
-* 后端：Spring Boot、Mybatis Plus、Shiro、Mysql、Redis、Kafka、Socket、FTP
+* 后端：Spring Boot、Mybatis Plus、Shiro、MySQL、Redis、Kafka、Socket、FTP
 * 前端：HTML5、css3、JavaScript(ES6+)、Vue3(原生)、Element Plus(原生)、WebSocket、WebRTC
 
 需要配置的环境依赖
@@ -107,3 +107,5 @@ webchat-secure --------|                               | ----> MappedRepeatValid
 * 读取粘贴板图片（复制图片后，在消息输入框粘贴，需要粘贴板权限）
 * 文件拖拽支持（可将文件直接拖拽到消息列表发送，通过扩展名识别文件类型）
 * 所有者接入小冰机器人（仅在所有者离线时，发送文字消息将由小冰接管）
+* 敏感关键词屏蔽
+* 全员禁言
