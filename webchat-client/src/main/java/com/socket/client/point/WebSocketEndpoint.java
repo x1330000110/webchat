@@ -10,7 +10,7 @@ import com.socket.client.model.WsUser;
 import com.socket.client.model.enums.Callback;
 import com.socket.client.util.Assert;
 import com.socket.webchat.constant.Constants;
-import com.socket.webchat.custom.support.OwnerSettingSupport;
+import com.socket.webchat.custom.support.SettingSupport;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.model.enums.Setting;
@@ -30,7 +30,7 @@ import java.util.Collection;
 @Service
 @ServerEndpoint(value = "/user/room", configurator = SocketConfig.class)
 public class WebSocketEndpoint {
-    private static OwnerSettingSupport settingSupport;
+    private static SettingSupport settingSupport;
     private static PermissionManager permissionManager;
     private static GroupManager groupManager;
     private static UserManager userManager;
@@ -319,7 +319,7 @@ public class WebSocketEndpoint {
     }
 
     @Autowired
-    public void setSettingSupport(OwnerSettingSupport support) {
+    public void setSettingSupport(SettingSupport support) {
         WebSocketEndpoint.settingSupport = support;
     }
 }

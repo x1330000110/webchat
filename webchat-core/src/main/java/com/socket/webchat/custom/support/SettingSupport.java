@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  * 聊天室所有者部分权限Redis同步支持
  */
 @Component
-public class OwnerSettingSupport {
+public class SettingSupport {
     @Getter
     private RedisMap<String, Boolean> map;
 

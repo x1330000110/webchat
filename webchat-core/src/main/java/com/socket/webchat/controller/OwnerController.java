@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.secure.exception.InvalidRequestException;
 import com.socket.secure.filter.anno.Encrypted;
-import com.socket.webchat.custom.support.OwnerSettingSupport;
+import com.socket.webchat.custom.support.SettingSupport;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.condition.MessageCondition;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/owner")
 public class OwnerController {
-    private final OwnerSettingSupport settingSupport;
+    private final SettingSupport settingSupport;
     private final SysUserService sysUserService;
     private final RecordService recordService;
 
