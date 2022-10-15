@@ -17,10 +17,10 @@ webchat-client ------------> PermissionManager -------| -----------> UserManager
                        |---> user
                        |
                        |---> message
-                       |                      | ------> BaiduSpeech
-------------           |---> resource --------| 
-webchat-core ----------|                      | ------> FTP
-------------           |---> owner
+------------           |                      | ------> BaiduSpeech
+webchat-core ----------|---> resource --------| 
+------------           |                      | ------> FTP
+                       |---> owner
                        |
                        |---> login -----------> weixinLogin
 
