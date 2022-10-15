@@ -21,9 +21,9 @@ webchat-client ------------> PermissionManager -------| -----------> UserManager
 webchat-core ----------|---> resource --------| 
 ------------           |                      | ------> FTP
                        |---> owner
-                       |
-                       |---> login -----------> weixinLogin
-
+                       |                      | ------> wechat
+                       |---> login -----------|
+                                              | ------> shiro
 
 --------------         | ---> core
 webchat-secure --------|                               | ----> MappedRepeatValidator
