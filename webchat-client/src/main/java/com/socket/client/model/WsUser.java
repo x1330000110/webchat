@@ -32,7 +32,6 @@ public class WsUser extends SysUser {
     /**
      * WebSocket Session
      */
-    @Getter
     private Session session;
     /**
      * Http Session
