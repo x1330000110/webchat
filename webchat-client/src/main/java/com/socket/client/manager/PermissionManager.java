@@ -49,7 +49,7 @@ public class PermissionManager {
      *
      * @param self 当前登录的用户
      */
-    public Collection<UserPreview> getPreviews(WsUser self) {
+    public Collection<UserPreview> getUserPreviews(WsUser self) {
         // 消息发起者
         String suid = self.getUid();
         // 与此用户关联的所有未读消息

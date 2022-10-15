@@ -42,7 +42,7 @@ public class WebSocketEndpoint {
         this.self = userManager.join(session, config.getUserProperties());
         // 传递消息
         if (self != null) {
-            Collection<UserPreview> userList = permissionManager.getPreviews(self);
+            Collection<UserPreview> userList = permissionManager.getUserPreviews(self);
             self.send(Callback.JOIN_INIT.get(), MessageType.INIT, userList);
             // 用户加入通知
             userManager.sendAll(Callback.USER_LOGIN.format(self), MessageType.JOIN, self);
