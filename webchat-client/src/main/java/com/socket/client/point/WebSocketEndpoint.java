@@ -299,7 +299,7 @@ public class WebSocketEndpoint {
         String alias = wsmsg.getContent();
         if (permissionManager.updateAlias(target, alias)) {
             target.send(alias, MessageType.ALIAS);
-            userManager.sendAll(wsmsg.getContent(), MessageType.ALIAS, target);
+            userManager.sendAll(alias, MessageType.ALIAS, target);
         }
     }
 
