@@ -9,11 +9,12 @@
 #### 层级结构
 
 ```
-                                                      | -----------> RedisManager
----------------                                       |
-webchat-client ------------> PermissionManager -------| -----------> UserManager -----------> RedisManager
----------------                                       |
-                                                      | -----------> GroupManager
+                                              | ---> GroupManager ---------> GroupChangeLinstener 
+---------------                               |
+webchat-client -------> WebSocketEndpoint ----| ---> UserManager ----------> UserChangeLinstener
+---------------                               |
+                                              | ---> PermissionManager ----> RedisManager
+
                        |---> user
                        |
                        |---> message
