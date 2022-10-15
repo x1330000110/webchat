@@ -54,8 +54,9 @@ public class WebSocketEndpoint {
     public void onClose() {
         // 退出通知
         if (self != null) {
+            self.logout(null);
+            userManager.remove(self.getUid());
             userManager.sendAll(Callback.USER_LOGOUT.format(self), MessageType.EXIT, self);
-            userManager.remove(self, false);
         }
     }
 
@@ -275,7 +276,7 @@ public class WebSocketEndpoint {
      */
     private void forever(WsUser target) {
         target.logout(Callback.LIMIT_FOREVER.get());
-        userManager.remove(target, true);
+        userManager.remove(target.getUid());
     }
 
     /**

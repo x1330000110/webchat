@@ -58,7 +58,7 @@ public class GroupManager extends ConcurrentHashMap<SysGroup, List<String>> impl
     /**
      * 获取群组对象
      */
-    public SysGroup getSysGroup(String groupId) {
+    public SysGroup getGroup(String groupId) {
         return this.keySet().stream()
                 .filter(e -> e.getGroupId().equals(groupId))
                 .findFirst()
@@ -72,7 +72,7 @@ public class GroupManager extends ConcurrentHashMap<SysGroup, List<String>> impl
      * @return 成员
      */
     public List<String> getGroupUser(String groupId) {
-        return this.get(getSysGroup(groupId));
+        return this.get(getGroup(groupId));
     }
 
     @Override
@@ -84,7 +84,7 @@ public class GroupManager extends ConcurrentHashMap<SysGroup, List<String>> impl
                 this.put(group, new ArrayList<>());
                 break;
             case DISSOLUTION:
-                this.remove(getSysGroup(group.getGroupId()));
+                this.remove(getGroup(group.getGroupId()));
                 break;
             case JOIN:
                 getGroupUser(groupUser.getGroupId()).add(groupUser.getUid());

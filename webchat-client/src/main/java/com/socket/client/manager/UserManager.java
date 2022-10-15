@@ -111,19 +111,6 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
     }
 
     /**
-     * 移除在线用户
-     *
-     * @param user        用户信息
-     * @param deleteCache 删除缓存
-     */
-    public void remove(WsUser user, boolean deleteCache) {
-        user.logout(null);
-        if (deleteCache) {
-            this.remove(user.getUid());
-        }
-    }
-
-    /**
      * 保存聊天记录
      *
      * @param wsmsg  聊天消息

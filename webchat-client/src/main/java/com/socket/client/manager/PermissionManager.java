@@ -291,7 +291,7 @@ public class PermissionManager {
         String target = wsmsg.getTarget();
         if (wsmsg.isGroup()) {
             WsUser user = new WsUser();
-            SysGroup group = groupManager.getSysGroup(target);
+            SysGroup group = groupManager.getGroup(target);
             user.setUid(group.getGroupId());
             user.setName(group.getName());
             return user;
