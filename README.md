@@ -6,24 +6,27 @@
 
 内部包含数据安全传输模块，基于AES，RSA加密交换数据（可独立提取使用：[参考文档](https://www.zybuluo.com/1330000110/note/2172127)）。
 
-#### 系统架构
+#### 层级结构
 
 ```
----------------
-webchat-client ------------> SocketManager -----------> RedisManager
----------------
-
+                                                      | -----------> RedisManager
+---------------                                       |
+webchat-client ------------> PermissionManager -------| -----------> UserManager -----------> RedisManager
+---------------                                       |
+                                                      | -----------> GroupManager
+                       |---> user
+                       |
                        |---> message
                        |                      | ------> BaiduSpeech
 ------------           |---> resource --------| 
 webchat-core ----------|                      | ------> FTP
-------------           |---> user
+------------           |---> owner
                        |
-                       |---> login -----------> wxlogin
+                       |---> login -----------> weixinLogin
 
 
 --------------         | ---> core
-webchat-secure --------|                               | ----> MapRepeatValidator
+webchat-secure --------|                               | ----> MappedRepeatValidator
 --------------         | ---> filter ---> validator ---|
                                                        | ----> RedisRepeatValidator
 ```
