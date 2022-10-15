@@ -81,10 +81,9 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
      * @param data    附加用户信息
      */
     public void sendAll(String content, MessageType type, SysUser data) {
-        WsMsg sysmsg = new WsMsg(content, type, data);
         for (WsUser wsuser : this.values()) {
             if (!wsuser.getUid().equals(data.getUid())) {
-                wsuser.send(sysmsg);
+                wsuser.send(content, type, data);
             }
         }
     }
