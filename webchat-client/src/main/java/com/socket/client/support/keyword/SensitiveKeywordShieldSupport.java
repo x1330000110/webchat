@@ -18,7 +18,12 @@ public class SensitiveKeywordShieldSupport {
             "guer",
             "zhizhang",
             "naotan",
-            "shabi"
+            "shabi",
+            "wori",
+            "nm",
+            "sb",
+            "nt",
+            "nc"
     };
 
     /**
