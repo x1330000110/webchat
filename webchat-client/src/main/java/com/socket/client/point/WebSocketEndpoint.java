@@ -298,8 +298,8 @@ public class WebSocketEndpoint {
     private void setAlias(WsUser target, WsMsg wsmsg) {
         String alias = wsmsg.getContent();
         if (permissionManager.updateAlias(target, alias)) {
-            self.send(wsmsg);
-            groupManager.sendGroup(wsmsg, self);
+            target.send(alias, MessageType.ALIAS);
+            userManager.sendAll(wsmsg.getContent(), MessageType.ALIAS, target);
         }
     }
 
