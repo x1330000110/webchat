@@ -55,7 +55,6 @@ public class WebSocketEndpoint {
         // 退出通知
         if (self != null) {
             self.logout(null);
-            userManager.remove(self.getUid());
             userManager.sendAll(Callback.USER_LOGOUT.format(self), MessageType.EXIT, self);
         }
     }
