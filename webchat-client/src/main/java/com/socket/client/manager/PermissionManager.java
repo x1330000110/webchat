@@ -186,6 +186,12 @@ public class PermissionManager {
         return getShield(secure).contains(target.getUid());
     }
 
+    /**
+     * 获取指定用户屏蔽列表
+     *
+     * @param wsuser 用户
+     * @return 屏蔽列表
+     */
     public List<String> getShield(WsUser wsuser) {
         return redisManager.getShield(wsuser.getUid());
     }
