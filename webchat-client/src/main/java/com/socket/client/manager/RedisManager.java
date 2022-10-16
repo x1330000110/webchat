@@ -36,8 +36,8 @@ public class RedisManager {
      * @param uid  目标用户
      * @param time 时间（单位：秒）
      */
-    public void setMute(String uid, int time) {
-        int value = (int) (System.currentTimeMillis() / 1000) + time;
+    public void setMute(String uid, long time) {
+        long value = (System.currentTimeMillis() / 1000) + time;
         redisClient.set(SocketTree.MUTE.concat(uid), String.valueOf(value), time);
     }
 
@@ -47,8 +47,8 @@ public class RedisManager {
      * @param uid  目标用户
      * @param time 时间（单位：秒）
      */
-    public void setLock(String uid, int time) {
-        int value = (int) (System.currentTimeMillis() / 1000) + time;
+    public void setLock(String uid, long time) {
+        long value = (System.currentTimeMillis() / 1000) + time;
         redisClient.set(SocketTree.LOCK.concat(uid), String.valueOf(value), time);
     }
 

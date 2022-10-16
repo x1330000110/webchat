@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -230,14 +231,16 @@ public class PermissionManager {
     }
 
     /**
-     * 连续发言标记 <br>
-     * 10秒内超过一定次数会被禁止一段时间发言（忽略身份）
+     * 连续发言标记（排除所有者） <br>
+     * 10秒内超过一定次数会被禁止一段时间发言
      */
     public void operateMark(WsUser user) {
-        int time = Constants.FREQUENT_SPEECHES_MUTE_TIME;
-        if (redisManager.incrSpeak(user.getUid()) > Constants.FREQUENT_SPEECH_THRESHOLD) {
-            redisManager.setMute(user.getUid(), time);
-            user.send(Callback.BRUSH_SCREEN.format(time), MessageType.MUTE, time);
+        if (!user.isOwner()) {
+            long time = TimeUnit.HOURS.toSeconds(Constants.FREQUENT_SPEECHES_MUTE_TIME);
+            if (redisManager.incrSpeak(user.getUid()) > Constants.FREQUENT_SPEECH_THRESHOLD) {
+                redisManager.setMute(user.getUid(), time);
+                user.send(Callback.BRUSH_SCREEN.format(time), MessageType.MUTE, time);
+            }
         }
     }
 

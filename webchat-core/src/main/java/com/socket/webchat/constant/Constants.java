@@ -41,9 +41,9 @@ public interface Constants {
      */
     int FREQUENT_SPEECH_THRESHOLD = 10;
     /**
-     * 频繁发言禁言时间（单位：秒）
+     * 频繁发言禁言时间（单位：小时）
      */
-    int FREQUENT_SPEECHES_MUTE_TIME = 1800;
+    int FREQUENT_SPEECHES_MUTE_TIME = 6;
     /**
      * 允许的消息撤回时间（单位：秒）
      */
