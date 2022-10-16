@@ -17,7 +17,7 @@ import java.time.LocalDate;
  */
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 public class SysUser extends BaseModel implements Serializable {
     /**
      * 昵称
@@ -26,6 +26,7 @@ public class SysUser extends BaseModel implements Serializable {
     /**
      * 账号/用户ID
      */
+    @EqualsAndHashCode.Include
     private String uid;
     /**
      * 散列密码

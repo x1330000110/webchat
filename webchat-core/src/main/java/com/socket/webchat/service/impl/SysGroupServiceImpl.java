@@ -90,13 +90,30 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         return false;
     }
 
-    public boolean removeGroup(String owner, String groupId) {
+    public boolean dissolveGroup(String owner, String groupId) {
         LambdaUpdateWrapper<SysGroup> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(SysGroup::getGroupId, groupId);
         wrapper.eq(SysGroup::getOwner, owner);
         if (super.update(wrapper)) {
             // 推送事件
-            GroupChangeEvent event = new GroupChangeEvent(publisher, new SysGroup(), GroupOperation.DISSOLUTION);
+            GroupChangeEvent event = new GroupChangeEvent(publisher, new SysGroup(), GroupOperation.DISSOLVE);
+            publisher.publishEvent(event);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean exitGroup(String groupId, String uid) {
+        LambdaUpdateWrapper<SysGroupUser> wrapper = Wrappers.lambdaUpdate();
+        wrapper.eq(SysGroupUser::getGroupId, groupId);
+        wrapper.eq(SysGroupUser::getUid, uid);
+        wrapper.set(BaseModel::isDeleted, 1);
+        int ok = sysGroupUserMapper.update(null, wrapper);
+        if (SqlHelper.retBool(ok)) {
+            // 推送事件
+            SysGroupUser sgu = SysGroupUser.of(groupId, uid);
+            GroupChangeEvent event = new GroupChangeEvent(publisher, sgu, GroupOperation.EXIT);
             publisher.publishEvent(event);
             return true;
         }

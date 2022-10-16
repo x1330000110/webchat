@@ -32,11 +32,20 @@ public interface SysGroupService extends IService<SysGroup> {
     boolean joinGroup(String groupId, String uid);
 
     /**
-     * 移除群组
+     * 解散群组
      *
      * @param owner   所有者id
      * @param groupId 群组id
      * @return 是否成功
      */
-    boolean removeGroup(String owner, String groupId);
+    boolean dissolveGroup(String owner, String groupId);
+
+    /**
+     * 退出群组
+     *
+     * @param groupId 群组id
+     * @param uid     用户id
+     * @return 是否成功
+     */
+    boolean exitGroup(String groupId, String uid);
 }

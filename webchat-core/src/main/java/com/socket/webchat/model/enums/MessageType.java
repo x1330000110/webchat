@@ -22,6 +22,10 @@ public enum MessageType implements EnumItem<MessageType>, IEnum<String> {
      */
     EXIT,
     /**
+     * 移除群聊
+     */
+    GROUP_REMOVE,
+    /**
      * 选择用户变动事件
      */
     CHOOSE,

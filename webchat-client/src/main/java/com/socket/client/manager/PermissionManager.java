@@ -64,9 +64,9 @@ public class PermissionManager {
                 .peek(user -> this.syncUnreadMessage(user, messages, suid))
                 .collect(Collectors.toList());
         // 添加群组到列表
-        for (Map.Entry<SysGroup, List<String>> entry : groupManager.entrySet()) {
+        for (Map.Entry<SysGroup, List<WsUser>> entry : groupManager.entrySet()) {
             SysGroup group = entry.getKey();
-            List<String> uids = entry.getValue();
+            List<String> uids = entry.getValue().stream().map(SysUser::getUid).collect(Collectors.toList());
             // 需要在群里
             if (uids.contains(suid)) {
                 UserPreview preview = new UserPreview();

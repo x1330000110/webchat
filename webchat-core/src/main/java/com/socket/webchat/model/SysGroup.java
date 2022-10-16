@@ -6,8 +6,8 @@ import lombok.EqualsAndHashCode;
 /**
  * 群组信息
  */
-@EqualsAndHashCode(callSuper = true)
 @Data
+@EqualsAndHashCode(callSuper = true, onlyExplicitlyIncluded = true)
 public class SysGroup extends BaseModel {
     /**
      * 群组id

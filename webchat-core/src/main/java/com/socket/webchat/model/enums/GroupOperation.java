@@ -11,13 +11,17 @@ public enum GroupOperation {
     /**
      * 移除群组
      */
-    DISSOLUTION,
+    DISSOLVE,
     /**
-     * 加入用户
+     * 加入群组
      */
     JOIN,
     /**
+     * 退出群组
+     */
+    EXIT,
+    /**
      * 移除用户
      */
-    DELETE
+    DELETE;
 }

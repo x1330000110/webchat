@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class GroupManager extends ConcurrentHashMap<SysGroup, List<String>> implements InitializingBean, GroupChangeLinstener {
+public class GroupManager extends ConcurrentHashMap<SysGroup, List<WsUser>> implements InitializingBean, GroupChangeLinstener {
     private final SysGroupUserMapper sysGroupUserMapper;
     private final SysGroupMapper sysGroupMapper;
     private final UserManager userManager;
@@ -45,13 +45,14 @@ public class GroupManager extends ConcurrentHashMap<SysGroup, List<String>> impl
         List<String> list = Arrays.asList(exclude);
         String uid = sender.getUid();
         // 向群内所有人发送消息
-        for (String tuid : getGroupUser(wsmsg.getTarget())) {
+        for (WsUser target : getGroupUser(wsmsg.getTarget())) {
             // 过滤自己 || 已屏蔽
+            String tuid = target.getUid();
             if (uid.equals(tuid) || list.contains(tuid)) {
                 continue;
             }
             // 发送
-            userManager.getUser(tuid).send(wsmsg);
+            target.send(wsmsg);
         }
     }
 
@@ -71,7 +72,7 @@ public class GroupManager extends ConcurrentHashMap<SysGroup, List<String>> impl
      * @param groupId 群组id
      * @return 成员
      */
-    public List<String> getGroupUser(String groupId) {
+    public List<WsUser> getGroupUser(String groupId) {
         return this.get(getGroup(groupId));
     }
 
@@ -83,14 +84,17 @@ public class GroupManager extends ConcurrentHashMap<SysGroup, List<String>> impl
             case CREATE:
                 this.put(group, new ArrayList<>());
                 break;
-            case DISSOLUTION:
+            case DISSOLVE:
                 this.remove(getGroup(group.getGroupId()));
                 break;
             case JOIN:
-                getGroupUser(groupUser.getGroupId()).add(groupUser.getUid());
+
+                getGroupUser(groupUser.getGroupId()).add(userManager.getUser(groupUser.getUid()));
                 break;
             case DELETE:
-                getGroupUser(groupUser.getGroupId()).remove(groupUser.getUid());
+                userManager.getUser(groupUser.getUid()).send("您已被管理员移除群聊", MessageType.GROUP_REMOVE);
+            case EXIT:
+                getGroupUser(groupUser.getGroupId()).remove(userManager.getUser(groupUser.getUid()));
                 break;
             default:
                 // ignore
@@ -103,9 +107,10 @@ public class GroupManager extends ConcurrentHashMap<SysGroup, List<String>> impl
         List<SysGroup> sysGroups = sysGroupMapper.selectList(Wrappers.emptyWrapper());
         List<SysGroupUser> groupthis = sysGroupUserMapper.selectList(Wrappers.emptyWrapper());
         for (SysGroup group : sysGroups) {
-            List<String> collect = groupthis.stream()
+            List<WsUser> collect = groupthis.stream()
                     .filter(e -> e.getGroupId().equals(group.getGroupId()))
                     .map(SysGroupUser::getUid)
+                    .map(userManager::getUser)
                     .collect(Collectors.toList());
             this.put(group, collect);
         }
