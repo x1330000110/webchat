@@ -64,13 +64,13 @@ public class SecureCore {
         // Mark this current time
         long timestamp = System.currentTimeMillis();
         String signature = generateSignature(pubkey, timestamp);
-        data.put(signature, pubkey);
         // Write random data
         for (int i = 0; i < count; i++) {
             String name = Randoms.randomHex(signature.length());
             byte[] bytes = Randoms.randomBytes(pubkey.length);
             data.put(name, bytes);
         }
+        data.put(signature, pubkey);
         // Write compressed file
         try (ZipOutputStream zip = new ZipOutputStream(stream)) {
             zip.setLevel(Deflater.BEST_COMPRESSION);
