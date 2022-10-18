@@ -3,6 +3,7 @@ package com.socket.webchat.custom.cilent;
 import cn.hutool.core.io.IORuntimeException;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.extra.ftp.Ftp;
+import cn.hutool.extra.ftp.FtpException;
 import cn.hutool.extra.ftp.FtpMode;
 import com.socket.webchat.constant.properties.FTPProperties;
 import com.socket.webchat.model.FTPFile;
@@ -130,7 +131,7 @@ public class FTPClient {
                     ftp.delFile(path);
                 }
             });
-        } catch (IOException | IORuntimeException e) {
+        } catch (IOException | IORuntimeException | FtpException e) {
             log.warn(e.getMessage());
         }
     }
