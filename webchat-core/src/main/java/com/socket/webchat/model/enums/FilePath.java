@@ -21,7 +21,7 @@ public enum FilePath implements IEnum<String> {
     /**
      * 视频/文件
      */
-    BLOB(0x6400000);
+    BLOB(0x1E00000);
 
     private final String directory;
     private final int size;
