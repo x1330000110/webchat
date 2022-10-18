@@ -5,14 +5,17 @@ import cn.hutool.core.img.ImgUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.qrcode.QrCodeUtil;
 import cn.hutool.extra.qrcode.QrConfig;
+import cn.hutool.http.HttpRequest;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.webchat.constant.Constants;
+import com.socket.webchat.custom.cilent.FTPClient;
 import com.socket.webchat.custom.cilent.RedisClient;
 import com.socket.webchat.exception.AccountException;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.WxUser;
 import com.socket.webchat.model.condition.LoginCondition;
+import com.socket.webchat.model.enums.FilePath;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.request.WxAuth2Request;
 import com.socket.webchat.service.SysGroupService;
@@ -22,7 +25,6 @@ import com.socket.webchat.util.Assert;
 import com.socket.webchat.util.Bcrypt;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletResponse;
@@ -37,10 +39,10 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class WxloginServiceImpl implements WxloginService {
     private final RedisClient<String> redisClient;
-    private final ApplicationEventPublisher publisher;
     private final SysGroupService sysGroupService;
     private final WxAuth2Request wxAuth2Request;
     private final SysUserService sysUserService;
+    private final FTPClient ftpClient;
 
     @Override
     public SysUser authorize(String code, String uuid) {
@@ -58,6 +60,13 @@ public class WxloginServiceImpl implements WxloginService {
                 BeanUtil.copyProperties(wxuser, user);
                 user.setName(StrUtil.sub(wxuser.getNickname(), 0, 6));
                 user.setHash(Bcrypt.digest(Constants.WX_DEFAULT_PASSWORD));
+                // 由于客户端规范变动 无法直接使用第三方URL作为头像
+                String headimgurl = wxuser.getHeadimgurl();
+                if (StrUtil.isNotEmpty(headimgurl)) {
+                    byte[] bytes = HttpRequest.get(headimgurl).execute().bodyBytes();
+                    String mapping = ftpClient.upload(FilePath.IMAGE, bytes).getMapping();
+                    user.setHeadimgurl(mapping);
+                }
                 sysUserService.save(user);
                 // 加入默认群组
                 sysGroupService.joinGroup(Constants.GROUP, user.getUid());
