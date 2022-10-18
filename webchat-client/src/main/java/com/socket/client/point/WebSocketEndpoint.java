@@ -216,7 +216,9 @@ public class WebSocketEndpoint {
             }
             return;
         }
-        self.send(Callback.WITHDRAW_FAILURE.get(), MessageType.WARNING, Constants.WITHDRAW_TIME);
+        // 撤回失败通知
+        final int withdrawTime = Constants.WITHDRAW_TIME;
+        self.send(Callback.WITHDRAW_FAILURE.format(withdrawTime), MessageType.WARNING, Constants.WITHDRAW_TIME);
     }
 
     /**
