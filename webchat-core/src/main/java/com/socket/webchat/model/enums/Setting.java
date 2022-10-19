@@ -17,7 +17,11 @@ public enum Setting {
     /**
      * 全员禁言
      */
-    ALL_MUTE;
+    ALL_MUTE,
+    /**
+     * 重启服务器（同步缓存）
+     */
+    RESTART_SERVER;
 
     @Getter
     private final String key;

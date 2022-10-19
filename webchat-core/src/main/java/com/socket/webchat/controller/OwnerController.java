@@ -11,6 +11,7 @@ import com.socket.webchat.model.condition.MessageCondition;
 import com.socket.webchat.model.condition.SettingCondition;
 import com.socket.webchat.model.condition.UserCondition;
 import com.socket.webchat.model.enums.HttpStatus;
+import com.socket.webchat.model.enums.Setting;
 import com.socket.webchat.service.RecordService;
 import com.socket.webchat.service.SysUserService;
 import com.socket.webchat.util.Assert;
@@ -51,6 +52,12 @@ public class OwnerController {
         // 所有者可直接移除消息
         boolean state = recordService.remove(wrapper);
         return HttpStatus.of(state, "操作成功", "找不到相关记录");
+    }
+
+    @PostMapping("/restartServer")
+    public HttpStatus restartServer() {
+        settingSupport.switchSetting(Setting.RESTART_SERVER);
+        return HttpStatus.SUCCESS.body();
     }
 
     @PostMapping("/switchSetting")
