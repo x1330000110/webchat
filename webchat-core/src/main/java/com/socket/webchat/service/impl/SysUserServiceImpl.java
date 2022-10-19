@@ -56,9 +56,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final ApplicationEventPublisher publisher;
     private final SysUserLogMapper sysUserLogMapper;
     private final SysGroupService sysGroupService;
-    private final RedisClient<Object> redisClient;
     private final QQAccountRequest qqAccountRequest;
-    private final FTPClient client;
+    private final RedisClient<Object> redis;
+    private final FTPClient ftp;
     private final Email sender;
 
     @Override
@@ -74,10 +74,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 Assert.notNull(email, "找不到指定账号", UnknownAccountException::new);
             }
             String key = RedisTree.EMAIL.concat(email);
-            Object redisCode = redisClient.get(key);
+            Object redisCode = redis.get(key);
             Assert.equals(redisCode, code, "验证码不正确", AccountException::new);
             Requests.set(Constants.OFFSITE);
-            redisClient.remove(key);
+            redis.remove(key);
         }
         // shiro登录
         SecurityUtils.getSubject().login(new UsernamePasswordToken(uid, condition.getPass(), condition.isAuto()));
@@ -89,8 +89,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     public void register(RegisterCondition condition) {
         // 验证邮箱
         String key = RedisTree.EMAIL.concat(condition.getEmail());
-        Assert.equals(condition.getCode(), redisClient.get(key), "验证码不正确", IllegalStateException::new);
-        redisClient.remove(key);
+        Assert.equals(condition.getCode(), redis.get(key), "验证码不正确", IllegalStateException::new);
+        redis.remove(key);
         // 注册
         SysUser user = SysUser.buildNewUser();
         String email = condition.getEmail();
@@ -102,7 +102,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             String qq = StrUtil.subBefore(email, "@", false);
             user.setName(qqAccountRequest.getNackName(qq));
             // 头像转存FTP
-            FTPFile upload = client.upload(FilePath.IMAGE, qqAccountRequest.getHeadimg(qq));
+            FTPFile upload = ftp.upload(FilePath.IMAGE, qqAccountRequest.getHeadimg(qq));
             user.setHeadimgurl(upload.getMapping());
         }
         super.save(user);
@@ -127,17 +127,17 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
         // 检查重复发送间隔
         String etk = RedisTree.EMAIL_TEMP.concat(email);
-        Assert.isFalse(redisClient.exist(etk), "验证码发送过于频繁", IllegalStateException::new);
-        redisClient.set(etk, -1, Constants.EMAIL_SENDING_INTERVAL);
+        Assert.isFalse(redis.exist(etk), "验证码发送过于频繁", IllegalStateException::new);
+        redis.set(etk, -1, Constants.EMAIL_SENDING_INTERVAL);
         // 检查发送次数上限
         String elk = RedisTree.EMAIL_LIMIT.concat(email);
-        long count = redisClient.incr(elk, 1, Constants.EMAIL_LIMIT_SENDING_INTERVAL, TimeUnit.HOURS);
+        long count = redis.incr(elk, 1, Constants.EMAIL_LIMIT_SENDING_INTERVAL, TimeUnit.HOURS);
         Assert.isTrue(count <= 3, "该账号验证码每日发送次数已达上限", IllegalStateException::new);
         // 发送邮件
         String code = sender.send(email);
         // 保存到redis 10分钟
         etk = RedisTree.EMAIL.concat(email);
-        redisClient.set(etk, code, Constants.EMAIL_CODE_VALID_TIME, TimeUnit.MINUTES);
+        redis.set(etk, code, Constants.EMAIL_CODE_VALID_TIME, TimeUnit.MINUTES);
         return DesensitizedUtil.email(email);
     }
 
@@ -151,12 +151,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             email = user.getEmail();
         }
         String key = RedisTree.EMAIL.concat(email);
-        String code = redisClient.get(key);
+        String code = redis.get(key);
         Assert.equals(code, condition.getCode(), "邮箱验证码不正确", IllegalStateException::new);
         // 通过邮箱修改密码
         wrapper.eq(SysUser::getEmail, email);
         wrapper.set(SysUser::getHash, Bcrypt.digest(condition.getPassword()));
-        redisClient.remove(key);
+        redis.remove(key);
         return super.update(wrapper);
     }
 
@@ -197,7 +197,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         Img.from(scale).setTargetImageType(ImgUtil.IMAGE_TYPE_PNG).write(bos);
         // 图片映射地址
-        String path = client.upload(FilePath.IMAGE, bos.toByteArray()).getMapping();
+        String path = ftp.upload(FilePath.IMAGE, bos.toByteArray()).getMapping();
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(SysUser::getUid, Wss.getUserId());
         wrapper.set(SysUser::getHeadimgurl, path);
@@ -213,7 +213,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         SysUser user = Wss.getUser();
         String selfemail = user.getEmail();
         if (StrUtil.isNotEmpty(selfemail)) {
-            String selfcode = redisClient.get(RedisTree.EMAIL.concat(selfemail));
+            String selfcode = redis.get(RedisTree.EMAIL.concat(selfemail));
             // 对比验证码
             Assert.equals(selfcode, condition.getSelfcode(), "原邮箱验证码不正确", IllegalStateException::new);
         }
@@ -222,7 +222,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(SysUser::getEmail, newemail);
         Assert.isNull(this.get(wrapper), "该邮箱已被其他账号绑定", IllegalStateException::new);
-        String newcode = redisClient.get(RedisTree.EMAIL.concat(newemail));
+        String newcode = redis.get(RedisTree.EMAIL.concat(newemail));
         Assert.equals(newcode, condition.getNewcode(), "新邮箱验证码不正确", IllegalStateException::new);
         // 更新邮箱
         wrapper.clear();

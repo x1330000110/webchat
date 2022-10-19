@@ -42,7 +42,7 @@ import java.util.Optional;
 public class CustomRealm extends AuthorizingRealm {
     private final SysUserLogMapper sysUserLogMapper;
     private final SysUserMapper sysUserMapper;
-    private final RedisClient<?> redisClient;
+    private final RedisClient<?> redis;
 
     /**
      * 权限认证
@@ -135,7 +135,7 @@ public class CustomRealm extends AuthorizingRealm {
      * 验证登录限制
      */
     private void checkLimit(String uid) {
-        long time = redisClient.getExpired(RedisTree.LOCK.concat(uid));
+        long time = redis.getExpired(RedisTree.LOCK.concat(uid));
         if (time > 0) {
             throw new AccountException("您已被限制登录，预计剩余" + Wss.universal(time));
         }

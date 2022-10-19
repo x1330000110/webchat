@@ -46,14 +46,14 @@ import java.util.stream.Collectors;
 public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRecordFile> implements UploadService {
     private final BaiduSpeechRequest baiduSpeechRequest;
     private final ChatRecordMapper chatRecordMapper;
-    private final FTPClient client;
+    private final FTPClient ftp;
 
     @Override
     public String upload(FileCondition condition, FilePath path) throws IOException {
         // 检查散列
         String digest = condition.getDigest();
         if (StrUtil.isNotEmpty(digest)) {
-            Assert.isTrue(client.existFile(path, digest), "NOT FOUND", UploadException::new);
+            Assert.isTrue(ftp.existFile(path, digest), "NOT FOUND", UploadException::new);
             // 查找文件
             FTPFile cache = new FTPFile(path, digest);
             LambdaQueryWrapper<ChatRecordFile> wrapper = new LambdaQueryWrapper<>();
@@ -70,7 +70,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         Assert.isTrue(size != 0, "无效的文件", UploadException::new);
         Assert.isTrue(size < path.getSize(), "文件大小超过限制", UploadException::new);
         // 上传文件获取路径
-        FTPFile file = client.upload(path, blob.getBytes());
+        FTPFile file = ftp.upload(path, blob.getBytes());
         // 记录文件
         super.save(new ChatRecordFile(condition.getMid(), file, size));
         return file.getMapping();
@@ -104,7 +104,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
 
     @Override
     public <T extends OutputStream> T writeStream(FilePath path, String hash, T stream) {
-        return client.download(path, hash, stream);
+        return ftp.download(path, hash, stream);
     }
 
     @Override
@@ -135,6 +135,6 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
                 .filter(e -> !noexpired.contains(e.getHash()))
                 .collect(Collectors.toMap(ChatRecordFile::getHash, ChatRecordFile::getPath, (a, b) -> a));
         // 删除过期文件
-        client.deleteFiles(collect);
+        ftp.deleteFiles(collect);
     }
 }

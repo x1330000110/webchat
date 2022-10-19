@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord> implements RecordService {
     private final ChatRecordDeletedMapper chatRecordDeletedMapper;
     private final ChatRecordOffsetMapper chatRecordOffsetMapper;
-    private final RedisClient<?> redisClient;
+    private final RedisClient<?> redis;
 
     @KafkaListener(topics = Constants.KAFKA_RECORD)
     public void saveRecord(ConsumerRecord<String, String> data) {
@@ -202,7 +202,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         wrapper.set(ChatRecord::isUnread, false);
         super.update(wrapper);
         // 清空redis计数器
-        redisClient.remove(RedisTree.UNREAD.concat(uid));
+        redis.remove(RedisTree.UNREAD.concat(uid));
     }
 
     @Override

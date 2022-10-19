@@ -38,11 +38,11 @@ import java.io.IOException;
 @Service
 @RequiredArgsConstructor
 public class WxloginServiceImpl implements WxloginService {
-    private final RedisClient<String> redisClient;
     private final SysGroupService sysGroupService;
     private final WxAuth2Request wxAuth2Request;
     private final SysUserService sysUserService;
-    private final FTPClient ftpClient;
+    private final RedisClient<String> redis;
+    private final FTPClient ftp;
 
     @Override
     public SysUser authorize(String code, String uuid) {
@@ -50,7 +50,7 @@ public class WxloginServiceImpl implements WxloginService {
         Assert.notNull(wxuser.getOpenid(), "无效的openId", AccountException::new);
         String key = RedisTree.WXUUID.concat(uuid);
         // 二维码过期判断
-        if (redisClient.exist(key)) {
+        if (redis.exist(key)) {
             // 检查用户数据 不存在将被注册
             LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
             wrapper.eq(SysUser::getOpenid, wxuser.getOpenid());
@@ -64,7 +64,7 @@ public class WxloginServiceImpl implements WxloginService {
                 String headimgurl = wxuser.getHeadimgurl();
                 if (StrUtil.isNotEmpty(headimgurl)) {
                     byte[] bytes = HttpRequest.get(headimgurl).execute().bodyBytes();
-                    String mapping = ftpClient.upload(FilePath.IMAGE, bytes).getMapping();
+                    String mapping = ftp.upload(FilePath.IMAGE, bytes).getMapping();
                     user.setHeadimgurl(mapping);
                 }
                 sysUserService.save(user);
@@ -72,7 +72,7 @@ public class WxloginServiceImpl implements WxloginService {
                 sysGroupService.joinGroup(Constants.GROUP, user.getUid());
             }
             // 设置用户UID到Redis
-            return redisClient.setIfPresent(key, user.getUid(), Constants.QR_CODE_EXPIRATION_TIME) ? user : null;
+            return redis.setIfPresent(key, user.getUid(), Constants.QR_CODE_EXPIRATION_TIME) ? user : null;
         }
         return null;
     }
@@ -80,7 +80,7 @@ public class WxloginServiceImpl implements WxloginService {
     @Override
     public boolean login(String uuid) {
         String key = RedisTree.WXUUID.concat(uuid);
-        String uid = redisClient.get(key);
+        String uid = redis.get(key);
         // key不存在（已过期）
         Assert.notNull(uid, "二维码已过期", AccountException::new);
         // 检查value是否被赋值[uid]
@@ -88,7 +88,7 @@ public class WxloginServiceImpl implements WxloginService {
             return false;
         }
         sysUserService.login(new LoginCondition(uid, Constants.WX_DEFAULT_PASSWORD));
-        return redisClient.remove(key);
+        return redis.remove(key);
     }
 
     @Override
@@ -104,7 +104,7 @@ public class WxloginServiceImpl implements WxloginService {
 
     @Override
     public String getWxFastUrl(String uuid) {
-        redisClient.set(RedisTree.WXUUID.concat(uuid), StrUtil.EMPTY, Constants.QR_CODE_EXPIRATION_TIME);
+        redis.set(RedisTree.WXUUID.concat(uuid), StrUtil.EMPTY, Constants.QR_CODE_EXPIRATION_TIME);
         return wxAuth2Request.getWxLoginURL(uuid);
     }
 }
