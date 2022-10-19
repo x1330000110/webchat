@@ -29,6 +29,7 @@ import com.socket.webchat.model.condition.RegisterCondition;
 import com.socket.webchat.model.enums.FilePath;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.model.enums.UserOperation;
+import com.socket.webchat.request.QQAccountRequest;
 import com.socket.webchat.service.SysGroupService;
 import com.socket.webchat.service.SysUserService;
 import com.socket.webchat.util.*;
@@ -55,8 +56,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final SysUserLogMapper sysUserLogMapper;
     private final SysGroupService sysGroupService;
     private final RedisClient<Object> redisClient;
+    private final QQAccountRequest qqAccountRequest;
     private final FTPClient client;
     private final Email sender;
+    private FTPClient ftpClient;
 
     @Override
     public void login(LoginCondition condition) {
@@ -90,9 +93,18 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         redisClient.remove(key);
         // 注册
         SysUser user = SysUser.newUser();
+        String email = condition.getEmail();
         user.setName("用户" + user.getUid());
-        user.setEmail(condition.getEmail());
+        user.setEmail(email);
         user.setHash(Bcrypt.digest(condition.getPass()));
+        // 如果是QQ邮箱 同步昵称和头像
+        if (email.toLowerCase().endsWith("qq.com")) {
+            String qq = StrUtil.subBefore(email, "@", false);
+            user.setName(qqAccountRequest.getNackName(qq));
+            // 头像转存FTP
+            byte[] bytes = qqAccountRequest.getHeadimg(qq);
+            user.setHeadimgurl(ftpClient.upload(FilePath.IMAGE, bytes).getMapping());
+        }
         super.save(user);
         // 加入默认群组
         sysGroupService.joinGroup(Constants.GROUP, user.getUid());
