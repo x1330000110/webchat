@@ -69,7 +69,11 @@ public class FTPClient {
     public FTPFile upload(FilePath path, String name, InputStream stream) {
         FTPFile file = new FTPFile(path, name);
         try (Ftp ftp = getClient()) {
-            if (ftp.existFile(file.getPath()) || ftp.upload(path.getDirectory(), name, stream)) {
+            boolean exist = ftp.existFile(file.getPath());
+            if (exist || ftp.upload(path.getDirectory(), name, stream)) {
+                if (!exist) {
+                    log.info("upload file {}", file.getPath());
+                }
                 return file;
             }
         } catch (IOException | IORuntimeException e) {

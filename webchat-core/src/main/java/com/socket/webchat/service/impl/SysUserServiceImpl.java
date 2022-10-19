@@ -20,6 +20,7 @@ import com.socket.webchat.exception.AccountException;
 import com.socket.webchat.exception.UploadException;
 import com.socket.webchat.mapper.SysUserLogMapper;
 import com.socket.webchat.mapper.SysUserMapper;
+import com.socket.webchat.model.FTPFile;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.SysUserLog;
 import com.socket.webchat.model.condition.EmailCondition;
@@ -59,7 +60,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final QQAccountRequest qqAccountRequest;
     private final FTPClient client;
     private final Email sender;
-    private FTPClient ftpClient;
 
     @Override
     public void login(LoginCondition condition) {
@@ -92,7 +92,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         Assert.equals(condition.getCode(), redisClient.get(key), "验证码不正确", IllegalStateException::new);
         redisClient.remove(key);
         // 注册
-        SysUser user = SysUser.newUser();
+        SysUser user = SysUser.buildNewUser();
         String email = condition.getEmail();
         user.setName("用户" + user.getUid());
         user.setEmail(email);
@@ -102,8 +102,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             String qq = StrUtil.subBefore(email, "@", false);
             user.setName(qqAccountRequest.getNackName(qq));
             // 头像转存FTP
-            byte[] bytes = qqAccountRequest.getHeadimg(qq);
-            user.setHeadimgurl(ftpClient.upload(FilePath.IMAGE, bytes).getMapping());
+            FTPFile upload = client.upload(FilePath.IMAGE, qqAccountRequest.getHeadimg(qq));
+            user.setHeadimgurl(upload.getMapping());
         }
         super.save(user);
         // 加入默认群组

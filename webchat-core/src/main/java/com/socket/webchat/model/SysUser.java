@@ -76,7 +76,7 @@ public class SysUser extends BaseModel implements Serializable {
     /**
      * 创建用户
      */
-    public static SysUser newUser() {
+    public static SysUser buildNewUser() {
         return new SysUser().setRole(UserRole.USER).setUid(RandomUtil.randomNumbers(6));
     }
 

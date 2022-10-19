@@ -56,7 +56,7 @@ public class WxloginServiceImpl implements WxloginService {
             wrapper.eq(SysUser::getOpenid, wxuser.getOpenid());
             SysUser user = sysUserService.getOne(wrapper);
             if (user == null) {
-                user = SysUser.newUser();
+                user = SysUser.buildNewUser();
                 BeanUtil.copyProperties(wxuser, user);
                 user.setName(StrUtil.sub(wxuser.getNickname(), 0, 6));
                 user.setHash(Bcrypt.digest(Constants.WX_DEFAULT_PASSWORD));
