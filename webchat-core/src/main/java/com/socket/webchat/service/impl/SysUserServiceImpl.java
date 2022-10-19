@@ -126,18 +126,18 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             Assert.notEmpty(email, "该账号未绑定邮箱信息", IllegalStateException::new);
         }
         // 检查重复发送间隔
-        String key = RedisTree.EMAIL_TEMP.concat(email);
-        Assert.isFalse(redisClient.exist(key), "验证码发送过于频繁", IllegalStateException::new);
+        String etk = RedisTree.EMAIL_TEMP.concat(email);
+        Assert.isFalse(redisClient.exist(etk), "验证码发送过于频繁", IllegalStateException::new);
+        redisClient.set(etk, -1, Constants.EMAIL_SENDING_INTERVAL);
         // 检查发送次数上限
-        key = RedisTree.EMAIL_LIMIT.concat(email);
-        long count = redisClient.incr(key, 1, Constants.EMAIL_LIMIT_SENDING_INTERVAL, TimeUnit.HOURS);
+        String elk = RedisTree.EMAIL_LIMIT.concat(email);
+        long count = redisClient.incr(elk, 1, Constants.EMAIL_LIMIT_SENDING_INTERVAL, TimeUnit.HOURS);
         Assert.isTrue(count <= 3, "该账号验证码每日发送次数已达上限", IllegalStateException::new);
-        redisClient.set(key, -1, Constants.EMAIL_SENDING_INTERVAL);
         // 发送邮件
         String code = sender.send(email);
         // 保存到redis 10分钟
-        key = RedisTree.EMAIL.concat(email);
-        redisClient.set(key, code, Constants.EMAIL_CODE_VALID_TIME, TimeUnit.MINUTES);
+        etk = RedisTree.EMAIL.concat(email);
+        redisClient.set(etk, code, Constants.EMAIL_CODE_VALID_TIME, TimeUnit.MINUTES);
         return DesensitizedUtil.email(email);
     }
 
