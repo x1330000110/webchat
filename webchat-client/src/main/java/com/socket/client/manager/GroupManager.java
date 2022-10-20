@@ -88,8 +88,11 @@ public class GroupManager extends ConcurrentHashMap<SysGroup, List<WsUser>> impl
                 this.remove(getGroup(group.getGroupId()));
                 break;
             case JOIN:
-
-                getGroupUser(groupUser.getGroupId()).add(userManager.getUser(groupUser.getUid()));
+                String uid = groupUser.getUid(), gid = groupUser.getGroupId();
+                SysGroup sysGroup = getGroup(gid);
+                WsUser user = userManager.getUser(uid);
+                getGroupUser(gid).add(user);
+                user.send("您已成功加入 " + sysGroup.getName(), MessageType.JOIN_GROUP);
                 break;
             case DELETE:
                 userManager.getUser(groupUser.getUid()).send("您已被管理员移除群聊", MessageType.GROUP_REMOVE);
