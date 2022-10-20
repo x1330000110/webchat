@@ -1,10 +1,7 @@
 package com.socket.webchat.request;
 
-import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpRequest;
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
 import org.springframework.stereotype.Component;
 
 /**
@@ -12,7 +9,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class QQAccountRequest {
-    private static final String NACKNAME = "https://users.qzone.qq.com/fcg-bin/cgi_get_portrait.fcg?uins={}";
+    private static final String NACKNAME = "https://v.api.aa1.cn/api/qqnicheng/index.php?qq={}";
     private static final String HEADIMG = "https://q2.qlogo.cn/headimg_dl?dst_uin={}&spec=100";
 
     /**
@@ -20,13 +17,7 @@ public class QQAccountRequest {
      */
     public String getNackName(String qq) {
         String body = HttpRequest.get(StrUtil.format(NACKNAME, qq)).execute().body();
-        try {
-            String s = ReUtil.findAllGroup1("\\w+\\((.+)\\)", body).get(0);
-            JSONObject object = JSONUtil.parseObj(s);
-            return JSONUtil.parseArray(object.values().iterator().next()).get(6).toString();
-        } catch (Exception e) {
-            return null;
-        }
+        return body.replaceFirst("QQ昵称：", "");
     }
 
     /**
