@@ -112,7 +112,11 @@ public enum MessageType implements EnumItem<MessageType>, IEnum<String> {
     /**
      * 消息已读标记
      */
-    READ;
+    READ,
+    /**
+     * 加入群组
+     */
+    JOIN_GROUP;
 
     private final String name;
     private String preview;
