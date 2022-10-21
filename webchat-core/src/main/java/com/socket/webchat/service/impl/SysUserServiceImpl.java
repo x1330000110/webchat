@@ -100,7 +100,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 如果是QQ邮箱 同步昵称和头像
         if (email.toLowerCase().endsWith("qq.com")) {
             String qq = StrUtil.subBefore(email, "@", false);
-            user.setName(qqAccountRequest.getNackName(qq));
+            user.setName(StrUtil.sub(qqAccountRequest.getNackName(qq), 0, 6));
             // 头像转存FTP
             FTPFile upload = ftp.upload(FilePath.IMAGE, qqAccountRequest.getHeadimg(qq));
             user.setHeadimgurl(upload.getMapping());
