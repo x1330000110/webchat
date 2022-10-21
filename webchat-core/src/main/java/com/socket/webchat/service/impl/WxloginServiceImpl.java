@@ -58,7 +58,7 @@ public class WxloginServiceImpl implements WxloginService {
             if (user == null) {
                 user = SysUser.buildNewUser();
                 BeanUtil.copyProperties(wxuser, user);
-                user.setName(StrUtil.sub(wxuser.getNickname(), 0, 6));
+                user.setName(StrUtil.sub(wxuser.getNickname(), 0, 6).trim());
                 user.setHash(Bcrypt.digest(Constants.WX_DEFAULT_PASSWORD));
                 // 由于客户端规范变动 无法直接使用第三方URL作为头像
                 String headimgurl = wxuser.getHeadimgurl();
