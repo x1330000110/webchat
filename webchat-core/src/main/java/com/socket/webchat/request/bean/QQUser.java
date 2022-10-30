@@ -1,4 +1,4 @@
-package com.socket.webchat.model;
+package com.socket.webchat.request.bean;
 
 import lombok.Data;
 

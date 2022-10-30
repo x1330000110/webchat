@@ -3,7 +3,7 @@ package com.socket.webchat.request;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONUtil;
-import com.socket.webchat.model.QQUser;
+import com.socket.webchat.request.bean.QQUser;
 import org.springframework.stereotype.Component;
 
 /**

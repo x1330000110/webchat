@@ -5,7 +5,7 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.socket.webchat.constant.properties.WxProperties;
-import com.socket.webchat.model.WxUser;
+import com.socket.webchat.request.bean.WxUser;
 import com.socket.webchat.util.Assert;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;

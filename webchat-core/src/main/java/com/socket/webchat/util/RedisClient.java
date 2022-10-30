@@ -1,4 +1,4 @@
-package com.socket.webchat.custom.cilent;
+package com.socket.webchat.util;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.core.RedisTemplate;

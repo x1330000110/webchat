@@ -4,13 +4,13 @@ import cn.hutool.core.codec.Base64;
 import cn.hutool.http.ContentType;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.constant.properties.WxProperties;
-import com.socket.webchat.custom.cilent.RedisClient;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.request.WeChatRedirect;
 import com.socket.webchat.service.WxloginService;
 import com.socket.webchat.util.RedirectUtil;
+import com.socket.webchat.util.RedisClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

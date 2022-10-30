@@ -1,8 +1,8 @@
 package com.socket.webchat.custom.support;
 
-import com.socket.webchat.custom.cilent.RedisClient;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.model.enums.Setting;
+import com.socket.webchat.util.RedisClient;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.support.collections.RedisMap;

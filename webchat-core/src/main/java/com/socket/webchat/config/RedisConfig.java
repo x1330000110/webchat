@@ -1,6 +1,6 @@
 package com.socket.webchat.config;
 
-import com.socket.webchat.custom.cilent.RedisClient;
+import com.socket.webchat.util.RedisClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;

@@ -1,4 +1,4 @@
-package com.socket.webchat.custom.cilent;
+package com.socket.webchat.custom.ftp;
 
 import cn.hutool.core.io.IORuntimeException;
 import cn.hutool.crypto.SecureUtil;
@@ -6,7 +6,6 @@ import cn.hutool.extra.ftp.Ftp;
 import cn.hutool.extra.ftp.FtpException;
 import cn.hutool.extra.ftp.FtpMode;
 import com.socket.webchat.constant.properties.FTPProperties;
-import com.socket.webchat.model.FTPFile;
 import com.socket.webchat.model.enums.FilePath;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
