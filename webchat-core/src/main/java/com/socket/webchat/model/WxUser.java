@@ -35,8 +35,4 @@ public class WxUser implements Serializable {
      * 性别
      */
     private Integer sex;
-
-    public String getCity() {
-        return province.isEmpty() || city.isEmpty() ? "" : province + "-" + city;
-    }
 }

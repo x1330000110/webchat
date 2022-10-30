@@ -8,6 +8,7 @@ import cn.hutool.core.lang.Opt;
 import cn.hutool.core.lang.Validator;
 import cn.hutool.core.util.DesensitizedUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.HttpRequest;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -21,6 +22,7 @@ import com.socket.webchat.exception.UploadException;
 import com.socket.webchat.mapper.SysUserLogMapper;
 import com.socket.webchat.mapper.SysUserMapper;
 import com.socket.webchat.model.FTPFile;
+import com.socket.webchat.model.QQUser;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.SysUserLog;
 import com.socket.webchat.model.condition.EmailCondition;
@@ -100,10 +102,16 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 如果是QQ邮箱 同步昵称和头像
         if (email.toLowerCase().endsWith("qq.com")) {
             String qq = StrUtil.subBefore(email, "@", false);
-            user.setName(StrUtil.sub(qqAccountRequest.getNackName(qq), 0, 6).trim());
-            // 头像转存FTP
-            FTPFile upload = ftp.upload(FilePath.IMAGE, qqAccountRequest.getHeadimg(qq));
-            user.setHeadimgurl(upload.getMapping());
+            QQUser info = qqAccountRequest.getInfo(qq);
+            if (info != null) {
+                if (!info.getName().isEmpty()) {
+                    user.setName(StrUtil.sub(info.getName().trim(), 0, 6));
+                }
+                // 头像转存FTP
+                byte[] bytes = HttpRequest.get(info.getImg()).execute().bodyBytes();
+                FTPFile upload = ftp.upload(FilePath.IMAGE, bytes);
+                user.setHeadimgurl(upload.getMapping());
+            }
         }
         super.save(user);
         // 加入默认群组
