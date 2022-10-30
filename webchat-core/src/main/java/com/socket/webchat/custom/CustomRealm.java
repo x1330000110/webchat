@@ -14,6 +14,7 @@ import com.socket.webchat.model.BaseModel;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.SysUserLog;
 import com.socket.webchat.model.enums.RedisTree;
+import com.socket.webchat.request.IPRequest;
 import com.socket.webchat.util.Assert;
 import com.socket.webchat.util.Bcrypt;
 import com.socket.webchat.util.Requests;
@@ -42,6 +43,7 @@ import java.util.Optional;
 public class CustomRealm extends AuthorizingRealm {
     private final SysUserLogMapper sysUserLogMapper;
     private final SysUserMapper sysUserMapper;
+    private final IPRequest ipRequest;
     private final RedisClient<?> redis;
 
     /**
@@ -120,11 +122,11 @@ public class CustomRealm extends AuthorizingRealm {
         // 检查标记
         if (Requests.notExist(Constants.OFFSITE)) {
             // 检查异地
-            String remoteip = Wss.getRemoteIP();
-            String lastip = log.getIp();
-            if (!Objects.equals(lastip, remoteip)) {
+            String remoteIP = Wss.getRemoteIP();
+            String lastIP = log.getIp();
+            if (!Objects.equals(lastIP, remoteIP)) {
                 // IP所属省是否相同
-                boolean offsite = Objects.equals(Wss.getProvince(remoteip), Wss.getProvince(lastip));
+                boolean offsite = Objects.equals(ipRequest.getProvince(remoteIP), ipRequest.getProvince(lastIP));
                 // 返回的异常为脱敏的绑定邮箱信息
                 Assert.isTrue(offsite, DesensitizedUtil.email(sysUser.getEmail()), OffsiteLoginException::new);
             }

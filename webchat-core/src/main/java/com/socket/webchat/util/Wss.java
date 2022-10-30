@@ -4,11 +4,9 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Opt;
 import cn.hutool.core.lang.func.Func1;
 import cn.hutool.core.lang.func.LambdaUtil;
-import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.servlet.ServletUtil;
 import cn.hutool.http.Header;
-import cn.hutool.http.HttpRequest;
 import cn.hutool.http.useragent.Platform;
 import cn.hutool.http.useragent.UserAgentParser;
 import cn.hutool.json.JSONObject;
@@ -20,13 +18,9 @@ import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.Subject;
 
-import java.util.List;
 import java.util.function.Function;
-import java.util.regex.Pattern;
 
 public class Wss {
-    private static final String REGEX = "地址\\s+:\\s+(.+?)\\s+(.+?)\\s+(.+?)\n";
-
     /**
      * 枚举转JSON
      */
@@ -75,15 +69,6 @@ public class Wss {
      */
     public static String getRemoteIP() {
         return ServletUtil.getClientIP(Requests.get());
-    }
-
-    /**
-     * 获取指定IP地址所在的省份
-     */
-    public static String getProvince(String ip) {
-        String body = HttpRequest.get("http://www.cip.cc/".concat(ip)).execute().body();
-        List<String> all = ReUtil.findAll(Pattern.compile(REGEX), body, 2);
-        return all.get(0);
     }
 
     /**
