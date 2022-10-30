@@ -13,15 +13,15 @@ public enum FilePath implements IEnum<String> {
     /**
      * 语音
      */
-    AUDIO(0x150000),
+    AUDIO(3 * 1024 * 1024),
     /**
      * 图片
      */
-    IMAGE(0x300000),
+    IMAGE(300 * 1024),
     /**
      * 视频/文件
      */
-    BLOB(0x1E00000);
+    BLOB(30 * 1024 * 1024);
 
     private final String directory;
     private final int size;
