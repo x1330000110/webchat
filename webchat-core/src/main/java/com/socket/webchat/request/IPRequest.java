@@ -3,10 +3,12 @@ package com.socket.webchat.request;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONUtil;
+import org.springframework.stereotype.Component;
 
 /**
  * IP地址查询
  */
+@Component
 public class IPRequest {
     String URL = "https://apibug.cn/api/ip/?apiKey=1d381bf0c6d5db52490d77f00b9403bf&ip={}";
 
