@@ -10,9 +10,9 @@
 ```
                                                                          | ---> UserManager -------> UserChangeLinstener
                                                                          |
----------------                            |----> PermissionManager -----| ---> GroupManager ------> GroupChangeLinstener
+--------------                             |----> PermissionManager -----| ---> GroupManager ------> GroupChangeLinstener
 webchat-client -------> SocketEndpoint ----|                             |
----------------                            |----> SettingSupport         | ---> RedisManager
+--------------                             |----> SettingSupport         | ---> RedisManager
 
                        |---> user
                        |
