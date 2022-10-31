@@ -1,12 +1,13 @@
 package com.socket.client.manager;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.crypto.digest.MD5;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.client.model.enums.SocketTree;
-import com.socket.webchat.constant.Announce;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.mapper.ShieldUserMapper;
+import com.socket.webchat.model.Announce;
 import com.socket.webchat.model.ShieldUser;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.util.RedisClient;
@@ -27,8 +28,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RedisManager {
     private final ShieldUserMapper shieldUserMapper;
-    private final RedisClient<String> redisClient;
-    private final RedisClient<Integer> unread;
+    private final RedisClient<Integer> permission;
+    private final RedisClient<Object> announce;
+    private final RedisClient<String> shield;
 
     /**
      * 临时禁言
@@ -38,7 +40,7 @@ public class RedisManager {
      */
     public void setMute(String uid, long time) {
         long value = (System.currentTimeMillis() / 1000) + time;
-        redisClient.set(SocketTree.MUTE.concat(uid), String.valueOf(value), time);
+        permission.set(SocketTree.MUTE.concat(uid), (int) value, time);
     }
 
     /**
@@ -49,21 +51,21 @@ public class RedisManager {
      */
     public void setLock(String uid, long time) {
         long value = (System.currentTimeMillis() / 1000) + time;
-        redisClient.set(SocketTree.LOCK.concat(uid), String.valueOf(value), time);
+        permission.set(SocketTree.LOCK.concat(uid), (int) value, time);
     }
 
     /**
      * 获取禁言剩余时间（单位：秒）
      */
     public long getMuteTime(String uid) {
-        return redisClient.getExpired(SocketTree.MUTE.concat(uid));
+        return permission.getExpired(SocketTree.MUTE.concat(uid));
     }
 
     /**
      * 获取冻结剩余时间（单位：秒）
      */
     public long getLockTime(String uid) {
-        return redisClient.getExpired(SocketTree.LOCK.concat(uid));
+        return permission.getExpired(SocketTree.LOCK.concat(uid));
     }
 
     /**
@@ -74,7 +76,7 @@ public class RedisManager {
      */
     public long incrSpeak(String uid) {
         String key = SocketTree.SPEAK.concat(uid);
-        return unread.exist(key) ? unread.incr(key, 1) : unread.incr(key, 1, 10);
+        return permission.exist(key) ? permission.incr(key, 1) : permission.incr(key, 1, 10);
     }
 
     /**
@@ -85,7 +87,7 @@ public class RedisManager {
      * @param delta  递增/递减阈值（0清除未读消息）
      */
     public void setUnreadCount(String uid, String target, int delta) {
-        RedisMap<String, Integer> map = unread.withMap(RedisTree.UNREAD.concat(uid));
+        RedisMap<String, Integer> map = permission.withMap(RedisTree.UNREAD.concat(uid));
         if (delta == 0 || map.increment(target, delta) == 0) {
             map.remove(target);
         }
@@ -99,7 +101,7 @@ public class RedisManager {
      * @return 未读消息数量
      */
     public int getUnreadCount(String uid, String target) {
-        Map<String, Integer> map = unread.withMap(RedisTree.UNREAD.concat(uid));
+        Map<String, Integer> map = permission.withMap(RedisTree.UNREAD.concat(uid));
         return map.getOrDefault(target, 0);
     }
 
@@ -109,15 +111,17 @@ public class RedisManager {
      * @param content 公告
      */
     public void pushNotice(String content) {
-        RedisMap<String, String> map = redisClient.withMap(RedisTree.ANNOUNCE.get());
+        RedisMap<String, Object> map = announce.withMap(RedisTree.ANNOUNCE.get());
         // 公告为空删除
         if (content.isEmpty()) {
             map.clear();
             return;
         }
-        map.put(Announce.content, content);
-        map.put(Announce.digest, MD5.create().digestHex(content));
-        map.put(Announce.time, String.valueOf(System.currentTimeMillis()));
+        Announce announce = new Announce();
+        announce.setContent(content);
+        announce.setDigest(MD5.create().digestHex(content));
+        announce.setTime(System.currentTimeMillis());
+        map.putAll(BeanUtil.beanToMap(announce));
     }
 
     /**
@@ -127,7 +131,7 @@ public class RedisManager {
      * @return 屏蔽列表
      */
     public List<String> getShield(String uid) {
-        RedisList<String> redisList = redisClient.withList(SocketTree.SHIELD.concat(uid));
+        RedisList<String> redisList = shield.withList(SocketTree.SHIELD.concat(uid));
         // 检查缓存
         if (redisList.isEmpty()) {
             // 查询数据库

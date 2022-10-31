@@ -1,8 +1,9 @@
 package com.socket.webchat.controller;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.http.HttpRequest;
 import com.socket.secure.filter.anno.Encrypted;
-import com.socket.webchat.constant.Announce;
+import com.socket.webchat.model.Announce;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.condition.EmailCondition;
 import com.socket.webchat.model.enums.HttpStatus;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/user")
@@ -60,13 +61,11 @@ public class UserController {
 
     @GetMapping("/notice")
     public HttpStatus getNotice(String digest) {
-        RedisMap<String, String> map = redis.withMap(RedisTree.ANNOUNCE.get());
-        Object dg = map.get(Announce.digest);
+        RedisMap<String, ?> map = redis.withMap(RedisTree.ANNOUNCE.get());
+        Announce announce = BeanUtil.toBean(map, Announce.class);
         // 散列id不同 表示发布新内容
-        if (dg != null && !dg.equals(digest)) {
-            String content = Announce.content, time = Announce.time;
-            Map<String, Object> json = Map.of(content, map.get(content), time, map.get(time));
-            return HttpStatus.SUCCESS.body(json);
+        if (announce != null && !Objects.equals(digest, announce.getDigest())) {
+            return HttpStatus.SUCCESS.body(announce);
         }
         return HttpStatus.FAILURE.body();
     }
