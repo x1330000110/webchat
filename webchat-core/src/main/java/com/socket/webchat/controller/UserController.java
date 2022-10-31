@@ -1,5 +1,6 @@
 package com.socket.webchat.controller;
 
+import cn.hutool.http.HttpRequest;
 import com.socket.secure.filter.anno.Encrypted;
 import com.socket.webchat.constant.Announce;
 import com.socket.webchat.model.SysUser;
@@ -68,5 +69,10 @@ public class UserController {
             return HttpStatus.SUCCESS.body(json);
         }
         return HttpStatus.FAILURE.body();
+    }
+
+    @GetMapping("/sentence")
+    public String sentence() {
+        return HttpRequest.get("https://api.leafone.cn/api/yiyan").execute().body();
     }
 }
