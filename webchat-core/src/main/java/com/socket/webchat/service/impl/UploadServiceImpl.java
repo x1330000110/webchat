@@ -57,12 +57,18 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         long size = blob.getSize();
         Assert.isTrue(size != 0, "无效的文件", UploadException::new);
         Assert.isTrue(size < type.getSize(), "文件大小超过限制", UploadException::new);
-        // 上传文件获取路径
+        // 获取文件路径
         byte[] bytes = blob.getBytes();
+        // 再检查一遍文件hash是否存在
         String hash = lanzouRequest.generateHash(bytes);
-        String url = lanzouRequest.upload(type, bytes, hash);
+        LambdaQueryWrapper<ChatRecordFile> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(ChatRecordFile::getHash, hash);
+        ChatRecordFile file = getFirst(wrapper);
         // 记录文件
-        super.save(new ChatRecordFile(condition.getMid(), type, url, hash, size));
+        if (file == null) {
+            String url = lanzouRequest.upload(type, bytes, hash);
+            super.save(new ChatRecordFile(condition.getMid(), type, url, hash, size));
+        }
         return StrUtil.format("{}/{}/{}", MAPPING, type.getValue(), hash);
     }
 
