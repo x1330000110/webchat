@@ -1,5 +1,6 @@
 package com.socket.webchat.service;
 
+import cn.hutool.core.util.StrUtil;
 import com.socket.webchat.model.ChatRecordFile;
 import com.socket.webchat.model.condition.FileCondition;
 import com.socket.webchat.model.enums.FileType;
@@ -7,10 +8,17 @@ import com.socket.webchat.model.enums.FileType;
 import java.io.IOException;
 
 public interface UploadService extends BaseService<ChatRecordFile> {
+
     /**
-     * 控制器 {@linkplain com.socket.webchat.controller.UploadController UploadController} 公开的URI路径
+     * 获取散列文件实际映射路径
+     *
+     * @param type 文件类型
+     * @param hash 散列名
+     * @return URL
      */
-    String MAPPING = "/resource";
+    default String getMapping(FileType type, String hash) {
+        return StrUtil.format("/resource/{}/{}", type.getValue(), hash);
+    }
 
     /**
      * 保存文件到FTP服务器

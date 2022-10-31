@@ -17,7 +17,7 @@ import java.io.IOException;
  * @date 2022/6/17
  */
 @RestController
-@RequestMapping(UploadService.MAPPING)
+@RequestMapping("/resource")
 @RequiredArgsConstructor
 public class UploadController {
     private final UploadService uploadService;

@@ -207,7 +207,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         bytes = bos.toByteArray();
         String hash = lanzouRequest.generateHash(bytes);
         String url = lanzouRequest.upload(FileType.IMAGE, bytes, hash);
-        String mapping = StrUtil.format("{}/{}/{}", UploadService.MAPPING, FileType.IMAGE.getValue(), hash);
+        String mapping = uploadService.getMapping(FileType.IMAGE, hash);
         // 保存头像
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(SysUser::getUid, Wss.getUserId());
