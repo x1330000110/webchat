@@ -8,7 +8,6 @@
 
 #### 层级结构
 ```
-
                                                                          | ---> UserManager -------> UserChangeLinstener
                                                                          |
 ---------------                            |----> PermissionManager -----| ---> GroupManager ------> GroupChangeLinstener
