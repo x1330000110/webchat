@@ -7,8 +7,9 @@
 内部包含数据安全传输模块，基于AES，RSA加密交换数据（可独立提取使用：[参考文档](https://www.zybuluo.com/1330000110/note/2172127)）。
 
 #### 层级结构
+```
 
-```                                                                         | ---> UserManager ----------> UserChangeLinstener
+                                                                            | ---> UserManager ----------> UserChangeLinstener
                                                                             |
 ---------------                               |----> PermissionManager -----| ---> GroupManager ---------> GroupChangeLinstener
 webchat-client -------> WebSocketEndpoint ----|                             |
