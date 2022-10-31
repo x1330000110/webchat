@@ -44,7 +44,13 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         // 检查散列
         String digest = condition.getDigest();
         if (StrUtil.isNotEmpty(digest)) {
-            // TODO 文件已存在
+            LambdaQueryWrapper<ChatRecordFile> wrapper = Wrappers.lambdaQuery();
+            wrapper.eq(ChatRecordFile::getHash, digest);
+            ChatRecordFile file = getOne(wrapper);
+            if (file != null) {
+                return file.getUrl();
+            }
+            throw new IllegalStateException("NOT FOUND FILE");
         }
         // 上传文件
         MultipartFile blob = condition.getBlob();
