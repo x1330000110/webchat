@@ -305,17 +305,17 @@ public class WebSocketEndpoint {
     }
 
     @Autowired
-    private void setUserManager(UserManager manager) {
+    public void setUserManager(UserManager manager) {
         WebSocketEndpoint.userManager = manager;
     }
 
     @Autowired
-    private void setGroupManager(GroupManager manager) {
+    public void setGroupManager(GroupManager manager) {
         WebSocketEndpoint.groupManager = manager;
     }
 
     @Autowired
-    private void setGroupManager(PermissionManager manager) {
+    public void setGroupManager(PermissionManager manager) {
         WebSocketEndpoint.permissionManager = manager;
     }
 
