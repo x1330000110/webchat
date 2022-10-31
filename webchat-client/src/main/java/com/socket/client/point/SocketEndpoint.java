@@ -15,8 +15,8 @@ import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.model.enums.Setting;
 import com.socket.webchat.model.enums.UserRole;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.websocket.*;
@@ -28,12 +28,13 @@ import java.util.Collection;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 @ServerEndpoint(value = "/user/room", configurator = SocketConfig.class)
-public class WebSocketEndpoint {
-    private static SettingSupport settingSupport;
-    private static PermissionManager permissionManager;
-    private static GroupManager groupManager;
-    private static UserManager userManager;
+public class SocketEndpoint {
+    private final PermissionManager permissionManager;
+    private final SettingSupport settingSupport;
+    private final GroupManager groupManager;
+    private final UserManager userManager;
     private WsUser self;
 
     @OnOpen
@@ -302,25 +303,5 @@ public class WebSocketEndpoint {
             target.send(alias, MessageType.ALIAS);
             userManager.sendAll(alias, MessageType.ALIAS, target);
         }
-    }
-
-    @Autowired
-    public void setUserManager(UserManager manager) {
-        WebSocketEndpoint.userManager = manager;
-    }
-
-    @Autowired
-    public void setGroupManager(GroupManager manager) {
-        WebSocketEndpoint.groupManager = manager;
-    }
-
-    @Autowired
-    public void setGroupManager(PermissionManager manager) {
-        WebSocketEndpoint.permissionManager = manager;
-    }
-
-    @Autowired
-    public void setSettingSupport(SettingSupport support) {
-        WebSocketEndpoint.settingSupport = support;
     }
 }
