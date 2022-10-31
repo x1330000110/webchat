@@ -64,11 +64,9 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         LambdaQueryWrapper<ChatRecordFile> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ChatRecordFile::getHash, hash);
         ChatRecordFile file = getFirst(wrapper);
-        // 记录文件
-        if (file == null) {
-            String url = lanzouRequest.upload(type, bytes, hash);
-            super.save(new ChatRecordFile(condition.getMid(), type, url, hash, size));
-        }
+        // 文件存在则关联mid，不存在获取url后关联
+        String url = file != null ? file.getUrl() : lanzouRequest.upload(type, bytes, hash);
+        this.save(new ChatRecordFile(condition.getMid(), type, url, hash, size));
         return StrUtil.format("{}/{}/{}", MAPPING, type.getValue(), hash);
     }
 
