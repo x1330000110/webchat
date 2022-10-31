@@ -6,10 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * 列表预览用户信息
@@ -45,9 +42,13 @@ public class UserPreview extends SysUser {
      */
     private Integer unreads;
     /**
+     * 群所有者uid
+     */
+    private String owner;
+    /**
      * 是否为群组
      */
-    private boolean group;
+    private boolean isgroup;
     /**
      * 群组成员
      */
@@ -55,13 +56,5 @@ public class UserPreview extends SysUser {
 
     public UserPreview(SysUser sysUser) {
         BeanUtil.copyProperties(sysUser, this);
-    }
-
-    public void setLastTime(Map<String, Date> logs) {
-        Optional.ofNullable(logs.get(getUid())).ifPresent(date -> this.lastTime = date.getTime());
-    }
-
-    public void setLastTime(Date time) {
-        this.lastTime = time.getTime();
     }
 }

@@ -58,11 +58,33 @@ public class PermissionManager {
         // 登录记录
         Map<String, Date> logs = this.getUserLoginLogs();
         // 链接数据
-        List<UserPreview> collect = userManager.values().stream()
-                .map(UserPreview::new)
-                .peek(user -> user.setLastTime(logs))
-                .peek(user -> this.syncUnreadMessage(user, messages, suid))
-                .collect(Collectors.toList());
+        List<UserPreview> previews = new ArrayList<>();
+        for (WsUser user : userManager.values()) {
+            UserPreview preview = new UserPreview(user);
+            // 最后登录时间
+            Date time = logs.get(preview.getUid());
+            if (time != null) {
+                preview.setLastTime(time.getTime());
+            }
+            // 检查未读消息
+            String target = preview.getUid();
+            int count = redisManager.getUnreadCount(suid, target);
+            if (count > 0) {
+                SortedSet<ChatRecord> records = messages.get(target);
+                ChatRecord first;
+                if (records != null && (first = records.first()) != null) {
+                    MessageType type = first.getType();
+                    preview.setPreview(type == MessageType.TEXT ? first.getContent() : '[' + type.getPreview() + ']');
+                    preview.setLastTime(first.getCreateTime().getTime());
+                    preview.setUnreads(Math.min(count, 99));
+                }
+            }
+            // 为自己赋值屏蔽列表
+            if (preview.getUid().equals(suid)) {
+                preview.setShields(getShield(self));
+            }
+            previews.add(preview);
+        }
         // 添加群组到列表
         for (Map.Entry<SysGroup, List<WsUser>> entry : groupManager.entrySet()) {
             SysGroup group = entry.getKey();
@@ -70,38 +92,16 @@ public class PermissionManager {
             // 需要在群里
             if (uids.contains(suid)) {
                 UserPreview preview = new UserPreview();
-                preview.setGroup(true);
+                preview.setIsgroup(true);
                 preview.setMembers(uids);
                 preview.setUid(group.getGroupId());
                 preview.setName(group.getName());
+                preview.setOwner(preview.getOwner());
                 preview.setOnline(true);
-                collect.add(preview);
+                previews.add(preview);
             }
         }
-        // 查找自己并设置屏蔽列表
-        collect.stream()
-                .filter(user -> user.getUid().equals(suid))
-                .findFirst()
-                .ifPresent(user -> user.setShields(getShield(self)));
-        return collect;
-    }
-
-    /**
-     * 同步未读消息
-     */
-    private void syncUnreadMessage(UserPreview preview, Map<String, SortedSet<ChatRecord>> message, String sender) {
-        String target = preview.getUid();
-        int count = redisManager.getUnreadCount(sender, target);
-        if (count > 0) {
-            SortedSet<ChatRecord> records = message.get(target);
-            ChatRecord first;
-            if (records != null && (first = records.first()) != null) {
-                MessageType type = first.getType();
-                preview.setPreview(type == MessageType.TEXT ? first.getContent() : '[' + type.getPreview() + ']');
-                preview.setLastTime(first.getCreateTime());
-                preview.setUnreads(Math.min(count, 99));
-            }
-        }
+        return previews;
     }
 
     /**
