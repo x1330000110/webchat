@@ -201,14 +201,17 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         Img.from(scale).setTargetImageType(ImgUtil.IMAGE_TYPE_PNG).write(bos);
         // 图片映射地址
-        String path = lanzouRequest.upload(FileType.IMAGE, bos.toByteArray());
+        bytes = bos.toByteArray();
+        String hash = lanzouRequest.generateHash(bytes);
+        String url = lanzouRequest.upload(FileType.IMAGE, bytes, hash);
+        String mapping = StrUtil.format("/{}/{}", FileType.IMAGE.getValue(), hash);
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(SysUser::getUid, Wss.getUserId());
-        wrapper.set(SysUser::getHeadimgurl, path);
+        wrapper.set(SysUser::getHeadimgurl, mapping);
         Assert.isTrue(super.update(wrapper), "修改失败", IllegalStateException::new);
         // 推送变动事件
-        publisher.publishEvent(new UserChangeEvent(publisher, UserOperation.HEAD_IMG, path));
-        return path;
+        publisher.publishEvent(new UserChangeEvent(publisher, UserOperation.HEAD_IMG, mapping));
+        return mapping;
     }
 
     @Override
