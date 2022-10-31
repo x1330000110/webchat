@@ -96,7 +96,7 @@ public class PermissionManager {
                 preview.setMembers(uids);
                 preview.setUid(group.getGroupId());
                 preview.setName(group.getName());
-                preview.setOwner(preview.getOwner());
+                preview.setOwner(group.getOwner());
                 preview.setOnline(true);
                 previews.add(preview);
             }
