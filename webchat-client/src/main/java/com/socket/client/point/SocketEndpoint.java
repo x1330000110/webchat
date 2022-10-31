@@ -15,8 +15,10 @@ import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.model.enums.Setting;
 import com.socket.webchat.model.enums.UserRole;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
 import javax.websocket.*;
@@ -29,13 +31,12 @@ import java.util.Optional;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 @ServerEndpoint(value = "/user/room", configurator = SocketConfig.class)
-public class SocketEndpoint {
-    private final PermissionManager permissionManager;
-    private final SettingSupport settingSupport;
-    private final GroupManager groupManager;
-    private final UserManager userManager;
+public class SocketEndpoint implements ApplicationContextAware {
+    private static PermissionManager permissionManager;
+    private static SettingSupport settingSupport;
+    private static GroupManager groupManager;
+    private static UserManager userManager;
     private WsUser self;
 
     @OnOpen
@@ -294,5 +295,13 @@ public class SocketEndpoint {
             target.send(alias, MessageType.ALIAS);
             userManager.sendAll(alias, MessageType.ALIAS, target);
         }
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext context) throws BeansException {
+        permissionManager = context.getBean(PermissionManager.class);
+        settingSupport = context.getBean(SettingSupport.class);
+        groupManager = context.getBean(GroupManager.class);
+        userManager = context.getBean(UserManager.class);
     }
 }
