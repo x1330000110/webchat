@@ -7,13 +7,13 @@
 内部包含数据安全传输模块，基于AES，RSA加密交换数据（可独立提取使用：[参考文档](https://www.zybuluo.com/1330000110/note/2172127)）。
 
 #### 层级结构
-
 ```
-                                              | ---> GroupManager ---------> GroupChangeLinstener 
----------------                               |
-webchat-client -------> WebSocketEndpoint ----| ---> UserManager ----------> UserChangeLinstener
----------------                               |
-                                              | ---> PermissionManager ----> RedisManager
+
+                                                                         | ---> UserManager -------> UserChangeLinstener
+                                                                         |
+---------------                            |----> PermissionManager -----| ---> GroupManager ------> GroupChangeLinstener
+webchat-client -------> SocketEndpoint ----|                             |
+---------------                            |----> SettingSupport         | ---> RedisManager
 
                        |---> user
                        |
@@ -27,9 +27,9 @@ webchat-core ----------|---> resource --------|
                                               | ------> shiro
 
 --------------         | ---> core
-webchat-secure --------|                               | ----> MappedRepeatValidator
---------------         | ---> filter ---> validator ---|
-                                                       | ----> RedisRepeatValidator
+webchat-secure --------|                                        | ----> MappedRepeatValidator
+--------------         | ---> filter --------> validator -------|
+                                                                | ----> RedisRepeatValidator
 ```
 
 基于JDK11
