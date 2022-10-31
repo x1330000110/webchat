@@ -89,11 +89,10 @@ public class LanzouCloudRequest {
     /**
      * 下载来自蓝奏云服务器的文件
      *
-     * @param lanzouURL 蓝奏云URL
+     * @param url 文件url
      * @return 若文件已失效返回null
      */
-    public byte[] download(String lanzouURL) {
-        String url = getResourceURL(lanzouURL);
+    public byte[] download(String url) {
         if (url == null) {
             return null;
         }

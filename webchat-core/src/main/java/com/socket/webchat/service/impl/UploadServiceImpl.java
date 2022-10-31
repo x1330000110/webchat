@@ -106,7 +106,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
 
     @Override
     public String convertText(String mid) {
-        byte[] bytes = lanzouRequest.download(mid);
+        byte[] bytes = lanzouRequest.download(getResourceURL(mid));
         if (ArrayUtil.isEmpty(bytes)) {
             return null;
         }
