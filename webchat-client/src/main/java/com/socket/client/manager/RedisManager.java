@@ -1,7 +1,6 @@
 package com.socket.client.manager;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.crypto.digest.MD5;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.client.model.enums.SocketTree;
@@ -117,11 +116,7 @@ public class RedisManager {
             map.clear();
             return;
         }
-        Announce announce = new Announce();
-        announce.setContent(content);
-        announce.setDigest(MD5.create().digestHex(content));
-        announce.setTime(System.currentTimeMillis());
-        map.putAll(BeanUtil.beanToMap(announce));
+        map.putAll(BeanUtil.beanToMap(new Announce(content)));
     }
 
     /**

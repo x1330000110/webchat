@@ -1,5 +1,6 @@
 package com.socket.webchat.model;
 
+import cn.hutool.crypto.digest.MD5;
 import lombok.Data;
 
 /**
@@ -19,4 +20,10 @@ public class Announce {
      * 生成时间
      */
     private Long time;
+
+    public Announce(String content) {
+        this.content = content;
+        this.digest = MD5.create().digestHex(content);
+        this.time = System.currentTimeMillis();
+    }
 }
