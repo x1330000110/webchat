@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.util.Collection;
+import java.util.Optional;
 
 /**
  * Ws聊天室用户与消息处理
@@ -39,25 +40,26 @@ public class SocketEndpoint {
 
     @OnOpen
     public void onOpen(Session session, EndpointConfig config) {
-        // 登入
-        this.self = userManager.join(session, config.getUserProperties());
-        // 传递消息
-        if (self != null) {
-            Collection<UserPreview> userList = permissionManager.getUserPreviews(self);
-            self.send(Callback.JOIN_INIT.get(), MessageType.INIT, userList);
-            // 用户加入通知
-            userManager.sendAll(Callback.USER_LOGIN.format(self), MessageType.JOIN, self);
-            permissionManager.checkMute(self);
-        }
+        // 加入聊天室
+        Optional.ofNullable(userManager.join(session, config.getUserProperties())).ifPresent(user -> {
+            // 推送所有用户数据
+            Collection<UserPreview> userList = permissionManager.getUserPreviews(user);
+            user.send(Callback.JOIN_INIT.get(), MessageType.INIT, userList);
+            // 向其他人发送加入通知
+            userManager.sendAll(Callback.USER_LOGIN.format(user), MessageType.JOIN, user);
+            // 检查禁言
+            permissionManager.checkMute(user);
+            this.self = user;
+        });
     }
 
     @OnClose
     public void onClose() {
-        // 退出通知
-        if (self != null) {
-            self.logout(null);
+        Optional.ofNullable(self).ifPresent(user -> {
+            user.logout(null);
+            // 退出通知
             userManager.sendAll(Callback.USER_LOGOUT.format(self), MessageType.EXIT, self);
-        }
+        });
     }
 
     @OnError
