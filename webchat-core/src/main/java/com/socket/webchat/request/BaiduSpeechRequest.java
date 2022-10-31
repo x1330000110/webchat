@@ -38,6 +38,10 @@ public class BaiduSpeechRequest {
         json.set("speech", Base64.encode(bytes));
         json.set("len", bytes.length);
         String body = HttpRequest.post(CONVERT_URL).body(json.toString()).execute().body();
-        return JSONUtil.parseObj(body).getJSONArray("result").getStr(0);
+        try {
+            return JSONUtil.parseObj(body).getJSONArray("result").getStr(0);
+        } catch (NullPointerException e) {
+            return null;
+        }
     }
 }
