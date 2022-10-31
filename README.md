@@ -27,9 +27,9 @@ webchat-core ----------|---> resource --------|
                                               | ------> shiro
 
 --------------         | ---> core
-webchat-secure --------|                               | ----> MappedRepeatValidator
---------------         | ---> filter ---> validator ---|
-                                                       | ----> RedisRepeatValidator
+webchat-secure --------|                                        | ----> MappedRepeatValidator
+--------------         | ---> filter --------> validator -------|
+                                                                | ----> RedisRepeatValidator
 ```
 
 基于JDK11
