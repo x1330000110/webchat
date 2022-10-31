@@ -50,7 +50,7 @@ public class WxloginServiceImpl implements WxloginService {
             // 检查用户数据 不存在将被注册
             LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
             wrapper.eq(SysUser::getOpenid, wxuser.getOpenid());
-            SysUser user = sysUserService.getOne(wrapper);
+            SysUser user = sysUserService.getFirst(wrapper);
             if (user == null) {
                 user = SysUser.buildNewUser();
                 BeanUtil.copyProperties(wxuser, user);

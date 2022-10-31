@@ -1,13 +1,12 @@
 package com.socket.webchat.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.socket.webchat.model.ChatRecordFile;
 import com.socket.webchat.model.condition.FileCondition;
 import com.socket.webchat.model.enums.FileType;
 
 import java.io.IOException;
 
-public interface UploadService extends IService<ChatRecordFile> {
+public interface UploadService extends BaseService<ChatRecordFile> {
     /**
      * 控制器 {@linkplain com.socket.webchat.controller.UploadController UploadController} 公开的URI路径
      */

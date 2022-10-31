@@ -78,7 +78,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
             // 通过mid查询id
             LambdaQueryWrapper<ChatRecord> wrapper2 = Wrappers.lambdaQuery();
             wrapper2.eq(ChatRecord::getMid, mid);
-            offset = getOne(wrapper2);
+            offset = getFirst(wrapper2);
             Assert.notNull(offset, "无效的MID", IllegalStateException::new);
             wrapper.lt(BaseModel::getId, offset.getId());
         }
@@ -101,7 +101,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
     public boolean removeMessage(String mid) {
         LambdaUpdateWrapper<ChatRecord> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(ChatRecord::getMid, mid);
-        ChatRecord record = getOne(wrapper);
+        ChatRecord record = getFirst(wrapper);
         // 检查消息权限
         if (!Wss.checkMessagePermission(record)) {
             return false;
@@ -129,7 +129,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
             String column = Wss.columnToString(ChatRecord::getCreateTime);
             ew.eq(ChatRecord::isReject, true).or().getExpression().add(() -> column, SqlKeyword.GE, () -> condition);
         });
-        ChatRecord record = getOne(wrapper);
+        ChatRecord record = getFirst(wrapper);
         if (record != null) {
             LambdaUpdateWrapper<ChatRecord> wrapper1 = Wrappers.lambdaUpdate();
             wrapper1.eq(BaseModel::getId, record.getId());
@@ -156,7 +156,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
             lambda.eq(ChatRecord::getUid, target);
             lambda.eq(ChatRecord::getTarget, uid);
         }
-        ChatRecord last = super.getOne(lambda);
+        ChatRecord last = getFirst(lambda);
         if (last != null) {
             LambdaUpdateWrapper<ChatRecordOffset> wrapper1 = Wrappers.lambdaUpdate();
             wrapper1.eq(ChatRecordOffset::getUid, uid);

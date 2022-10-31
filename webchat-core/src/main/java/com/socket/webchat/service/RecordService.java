@@ -1,13 +1,12 @@
 package com.socket.webchat.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.socket.webchat.model.ChatRecord;
 
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 
-public interface RecordService extends IService<ChatRecord> {
+public interface RecordService extends BaseService<ChatRecord> {
     /**
      * 获取最近指定条聊天信息
      *

@@ -72,7 +72,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             if (!email.contains("@")) {
                 LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery(SysUser.class);
                 wrapper.eq(SysUser::getUid, uid);
-                email = Opt.ofNullable(get(wrapper)).map(SysUser::getEmail).get();
+                email = Opt.ofNullable(getFirst(wrapper)).map(SysUser::getEmail).get();
                 Assert.notNull(email, "找不到指定账号", UnknownAccountException::new);
             }
             String key = RedisTree.EMAIL.concat(email);
@@ -126,7 +126,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             final String uid = email;
             LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
             wrapper.eq(SysUser::getUid, uid);
-            SysUser user = getOne(wrapper);
+            SysUser user = getFirst(wrapper);
             Assert.notNull(user, "找不到相关账号信息", IllegalStateException::new);
             Assert.isFalse(user.isDeleted(), "该账号已被永久限制登录", IllegalStateException::new);
             email = user.getEmail();
@@ -234,7 +234,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         String newemail = condition.getUser();
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(SysUser::getEmail, newemail);
-        Assert.isNull(this.get(wrapper), "该邮箱已被其他账号绑定", IllegalStateException::new);
+        Assert.isNull(this.getFirst(wrapper), "该邮箱已被其他账号绑定", IllegalStateException::new);
         String newcode = redis.get(RedisTree.EMAIL.concat(newemail));
         Assert.equals(newcode, condition.getNewcode(), "新邮箱验证码不正确", IllegalStateException::new);
         // 更新邮箱
@@ -249,7 +249,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     public SysUser getUserInfo(String uid) {
         LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(SysUser::getUid, uid);
-        SysUser user = this.get(wrapper);
+        SysUser user = this.getFirst(wrapper);
         Assert.notNull(user, "找不到此用户信息", AccountException::new);
         return user;
     }

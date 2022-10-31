@@ -1,14 +1,12 @@
 package com.socket.webchat.service;
 
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.condition.EmailCondition;
 import com.socket.webchat.model.condition.LoginCondition;
 import com.socket.webchat.model.condition.PasswordCondition;
 import com.socket.webchat.model.condition.RegisterCondition;
 
-public interface SysUserService extends IService<SysUser> {
+public interface SysUserService extends BaseService<SysUser> {
     /**
      * 登录（如果没有抛出异常，则登录成功）
      *
@@ -68,11 +66,4 @@ public interface SysUserService extends IService<SysUser> {
      * @return {@link SysUser}
      */
     SysUser getUserInfo(String uid);
-
-    /**
-     * 重写getone
-     */
-    default SysUser get(Wrapper<SysUser> wrapper) {
-        return getOne(wrapper);
-    }
 }

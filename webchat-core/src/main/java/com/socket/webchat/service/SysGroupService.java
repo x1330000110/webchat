@@ -1,9 +1,8 @@
 package com.socket.webchat.service;
 
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.socket.webchat.model.SysGroup;
 
-public interface SysGroupService extends IService<SysGroup> {
+public interface SysGroupService extends BaseService<SysGroup> {
     /**
      * 创建群组
      *

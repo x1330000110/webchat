@@ -51,7 +51,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
     public boolean removeUser(String stater, String groupId, String uid) {
         LambdaQueryWrapper<SysGroup> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(SysGroup::getGroupId, groupId);
-        SysGroup group = getOne(wrapper);
+        SysGroup group = getFirst(wrapper);
         // 权限检查
         if (!group.getOwner().equals(stater)) {
             return false;
@@ -75,7 +75,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         Assert.isTrue(StrUtil.length(groupName) <= 8, "无效的群组名称", IllegalStateException::new);
         LambdaQueryWrapper<SysGroup> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(SysGroup::getName, groupName);
-        Assert.isNull(getOne(wrapper), "群组名称已存在", IllegalStateException::new);
+        Assert.isNull(getFirst(wrapper), "群组名称已存在", IllegalStateException::new);
         // 写入数据库
         SysGroup group = new SysGroup();
         group.setGroupId(Constants.GROUP + RandomUtil.randomNumbers(6));

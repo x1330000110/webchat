@@ -3,7 +3,6 @@ package com.socket.webchat.config;
 import cn.hutool.http.ContentType;
 import com.socket.webchat.custom.CustomRealm;
 import com.socket.webchat.model.enums.HttpStatus;
-import com.socket.webchat.service.UploadService;
 import com.socket.webchat.util.Wss;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.mgt.SecurityManager;
@@ -41,7 +40,7 @@ public class ShiroConfig {
         filters.put("user", new JsonRetuenFilter());
         Map<String, String> definitionMap = bean.getFilterChainDefinitionMap();
         definitionMap.put("/user/**", "user");
-        definitionMap.put(UploadService.MAPPING + "/**", "user");
+        definitionMap.put("/resource/**", "user");
         definitionMap.put("/message/**", "user");
         return bean;
     }

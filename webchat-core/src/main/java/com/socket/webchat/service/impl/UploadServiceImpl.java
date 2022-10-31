@@ -46,7 +46,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         if (StrUtil.isNotEmpty(digest)) {
             LambdaQueryWrapper<ChatRecordFile> wrapper = Wrappers.lambdaQuery();
             wrapper.eq(ChatRecordFile::getHash, digest);
-            ChatRecordFile file = getOne(wrapper);
+            ChatRecordFile file = getFirst(wrapper);
             if (file != null) {
                 return file.getUrl();
             }
@@ -71,7 +71,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         // 获取消息文件
         LambdaQueryWrapper<ChatRecordFile> wrapper1 = Wrappers.lambdaQuery();
         wrapper1.eq(ChatRecordFile::getMid, mid);
-        ChatRecordFile file = getOne(wrapper1);
+        ChatRecordFile file = getFirst(wrapper1);
         // 检查记录
         if (file == null) {
             return null;
@@ -97,7 +97,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         LambdaQueryWrapper<ChatRecordFile> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ChatRecordFile::getType, type);
         wrapper.eq(ChatRecordFile::getHash, hash);
-        ChatRecordFile file = getOne(wrapper);
+        ChatRecordFile file = getFirst(wrapper);
         if (file == null) {
             return null;
         }
