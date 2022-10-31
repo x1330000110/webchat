@@ -10,20 +10,19 @@ import java.util.Arrays;
  */
 @Component
 public class KeywordSupport {
+    /**
+     * 字母屏蔽
+     */
+    private static final String[] codes = {
+            "sb", "nm", "sm"
+    };
+    /**
+     * 汉字屏蔽
+     */
     private static final String[] pinyins = {
-            "sima",
-            "nima",
-            "siquanjia",
-            "meimu",
-            "guer",
-            "zhizhang",
-            "naotan",
-            "shabi",
-            "wori",
-            "nm",
-            "sb",
-            "nt",
-            "nc"
+            "sima", "nima", "siquanjia", "meimu",
+            "guer", "zhizhang", "naotan",
+            "shabi", "wori", "hukou"
     };
 
     /**
@@ -33,6 +32,9 @@ public class KeywordSupport {
      * @return 包含返回true
      */
     public boolean containsSensitive(String str) {
+        if (Arrays.stream(codes).anyMatch(str::contains)) {
+            return true;
+        }
         String pinyin = PinyinUtil.getPinyin(str, "");
         return Arrays.stream(pinyins).anyMatch(pinyin::contains);
     }
