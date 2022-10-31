@@ -1,7 +1,7 @@
 package com.socket.webchat.model;
 
-import com.socket.webchat.custom.ftp.FTPFile;
-import com.socket.webchat.model.enums.FilePath;
+import com.socket.webchat.model.enums.FileType;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class ChatRecordFile extends BaseModel {
     /**
@@ -22,11 +23,11 @@ public class ChatRecordFile extends BaseModel {
     /**
      * 文件类型
      */
-    private FilePath type;
+    private FileType type;
     /**
      * 文件路径
      */
-    private String path;
+    private String url;
     /**
      * 散列名称
      */
@@ -35,12 +36,4 @@ public class ChatRecordFile extends BaseModel {
      * 文件大小
      */
     private long size;
-
-    public ChatRecordFile(String mid, FTPFile file, long size) {
-        this.mid = mid;
-        this.size = size;
-        this.path = file.getPath();
-        this.hash = file.getName();
-        this.type = file.getType();
-    }
 }

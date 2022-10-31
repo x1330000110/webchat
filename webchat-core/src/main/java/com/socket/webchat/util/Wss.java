@@ -17,10 +17,17 @@ import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.Subject;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
 
 import java.util.function.Function;
 
-public class Wss {
+@Component
+public class Wss implements ApplicationContextAware {
+    private static ApplicationContext context;
+
     /**
      * 枚举转JSON
      */
@@ -124,5 +131,14 @@ public class Wss {
      */
     public static boolean isGroup(String target) {
         return target != null && target.startsWith(Constants.GROUP);
+    }
+
+    public static <T> T getBean(Class<T> beanClass) {
+        return context.getBean(beanClass);
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext context) throws BeansException {
+        Wss.context = context;
     }
 }

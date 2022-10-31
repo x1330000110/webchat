@@ -8,14 +8,11 @@ import cn.hutool.core.lang.Opt;
 import cn.hutool.core.lang.Validator;
 import cn.hutool.core.util.DesensitizedUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.http.HttpRequest;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.webchat.constant.Constants;
-import com.socket.webchat.custom.ftp.FTPClient;
-import com.socket.webchat.custom.ftp.FTPFile;
 import com.socket.webchat.custom.listener.UserChangeEvent;
 import com.socket.webchat.exception.AccountException;
 import com.socket.webchat.exception.UploadException;
@@ -27,9 +24,10 @@ import com.socket.webchat.model.condition.EmailCondition;
 import com.socket.webchat.model.condition.LoginCondition;
 import com.socket.webchat.model.condition.PasswordCondition;
 import com.socket.webchat.model.condition.RegisterCondition;
-import com.socket.webchat.model.enums.FilePath;
+import com.socket.webchat.model.enums.FileType;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.model.enums.UserOperation;
+import com.socket.webchat.request.LanzouCloudRequest;
 import com.socket.webchat.request.QQAccountRequest;
 import com.socket.webchat.request.bean.QQUser;
 import com.socket.webchat.service.SysGroupService;
@@ -58,8 +56,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final SysUserLogMapper sysUserLogMapper;
     private final SysGroupService sysGroupService;
     private final QQAccountRequest qqAccountRequest;
+    private final LanzouCloudRequest lanzouRequest;
     private final RedisClient<Object> redis;
-    private final FTPClient ftp;
     private final Email sender;
 
     @Override
@@ -103,13 +101,12 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             String qq = StrUtil.subBefore(email, "@", false);
             QQUser info = qqAccountRequest.getInfo(qq);
             if (info != null) {
-                if (!info.getName().isEmpty()) {
+                // 昵称
+                if (!info.getName().isBlank()) {
                     user.setName(StrUtil.sub(info.getName().trim(), 0, 6));
                 }
-                // 头像转存FTP
-                byte[] bytes = HttpRequest.get(info.getImg()).execute().bodyBytes();
-                FTPFile upload = ftp.upload(FilePath.IMAGE, bytes);
-                user.setHeadimgurl(upload.getMapping());
+                // 头像
+                user.setHeadimgurl(info.getImg());
             }
         }
         super.save(user);
@@ -204,7 +201,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         Img.from(scale).setTargetImageType(ImgUtil.IMAGE_TYPE_PNG).write(bos);
         // 图片映射地址
-        String path = ftp.upload(FilePath.IMAGE, bos.toByteArray()).getMapping();
+        String path = lanzouRequest.upload(FileType.IMAGE, bos.toByteArray());
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(SysUser::getUid, Wss.getUserId());
         wrapper.set(SysUser::getHeadimgurl, path);

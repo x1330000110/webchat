@@ -7,35 +7,26 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.webchat.constant.Constants;
-import com.socket.webchat.custom.ftp.FTPClient;
-import com.socket.webchat.custom.ftp.FTPFile;
 import com.socket.webchat.exception.UploadException;
 import com.socket.webchat.mapper.ChatRecordFileMapper;
 import com.socket.webchat.mapper.ChatRecordMapper;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.ChatRecordFile;
 import com.socket.webchat.model.condition.FileCondition;
-import com.socket.webchat.model.enums.FilePath;
+import com.socket.webchat.model.enums.FileType;
 import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.request.BaiduSpeechRequest;
+import com.socket.webchat.request.LanzouCloudRequest;
 import com.socket.webchat.service.UploadService;
 import com.socket.webchat.util.Assert;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.PostConstruct;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 文件上传服务
@@ -45,39 +36,32 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRecordFile> implements UploadService {
     private final BaiduSpeechRequest baiduSpeechRequest;
+    private final LanzouCloudRequest lanzouRequest;
     private final ChatRecordMapper chatRecordMapper;
-    private final FTPClient ftp;
 
     @Override
-    public String upload(FileCondition condition, FilePath path) throws IOException {
+    public String upload(FileCondition condition, FileType type) throws IOException {
         // 检查散列
         String digest = condition.getDigest();
         if (StrUtil.isNotEmpty(digest)) {
-            Assert.isTrue(ftp.existFile(path, digest), "NOT FOUND", UploadException::new);
-            // 查找文件
-            FTPFile cache = new FTPFile(path, digest);
-            LambdaQueryWrapper<ChatRecordFile> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(ChatRecordFile::getHash, digest);
-            wrapper.last("LIMIT 1");
-            // 转存文件
-            ChatRecordFile file = getOne(wrapper);
-            super.save(new ChatRecordFile(condition.getMid(), cache, file.getSize()));
-            return cache.getMapping();
+            // TODO 文件已存在
         }
         // 上传文件
         MultipartFile blob = condition.getBlob();
         long size = blob.getSize();
         Assert.isTrue(size != 0, "无效的文件", UploadException::new);
-        Assert.isTrue(size < path.getSize(), "文件大小超过限制", UploadException::new);
+        Assert.isTrue(size < type.getSize(), "文件大小超过限制", UploadException::new);
         // 上传文件获取路径
-        FTPFile file = ftp.upload(path, blob.getBytes());
+        byte[] bytes = blob.getBytes();
+        String hash = lanzouRequest.generateHash(bytes);
+        String url = lanzouRequest.upload(type, bytes, hash);
         // 记录文件
-        super.save(new ChatRecordFile(condition.getMid(), file, size));
-        return file.getMapping();
+        super.save(new ChatRecordFile(condition.getMid(), type, url, hash, size));
+        return url;
     }
 
     @Override
-    public <T extends OutputStream> T writeStream(String mid, T stream) {
+    public String getResourceURL(String mid) {
         // 获取消息文件
         LambdaQueryWrapper<ChatRecordFile> wrapper1 = Wrappers.lambdaQuery();
         wrapper1.eq(ChatRecordFile::getMid, mid);
@@ -96,45 +80,30 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
             LocalDateTime create = LocalDateTimeUtil.of(file.getCreateTime());
             MessageType type = record.getType();
             if (type != MessageType.BLOB || create.plusDays(Constants.FILE_EXPIRED_DAYS).isAfter(LocalDateTime.now())) {
-                return writeStream(FilePath.of(type), file.getHash(), stream);
+                return lanzouRequest.getResourceURL(file.getUrl());
             }
         }
         return null;
     }
 
     @Override
-    public <T extends OutputStream> T writeStream(FilePath path, String hash, T stream) {
-        return ftp.download(path, hash, stream);
+    public String getResourceURL(FileType type, String hash) {
+        LambdaQueryWrapper<ChatRecordFile> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(ChatRecordFile::getType, type);
+        wrapper.eq(ChatRecordFile::getHash, hash);
+        ChatRecordFile file = getOne(wrapper);
+        if (file == null) {
+            return null;
+        }
+        return lanzouRequest.getResourceURL(file.getUrl());
     }
 
     @Override
     public String convertText(String mid) {
-        ByteArrayOutputStream stream = this.writeStream(mid, new ByteArrayOutputStream());
-        byte[] bytes = stream.toByteArray();
+        byte[] bytes = lanzouRequest.download(getResourceURL(mid));
         if (ArrayUtil.isEmpty(bytes)) {
             return null;
         }
         return baiduSpeechRequest.convertText(bytes);
-    }
-
-    @PostConstruct
-    @Scheduled(cron = "0 0 0 * * ?")
-    public void clearExpiredResources() {
-        LambdaQueryWrapper<ChatRecordFile> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(ChatRecordFile::getType, FilePath.BLOB);
-        List<ChatRecordFile> list = list(wrapper);
-        LocalDateTime offset = LocalDate.now().atStartOfDay().minusDays(Constants.FILE_EXPIRED_DAYS);
-        // 获取没有过期的文件hash
-        List<String> noexpired = list.stream()
-                .filter(e -> LocalDateTimeUtil.of(e.getCreateTime()).isAfter(offset))
-                .map(ChatRecordFile::getHash)
-                .collect(Collectors.toList());
-        // 获取过期FTP文件
-        Map<String, String> collect = list.stream()
-                .filter(e -> LocalDateTimeUtil.of(e.getCreateTime()).isBefore(offset))
-                .filter(e -> !noexpired.contains(e.getHash()))
-                .collect(Collectors.toMap(ChatRecordFile::getHash, ChatRecordFile::getPath, (a, b) -> a));
-        // 删除过期文件
-        ftp.deleteFiles(collect);
     }
 }
