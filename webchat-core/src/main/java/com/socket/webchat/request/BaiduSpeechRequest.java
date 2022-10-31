@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class BaiduSpeechRequest {
     private static final String OAUTH_2 = "https://openapi.baidu.com/oauth/2.0/token?grant_type=client_credentials&client_id=ObTPO56aMGDTP0Ttj9VjUk6a&client_secret=pIkvZf08xqi86ImHNgO14ir9nLpRLGqh";
-    private static final String CONVERT_URL = "http://vop.baidu.com/server_api";
+    private static final String CONVERT_URL = "https://vop.baidu.com/server_api";
 
     /**
      * 获得AccessToken
