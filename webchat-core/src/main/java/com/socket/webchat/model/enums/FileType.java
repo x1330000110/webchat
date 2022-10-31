@@ -31,20 +31,6 @@ public enum FileType implements IEnum<String> {
         this.code = code;
     }
 
-    public static FileType of(MessageType type) {
-        switch (type) {
-            case AUDIO:
-                return AUDIO;
-            case IMAGE:
-                return IMAGE;
-            case BLOB:
-            case VIDEO:
-                return BLOB;
-            default:
-                throw new IllegalArgumentException();
-        }
-    }
-
     @Override
     public String getValue() {
         return name().toLowerCase();
