@@ -58,7 +58,7 @@ public class SocketEndpoint {
         Optional.ofNullable(self).ifPresent(user -> {
             user.logout(null);
             // 退出通知
-            userManager.sendAll(Callback.USER_LOGOUT.format(self), MessageType.EXIT, self);
+            userManager.sendAll(Callback.USER_LOGOUT.format(user), MessageType.EXIT, user);
         });
     }
 
