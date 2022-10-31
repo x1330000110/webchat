@@ -63,7 +63,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         String url = lanzouRequest.upload(type, bytes, hash);
         // 记录文件
         super.save(new ChatRecordFile(condition.getMid(), type, url, hash, size));
-        return url;
+        return StrUtil.format("{}/{}/{}", MAPPING, type.getValue(), hash);
     }
 
     @Override

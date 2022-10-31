@@ -42,17 +42,6 @@ public class LanzouCloudRequest {
     }
 
     /**
-     * 上传文件到lanzou服务器
-     *
-     * @param type  文件类型
-     * @param bytes 数据
-     * @return lanzou url
-     */
-    public String upload(FileType type, byte[] bytes) {
-        return upload(type, bytes, generateHash(bytes));
-    }
-
-    /**
      * 上传文件到lanzou服务器，手动指定文件名
      *
      * @param type  文件类型

@@ -18,6 +18,7 @@ import com.socket.webchat.exception.AccountException;
 import com.socket.webchat.exception.UploadException;
 import com.socket.webchat.mapper.SysUserLogMapper;
 import com.socket.webchat.mapper.SysUserMapper;
+import com.socket.webchat.model.ChatRecordFile;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.SysUserLog;
 import com.socket.webchat.model.condition.EmailCondition;
@@ -32,6 +33,7 @@ import com.socket.webchat.request.QQAccountRequest;
 import com.socket.webchat.request.bean.QQUser;
 import com.socket.webchat.service.SysGroupService;
 import com.socket.webchat.service.SysUserService;
+import com.socket.webchat.service.UploadService;
 import com.socket.webchat.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +57,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final ApplicationEventPublisher publisher;
     private final SysUserLogMapper sysUserLogMapper;
     private final SysGroupService sysGroupService;
+    private final UploadService uploadService;
     private final QQAccountRequest qqAccountRequest;
     private final LanzouCloudRequest lanzouRequest;
     private final RedisClient<Object> redis;
@@ -204,11 +207,14 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         bytes = bos.toByteArray();
         String hash = lanzouRequest.generateHash(bytes);
         String url = lanzouRequest.upload(FileType.IMAGE, bytes, hash);
-        String mapping = StrUtil.format("/{}/{}", FileType.IMAGE.getValue(), hash);
+        String mapping = StrUtil.format("{}/{}/{}", UploadService.MAPPING, FileType.IMAGE.getValue(), hash);
+        // 保存头像
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(SysUser::getUid, Wss.getUserId());
         wrapper.set(SysUser::getHeadimgurl, mapping);
         Assert.isTrue(super.update(wrapper), "修改失败", IllegalStateException::new);
+        // 保存文件映射
+        uploadService.save(new ChatRecordFile(null, FileType.IMAGE, url, hash, bytes.length));
         // 推送变动事件
         publisher.publishEvent(new UserChangeEvent(publisher, UserOperation.HEAD_IMG, mapping));
         return mapping;
