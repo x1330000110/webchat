@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.secure.exception.InvalidRequestException;
 import com.socket.secure.filter.anno.Encrypted;
+import com.socket.webchat.custom.listener.UserChangeEvent;
 import com.socket.webchat.custom.support.SettingSupport;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
@@ -12,11 +13,13 @@ import com.socket.webchat.model.condition.SettingCondition;
 import com.socket.webchat.model.condition.UserCondition;
 import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.model.enums.Setting;
+import com.socket.webchat.model.enums.UserOperation;
 import com.socket.webchat.service.RecordService;
 import com.socket.webchat.service.SysUserService;
 import com.socket.webchat.util.Assert;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -26,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/owner")
 public class OwnerController {
+    private final ApplicationEventPublisher publisher;
     private final SettingSupport settingSupport;
     private final SysUserService sysUserService;
     private final RecordService recordService;
@@ -39,9 +43,15 @@ public class OwnerController {
     @PostMapping("/deleteUser")
     public HttpStatus deleteUser(@RequestBody UserCondition condition) {
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
-        wrapper.eq(SysUser::getUid, condition.getUid());
+        String uid = condition.getUid();
+        wrapper.eq(SysUser::getUid, uid);
         wrapper.set(SysUser::isDeleted, 1);
-        return HttpStatus.of(sysUserService.update(wrapper), "操作成功", "找不到此用户");
+        boolean update = sysUserService.update(wrapper);
+        if (update) {
+            // 强制目标用户下线
+            publisher.publishEvent(new UserChangeEvent(publisher, UserOperation.FOREVER, null, uid));
+        }
+        return HttpStatus.of(update, "操作成功", "找不到此用户");
     }
 
     @Encrypted

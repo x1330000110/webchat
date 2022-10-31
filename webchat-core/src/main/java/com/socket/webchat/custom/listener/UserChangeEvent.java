@@ -8,22 +8,26 @@ import org.springframework.context.ApplicationEvent;
 @Getter
 public class UserChangeEvent extends ApplicationEvent {
     /**
-     * 更新值
+     * 触发事件
      */
     private final UserOperation operation;
-    /**
-     * 新数据
-     */
-    private final String data;
     /**
      * 触发者
      */
     private final String uid;
+    /**
+     * 新数据
+     */
+    private final String data;
 
-    public UserChangeEvent(Object source, String data, UserOperation operation) {
+    public UserChangeEvent(Object source, UserOperation operation, String data) {
+        this(source, operation, data, Wss.getUserId());
+    }
+
+    public UserChangeEvent(Object source, UserOperation operation, String data, String uid) {
         super(source);
-        this.data = data;
         this.operation = operation;
-        this.uid = Wss.getUserId();
+        this.data = data;
+        this.uid = uid;
     }
 }

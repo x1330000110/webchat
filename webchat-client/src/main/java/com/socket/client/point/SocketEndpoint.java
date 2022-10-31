@@ -164,9 +164,6 @@ public class SocketEndpoint {
             case LOCK:
                 this.lock(target, wsmsg);
                 break;
-            case FOREVER:
-                this.forever(target);
-                break;
             default:
                 this.parseOwnerSysMsg(wsmsg, target);
         }
@@ -273,14 +270,6 @@ public class SocketEndpoint {
             return;
         }
         userManager.sendAll(Callback.GC_LOGIN_LIMIT.format(target, time), MessageType.DANGER, target);
-    }
-
-    /**
-     * 永久限制登录
-     */
-    private void forever(WsUser target) {
-        target.logout(Callback.LIMIT_FOREVER.get());
-        userManager.remove(target.getUid());
     }
 
     /**

@@ -46,10 +46,6 @@ public enum MessageType implements EnumItem<MessageType>, IEnum<String> {
      */
     LOCK,
     /**
-     * 永久限制登陆
-     */
-    FOREVER,
-    /**
      * 设为/取消管理员权限
      */
     ROLE,

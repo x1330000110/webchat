@@ -196,7 +196,7 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
 
     @Override
     public void onUserChange(UserChangeEvent event) {
-        SysUser user = this.get(event.getUid());
+        WsUser user = this.getUser(event.getUid());
         Assert.isFalse(user == null, Callback.USER_NOT_FOUND);
         switch (event.getOperation()) {
             case NAME:
@@ -204,6 +204,10 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
                 break;
             case HEAD_IMG:
                 user.setHeadimgurl(event.getData());
+                break;
+            case FOREVER:
+                user.logout(Callback.LIMIT_FOREVER.get());
+                remove(user.getUid());
                 break;
             default:
                 // ignore

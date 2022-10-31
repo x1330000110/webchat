@@ -183,7 +183,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         wrapper.eq(SysUser::getUid, Wss.getUserId());
         Assert.isTrue(super.update(user, wrapper), "修改失败", IllegalStateException::new);
         // 推送变动事件
-        publisher.publishEvent(new UserChangeEvent(publisher, user.getName(), UserOperation.NAME));
+        publisher.publishEvent(new UserChangeEvent(publisher, UserOperation.NAME, user.getName()));
     }
 
     @Override
@@ -210,7 +210,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         wrapper.set(SysUser::getHeadimgurl, path);
         Assert.isTrue(super.update(wrapper), "修改失败", IllegalStateException::new);
         // 推送变动事件
-        publisher.publishEvent(new UserChangeEvent(publisher, path, UserOperation.HEAD_IMG));
+        publisher.publishEvent(new UserChangeEvent(publisher, UserOperation.HEAD_IMG, path));
         return path;
     }
 
