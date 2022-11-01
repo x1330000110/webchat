@@ -88,7 +88,7 @@ public class SecureCore {
      *
      * @param certificate Client encrypted segmented public key
      * @param digest      Client public key signature
-     * @param key         Get certificate of the public key
+     * @param key         Get certificate of server public key
      * @return Server encrypted AES key
      */
     public String syncAeskey(String certificate, String digest, String key) {
