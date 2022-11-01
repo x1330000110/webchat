@@ -37,17 +37,6 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
 
     @Override
     public String upload(FileCondition condition, FileType type) throws IOException {
-        // 检查散列
-        String digest = condition.getDigest();
-        if (StrUtil.isNotEmpty(digest)) {
-            LambdaQueryWrapper<ChatRecordFile> wrapper = Wrappers.lambdaQuery();
-            wrapper.eq(ChatRecordFile::getHash, digest);
-            ChatRecordFile file = getFirst(wrapper);
-            if (file != null) {
-                return file.getUrl();
-            }
-            throw new IllegalStateException("NOT FOUND FILE");
-        }
         // 上传文件
         MultipartFile blob = condition.getBlob();
         long size = blob.getSize();
