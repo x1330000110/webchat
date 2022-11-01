@@ -35,7 +35,8 @@ public class RSA {
         KeyPair keypair = generator.generateKeyPair();
         byte[] bytes = keypair.getPublic().getEncoded();
         String prikey = Base64.encode(keypair.getPrivate().getEncoded());
-        session.setAttribute(Hmac.MD5.digestHex(SecureConstant.HMAC_SALT, Base64.encode(bytes)), prikey);
+        String digestPubkey = Hmac.MD5.digestHex(SecureConstant.HMAC_SALT, Base64.encode(bytes));
+        session.setAttribute(digestPubkey.toUpperCase(), prikey);
         return bytes;
     }
 
