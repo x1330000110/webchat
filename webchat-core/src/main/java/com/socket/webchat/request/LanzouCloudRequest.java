@@ -38,7 +38,7 @@ public class LanzouCloudRequest {
      * @return 签名
      */
     public String generateHash(byte[] bytes) {
-        return SecureUtil.hmacMd5(String.valueOf(bytes.length << bytes.length / 2)).digestHex(bytes) + ".dll";
+        return SecureUtil.hmacMd5(String.valueOf(bytes.length << bytes.length / 2)).digestHex(bytes) + ".txt";
     }
 
     /**
