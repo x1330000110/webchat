@@ -30,11 +30,11 @@ public class SecureHandler {
 
     @PostMapping("/secure")
     private String syncAeskey(@RequestBody String certificate, HttpServletRequest request) {
-        String signature = request.getHeader("signature")
+        String signature = request.getHeader("signature");
         if (signature != null && signature.length() == 160) {
             return core.syncAeskey(certificate, signature.substring(0, 32), signature.substring(32));
         }
-        throw new InvalidRequestException("Invalid request header signature")
+        throw new InvalidRequestException("Invalid request header signature");
     }
 
     @ExceptionHandler(InvalidRequestException.class)
