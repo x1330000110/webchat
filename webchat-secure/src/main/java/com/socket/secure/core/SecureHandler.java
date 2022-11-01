@@ -30,7 +30,7 @@ public class SecureHandler {
 
     @PostMapping("/secure")
     private String syncAeskey(@RequestBody String certificate, HttpServletRequest request) {
-        return core.syncAeskey(certificate, request.getHeader("SHA-512"));
+        return core.syncAeskey(certificate, request.getHeader("SHA-512"), request.getHeader("digest"));
     }
 
     @ExceptionHandler(InvalidRequestException.class)

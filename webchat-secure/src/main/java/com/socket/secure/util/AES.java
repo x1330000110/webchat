@@ -1,9 +1,9 @@
 package com.socket.secure.util;
 
+import cn.hutool.core.codec.Base64;
 import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.exception.InvalidRequestException;
 import org.apache.tomcat.util.buf.HexUtils;
-import org.springframework.util.Base64Utils;
 import org.springframework.util.StringUtils;
 
 import javax.crypto.Cipher;
@@ -80,7 +80,7 @@ public class AES {
         }
         try {
             Cipher cipher = getCipher(Cipher.ENCRYPT_MODE, key);
-            return Base64Utils.encodeToString(cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8)));
+            return Base64.encode(cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8)));
         } catch (GeneralSecurityException e) {
             throw new InvalidRequestException("AES encrypt failure: " + e.getMessage());
         }
@@ -103,7 +103,7 @@ public class AES {
         if (!(ciphertext.startsWith("<") && ciphertext.endsWith(">"))) {
             return ciphertext;
         }
-        byte[] bytes = Base64Utils.decodeFromUrlSafeString(ciphertext.substring(1, ciphertext.length() - 1));
+        byte[] bytes = Base64.decode(ciphertext.substring(1, ciphertext.length() - 1));
         try {
             Cipher cipher = getCipher(Cipher.DECRYPT_MODE, key);
             return new String(cipher.doFinal(bytes)).substring(RANDOM_PREFIX_LENGTH);

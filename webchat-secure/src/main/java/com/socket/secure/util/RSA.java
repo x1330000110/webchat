@@ -1,9 +1,9 @@
 package com.socket.secure.util;
 
+import cn.hutool.core.codec.Base64;
 import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.exception.InvalidRequestException;
 import org.apache.tomcat.util.buf.HexUtils;
-import org.springframework.util.Base64Utils;
 
 import javax.crypto.Cipher;
 import javax.servlet.http.HttpSession;
@@ -33,8 +33,10 @@ public class RSA {
         }
         generator.initialize(1024);
         KeyPair keypair = generator.generateKeyPair();
-        session.setAttribute(SecureConstant.PRIVATE_KEY, Base64Utils.encodeToString(keypair.getPrivate().getEncoded()));
-        return keypair.getPublic().getEncoded();
+        byte[] bytes = keypair.getPublic().getEncoded();
+        String prikey = Base64.encode(keypair.getPrivate().getEncoded());
+        session.setAttribute(Hmac.MD5.digestHex(SecureConstant.HMAC_SALT, Base64.encode(bytes)), prikey);
+        return bytes;
     }
 
     /**
@@ -47,7 +49,7 @@ public class RSA {
     public static String encrypt(String plaintext, String pubkey) {
         try {
             Cipher cipher = Cipher.getInstance(ALGORITHM);
-            KeySpec keySpec = new X509EncodedKeySpec(Base64Utils.decodeFromString(pubkey));
+            KeySpec keySpec = new X509EncodedKeySpec(Base64.decode(pubkey));
             Key key = KeyFactory.getInstance("RSA").generatePublic(keySpec);
             cipher.init(Cipher.ENCRYPT_MODE, key);
             return HexUtils.toHexString(cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8)));
@@ -66,10 +68,10 @@ public class RSA {
     public static String decrypt(String ciphertext, String prikey) {
         try {
             Cipher cipher = Cipher.getInstance(ALGORITHM);
-            KeySpec keySpec = new PKCS8EncodedKeySpec(Base64Utils.decodeFromString(prikey));
+            KeySpec keySpec = new PKCS8EncodedKeySpec(Base64.decode(prikey));
             Key key = KeyFactory.getInstance("RSA").generatePrivate(keySpec);
             cipher.init(Cipher.DECRYPT_MODE, key);
-            return new String(cipher.doFinal(Base64Utils.decodeFromString(ciphertext)));
+            return new String(cipher.doFinal(Base64.decode(ciphertext)));
         } catch (GeneralSecurityException e) {
             throw new InvalidRequestException("RSA decrypt failure: " + e.getMessage());
         }

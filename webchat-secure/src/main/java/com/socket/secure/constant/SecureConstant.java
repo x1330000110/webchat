@@ -1,6 +1,6 @@
 package com.socket.secure.constant;
 
-import org.springframework.util.Base64Utils;
+import cn.hutool.core.codec.Base64;
 
 /**
  * safe-constant-pool
@@ -9,11 +9,7 @@ public interface SecureConstant {
     /**
      * Camouflage picture Base64 format
      */
-    byte[] CAMOUFLAGE_PICTURE_BYTES = Base64Utils.decodeFromString("R0lGODlhAQABAIAAAP///wAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQEAAAAACwAAAAAAQABAAACAkQBADs=");
-    /**
-     * Session private key ID
-     */
-    String PRIVATE_KEY = "PRIVATE_KEY";
+    byte[] CAMOUFLAGE_PICTURE_BYTES = Base64.decode("R0lGODlhAQABAIAAAP///wAAACH/C05FVFNDQVBFMi4wAwEAAAAh+QQEAAAAACwAAAAAAQABAAACAkQBADs=");
     /**
      * Session AES key ID (this key is used for data encryption)
      */

@@ -1,5 +1,6 @@
 package com.socket.secure.core;
 
+import cn.hutool.core.codec.Base64;
 import cn.hutool.http.Header;
 import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.constant.SecureProperties;
@@ -87,12 +88,13 @@ public class SecureCore {
      *
      * @param certificate Client encrypted segmented public key
      * @param digest      Client public key signature
+     * @param key         Get certificate of the public key
      * @return Server encrypted AES key
      */
-    public String syncAeskey(String certificate, String digest) {
-        String prikey = (String) session.getAttribute(SecureConstant.PRIVATE_KEY);
+    public String syncAeskey(String certificate, String digest, String key) {
+        String prikey = (String) session.getAttribute(key);
         if (prikey == null || digest == null) {
-            throw new InvalidRequestException("private key or digest is null");
+            throw new InvalidRequestException((digest == null ? "private key" : "digest") + " is null");
         }
         // Decrypt client public key
         StringBuilder sb = new StringBuilder();
@@ -109,7 +111,7 @@ public class SecureCore {
         if (!Hmac.SHA512.digestHex(SecureConstant.HMAC_SALT, pubkey).toUpperCase().equals(digest)) {
             throw new InvalidRequestException("Incorrect public key signature");
         }
-        session.removeAttribute(SecureConstant.PRIVATE_KEY);
+        session.removeAttribute(key);
         // Generate AES key
         String aeskey = AES.generateAesKey();
         session.setAttribute(SecureConstant.AESKEY, aeskey);
@@ -121,14 +123,14 @@ public class SecureCore {
     /**
      * Public key to generate signature
      *
-     * @param bytes     Public key information
+     * @param bytes     Public key bytes
      * @param timestamp current time
      * @return Public key signature
      */
     private String generateSignature(byte[] bytes, long timestamp) {
         String stringtime = String.valueOf(timestamp / 1000);
         String hmacsha224 = Hmac.SHA224.digestHex(stringtime, Base64Utils.encode(bytes));
-        String base64time = Base64Utils.encodeToString(stringtime.getBytes());
+        String base64time = Base64.encode(stringtime.getBytes());
         String hmacsha384 = Hmac.SHA384.digestHex(SecureConstant.PUBKEY_SIGN_SALT, base64time);
         return hmacsha224.concat(hmacsha384);
     }
