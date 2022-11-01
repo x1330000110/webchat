@@ -93,9 +93,6 @@ public class SecureCore {
      */
     public String syncAeskey(String certificate, String digest, String key) {
         String prikey = (String) session.getAttribute(key);
-        if (prikey == null || digest == null) {
-            throw new InvalidRequestException((digest == null ? "private key" : "digest") + " is null");
-        }
         // Decrypt client public key
         StringBuilder sb = new StringBuilder();
         for (String str : certificate.split(SecureConstant.ENCRYPT_PUBKEY_SPLIT)) {
