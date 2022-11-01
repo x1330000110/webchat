@@ -87,12 +87,15 @@ public class SecureCore {
      * Secure exchange of AES keys
      *
      * @param certificate Client encrypted segmented public key
+     * @param key         get session server private key
      * @param digest      Client public key signature
-     * @param key         Get certificate of server public key
      * @return Server encrypted AES key
      */
-    public String syncAeskey(String certificate, String digest, String key) {
+    public String syncAeskey(String certificate, String key, String digest) {
         String prikey = (String) session.getAttribute(key);
+        if (prikey == null) {
+            throw new InvalidRequestException("The correct private key cannot be obtained through the certificate.");
+        }
         // Decrypt client public key
         StringBuilder sb = new StringBuilder();
         for (String str : certificate.split(SecureConstant.ENCRYPT_PUBKEY_SPLIT)) {
