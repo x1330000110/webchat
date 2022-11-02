@@ -15,6 +15,10 @@ public interface SecureConstant {
      */
     String AESKEY = "AESKEY";
     /**
+     * Hash user-agent
+     */
+    String DIGEST_UA = "DIGEST_UA";
+    /**
      * Client encryption public key separator
      */
     String ENCRYPT_PUBKEY_SPLIT = "Z";
@@ -22,20 +26,4 @@ public interface SecureConstant {
      * array identifier
      */
     String ARRAY_MARK = "\u1000";
-    /**
-     * Hmac salt
-     */
-    byte[] HMAC_SALT = {-30, -127, -86, -30, -127, -82, -30, -127, -85, -30, -127, -83, -30, -128, -86};
-    /**
-     * signature separator salt
-     */
-    char[] SIGN_SPLIT_SALT = {8298, 8302, 8299, 8301, 8234};
-    /**
-     * join salt
-     */
-    char[] JOIN_SALT = {8301, 8234, 8299, 8298, 8302};
-    /**
-     * public key sign salt
-     */
-    byte[] PUBKEY_SIGN_SALT = {-30, -128, -86, -30, -127, -83, -30, -127, -85, -30, -127, -86, -30, -127, -82};
 }

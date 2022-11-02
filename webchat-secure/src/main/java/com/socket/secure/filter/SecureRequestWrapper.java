@@ -47,9 +47,13 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
      */
     private final Collection<Part> part;
     /**
-     * Link signature (0: Time 1: signature)
+     * Link timestamp
      */
-    private String[] signData;
+    private String timestamp36;
+    /**
+     * Link signature
+     */
+    private String signature;
 
     /**
      * Secure servlet request wrapper
@@ -152,7 +156,9 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
         // Decryption request body
         body.forEach(this::decrypt);
         // Find signature
-        this.signData = findSignature(signName).split(String.valueOf(SecureConstant.SIGN_SPLIT_SALT));
+        String signature = findSignature(signName);
+        this.signature = signature.substring(0, 40);
+        this.timestamp36 = signature.substring(40);
     }
 
     /**
@@ -211,7 +217,7 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
      */
     boolean matchSignature(boolean vaildPart) throws IOException {
         // Generate signature
-        StringJoiner joiner = new StringJoiner(String.valueOf(SecureConstant.JOIN_SALT));
+        StringBuilder sb = new StringBuilder();
         // join form data
         for (String[] value : params.values()) {
             if (value.length == 0) {
@@ -219,46 +225,46 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
             }
             // handle array
             if (value.length > 1) {
-                joiner.add(String.join(SecureConstant.ARRAY_MARK, value));
+                sb.append(String.join(SecureConstant.ARRAY_MARK, value));
                 continue;
             }
-            joiner.add(value[0]);
+            sb.append(value[0]);
         }
         // join body
         for (Object value : body.values()) {
             // handle array
             if (value.getClass().isArray()) {
                 String[] strings = Arrays.stream((Object[]) value).map(Object::toString).toArray(String[]::new);
-                joiner.add(String.join(SecureConstant.ARRAY_MARK, strings));
+                sb.append(String.join(SecureConstant.ARRAY_MARK, strings));
                 continue;
             }
-            joiner.add(value.toString());
+            sb.append(value);
         }
         // join part diest
         if (vaildPart) {
             for (Part part : part) {
                 if (part.getSubmittedFileName() != null) {
                     byte[] bytes = IoUtil.readBytes(part.getInputStream());
-                    joiner.add(Hmac.MD5.digestHex(SecureConstant.HMAC_SALT, bytes));
+                    sb.append(Hmac.MD5.digestHex(getSession(), bytes));
                 }
             }
         }
         // check sign
-        String digest = Hmac.MD5.digestHex(signData[0], joiner.toString());
-        return digest.equalsIgnoreCase(signData[1]);
+        String digest = Hmac.SHA1.digestHex(getSession(), sb + timestamp36);
+        return digest.equalsIgnoreCase(signature);
     }
 
     /**
      * request timestamp
      */
     long getTimestamp() {
-        return Long.parseLong(signData[0], 36);
+        return Long.parseLong(timestamp36, 36);
     }
 
     /**
      * request signature
      */
     String sign() {
-        return signData[1];
+        return signature;
     }
 }

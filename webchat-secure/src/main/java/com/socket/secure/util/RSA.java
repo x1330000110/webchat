@@ -1,12 +1,10 @@
 package com.socket.secure.util;
 
 import cn.hutool.core.codec.Base64;
-import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.exception.InvalidRequestException;
 import org.apache.tomcat.util.buf.HexUtils;
 
 import javax.crypto.Cipher;
-import javax.servlet.http.HttpSession;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.KeySpec;
@@ -20,11 +18,11 @@ public class RSA {
     private static final String ALGORITHM = "RSA/ECB/PKCS1Padding";
 
     /**
-     * Generate RSA public key while saving private key to session
+     * Generate RSA KeyPair
      *
-     * @return rsa Public Key
+     * @return KeyPair
      */
-    public static byte[] generateRsaPublicKey(HttpSession session) {
+    public static KeyPair generateKeyPair() {
         KeyPairGenerator generator;
         try {
             generator = KeyPairGenerator.getInstance("RSA");
@@ -32,11 +30,7 @@ public class RSA {
             throw new InvalidRequestException(e.getMessage());
         }
         generator.initialize(1024);
-        KeyPair keypair = generator.generateKeyPair();
-        byte[] pubkey = keypair.getPublic().getEncoded();
-        String digest = Hmac.MD5.digestHex(SecureConstant.HMAC_SALT, Base64.encode(pubkey));
-        session.setAttribute(digest.toUpperCase(), Base64.encode(keypair.getPrivate().getEncoded()));
-        return pubkey;
+        return generator.generateKeyPair();
     }
 
     /**

@@ -14,13 +14,14 @@ import org.apache.tomcat.util.http.FastHttpDateFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Base64Utils;
 
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.security.KeyPair;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.Deflater;
@@ -34,6 +35,7 @@ import java.util.zip.ZipOutputStream;
 public class SecureCore {
     private ApplicationEventPublisher publisher;
     private SecureProperties properties;
+    private HttpServletRequest request;
     private HttpSession session;
 
     /**
@@ -42,6 +44,8 @@ public class SecureCore {
      * @param response {@link HttpServletResponse}
      */
     public void syncPubkey(HttpServletResponse response) throws IOException {
+        // cache hash ua
+        Hmac.cacheRequestUserAgent(request);
         ServletOutputStream stream = response.getOutputStream();
         // Write Camouflage picture
         stream.write(SecureConstant.CAMOUFLAGE_PICTURE_BYTES);
@@ -58,15 +62,20 @@ public class SecureCore {
      * @return write time
      */
     public long writePublickey(OutputStream stream) throws IOException {
-        // Write public key and signature
         int count = properties.getDisguiseFilesCount();
         Map<String, byte[]> data = new HashMap<>(count);
-        byte[] pubkey = RSA.generateRsaPublicKey(session);
+        // Generate rsa keys
+        KeyPair keyPair = RSA.generateKeyPair();
+        byte[] pubkey = keyPair.getPublic().getEncoded();
+        String digest = Hmac.SHA1.digestHex(session, Base64.encode(pubkey));
+        String base64Prikey = Base64.encode(keyPair.getPrivate().getEncoded());
+        // Hmac sha1 save the corresponding private key
+        session.setAttribute(digest.toUpperCase(), base64Prikey);
         // Mark this current time
         long timestamp = System.currentTimeMillis();
         String signature = generateSignature(pubkey, timestamp);
         // Write random data
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < 0; i++) {
             String name = Randoms.randomHex(signature.length());
             byte[] bytes = Randoms.randomBytes(pubkey.length);
             data.put(name, bytes);
@@ -94,7 +103,7 @@ public class SecureCore {
     public String syncAeskey(String certificate, String key, String digest) {
         String prikey = (String) session.getAttribute(key);
         if (prikey == null) {
-            throw new InvalidRequestException("The correct private key cannot be obtained through the certificate.");
+            throw new InvalidRequestException("The correct private key cannot be obtained through the hash.");
         }
         // Decrypt client public key
         StringBuilder sb = new StringBuilder();
@@ -108,7 +117,7 @@ public class SecureCore {
         }
         String pubkey = sb.toString();
         // Verify signature
-        if (!Hmac.SHA512.digestHex(SecureConstant.HMAC_SALT, pubkey).toUpperCase().equals(digest)) {
+        if (!Hmac.SHA512.digestHex(session, pubkey).toUpperCase().equals(digest)) {
             throw new InvalidRequestException("Incorrect public key signature");
         }
         session.removeAttribute(key);
@@ -128,10 +137,9 @@ public class SecureCore {
      * @return Public key signature
      */
     private String generateSignature(byte[] bytes, long timestamp) {
-        String stringtime = String.valueOf(timestamp / 1000);
-        String hmacsha224 = Hmac.SHA224.digestHex(stringtime, Base64Utils.encode(bytes));
-        String base64time = Base64.encode(stringtime.getBytes());
-        String hmacsha384 = Hmac.SHA384.digestHex(SecureConstant.PUBKEY_SIGN_SALT, base64time);
+        String strtime = String.valueOf(timestamp / 1000);
+        String hmacsha224 = Hmac.SHA224.digestHex(session, Base64.encode(bytes));
+        String hmacsha384 = Hmac.SHA384.digestHex(session, strtime);
         return hmacsha224.concat(hmacsha384);
     }
 
@@ -143,6 +151,11 @@ public class SecureCore {
     @Autowired
     public void setProperties(SecureProperties properties) {
         this.properties = properties;
+    }
+
+    @Autowired
+    public void setRequest(HttpServletRequest request) {
+        this.request = request;
     }
 
     @Autowired
