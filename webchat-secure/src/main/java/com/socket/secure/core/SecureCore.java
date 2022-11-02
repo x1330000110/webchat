@@ -75,7 +75,7 @@ public class SecureCore {
         long timestamp = System.currentTimeMillis();
         String signature = generateSignature(pubkey, timestamp);
         // Write random data
-        for (int i = 0; i < 0; i++) {
+        for (int i = 0; i <= count; i++) {
             String name = Randoms.randomHex(signature.length());
             byte[] bytes = Randoms.randomBytes(pubkey.length);
             data.put(name, bytes);
