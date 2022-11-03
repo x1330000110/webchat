@@ -34,6 +34,7 @@ public enum Callback {
     ALL_MUTE("所有者开启了全员禁言"),
     SELF_SHIELD("消息已发出，但被对方拒收了"),
     SHIELD_USER("您已将 {} 消息屏蔽"),
+    VIOLATION_CHARACTER("消息中包含违规字符，请检查后重新发送"),
     SENSITIVE_KEYWORDS("消息包含敏感关键词，请检查后重新发送"),
     CANCEL_SHIELD("您已取消屏蔽 {} 消息");
 
