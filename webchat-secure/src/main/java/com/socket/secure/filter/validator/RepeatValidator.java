@@ -1,5 +1,6 @@
 package com.socket.secure.filter.validator;
 
+import cn.hutool.core.date.SystemClock;
 import com.socket.secure.filter.validator.impl.MappedRepeatValidator;
 import com.socket.secure.filter.validator.impl.RedisRepeatValidator;
 import org.slf4j.Logger;
@@ -23,7 +24,7 @@ public interface RepeatValidator {
      * @return link expired return true
      */
     default boolean isExpired(long timestamp, long effectiveTime) {
-        return System.currentTimeMillis() - timestamp > effectiveTime;
+        return SystemClock.now() - timestamp > effectiveTime;
     }
 
     /**

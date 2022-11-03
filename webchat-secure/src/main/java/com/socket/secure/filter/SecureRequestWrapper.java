@@ -1,6 +1,7 @@
 package com.socket.secure.filter;
 
 import cn.hutool.core.io.IoUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.ContentType;
 import cn.hutool.json.JSONConfig;
 import cn.hutool.json.JSONObject;
@@ -9,7 +10,6 @@ import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.exception.InvalidRequestException;
 import com.socket.secure.util.AES;
 import com.socket.secure.util.Hmac;
-import org.springframework.util.StringUtils;
 
 import javax.servlet.ReadListener;
 import javax.servlet.ServletException;
@@ -86,7 +86,7 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
      */
     private boolean isFileRequest() {
         String type = getContentType();
-        return StringUtils.hasLength(type) && type.startsWith(ContentType.MULTIPART.getValue());
+        return StrUtil.isNotEmpty(type) && type.startsWith(ContentType.MULTIPART.getValue());
     }
 
     @Override

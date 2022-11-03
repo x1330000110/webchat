@@ -1,9 +1,9 @@
 package com.socket.secure.util;
 
 import cn.hutool.core.codec.Base64;
+import cn.hutool.core.util.HexUtil;
 import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.exception.InvalidRequestException;
-import org.apache.tomcat.util.buf.HexUtils;
 import org.springframework.util.StringUtils;
 
 import javax.crypto.Cipher;
@@ -36,7 +36,7 @@ public class AES {
             throw new InvalidRequestException(e.getMessage());
         }
         generator.init(128);
-        return HexUtils.toHexString(generator.generateKey().getEncoded());
+        return HexUtil.encodeHexStr(generator.generateKey().getEncoded());
     }
 
     /**
@@ -116,7 +116,7 @@ public class AES {
         SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
         StringBuilder sb = new StringBuilder();
         IntStream.range(0, key.length() / 2).forEach(i -> sb.append(Integer.toString(key.charAt(i), 16)));
-        IvParameterSpec paramSpec = new IvParameterSpec(HexUtils.fromHexString(sb.toString()));
+        IvParameterSpec paramSpec = new IvParameterSpec(HexUtil.decodeHex(sb.toString()));
         Cipher cipher = Cipher.getInstance(ALGORITHM);
         cipher.init(mode, keySpec, paramSpec);
         return cipher;

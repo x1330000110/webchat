@@ -1,6 +1,8 @@
 package com.socket.secure.core;
 
 import cn.hutool.core.codec.Base64;
+import cn.hutool.core.date.SystemClock;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.http.Header;
 import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.constant.SecureProperties;
@@ -22,9 +24,6 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.KeyPair;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -63,7 +62,6 @@ public class SecureCore {
      */
     public long writePublickey(OutputStream stream) throws IOException {
         int count = properties.getDisguiseFilesCount();
-        Map<String, byte[]> data = new HashMap<>(count);
         // Generate rsa keys
         KeyPair keyPair = RSA.generateKeyPair();
         byte[] pubkey = keyPair.getPublic().getEncoded();
@@ -71,25 +69,26 @@ public class SecureCore {
         String base64Prikey = Base64.encode(keyPair.getPrivate().getEncoded());
         // Hmac sha1 save the corresponding private key
         session.setAttribute(digest.toUpperCase(), base64Prikey);
-        // Mark this current time
-        long timestamp = System.currentTimeMillis();
-        String signature = generateSignature(pubkey, timestamp);
-        // Write random data
-        for (int i = 0; i <= count; i++) {
-            String name = Randoms.randomHex(signature.length());
-            byte[] bytes = Randoms.randomBytes(pubkey.length);
-            data.put(name, bytes);
-        }
-        data.put(signature, pubkey);
         // Write compressed file
+        long headtime = SystemClock.now();
         try (ZipOutputStream zip = new ZipOutputStream(stream)) {
-            zip.setLevel(Deflater.BEST_COMPRESSION);
-            for (Map.Entry<String, byte[]> entry : data.entrySet()) {
-                zip.putNextEntry(new ZipEntry(entry.getKey()));
-                zip.write(entry.getValue());
+            int random = RandomUtil.randomInt(count);
+            for (int i = 0; i <= count; i++) {
+                String name = Randoms.randomHex(40);
+                byte[] bytes = Randoms.randomBytes(pubkey.length);
+                long modtime = SystemClock.now();
+                // Insert real public key
+                if (i == random) {
+                    bytes = pubkey;
+                    name = Hmac.SHA384.digestHex(session, Base64.encode(bytes));
+                }
+                ZipEntry entry = new ZipEntry(name);
+                entry.setComment(Hmac.SHA224.digestHex(session, name));
+                zip.putNextEntry(entry);
+                zip.write(bytes);
             }
         }
-        return timestamp;
+        return headtime;
     }
 
     /**
@@ -127,20 +126,6 @@ public class SecureCore {
         // Push event
         publisher.publishEvent(new KeyEvent(publisher, session, aeskey));
         return RSA.encrypt(aeskey, pubkey).toUpperCase();
-    }
-
-    /**
-     * Public key to generate signature
-     *
-     * @param bytes     Public key bytes
-     * @param timestamp current time
-     * @return Public key signature
-     */
-    private String generateSignature(byte[] bytes, long timestamp) {
-        String strtime = String.valueOf(timestamp / 1000);
-        String hmacsha224 = Hmac.SHA224.digestHex(session, Base64.encode(bytes));
-        String hmacsha384 = Hmac.SHA384.digestHex(session, strtime);
-        return hmacsha224.concat(hmacsha384);
     }
 
     @Autowired

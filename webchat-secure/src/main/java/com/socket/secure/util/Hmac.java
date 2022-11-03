@@ -1,10 +1,10 @@
 package com.socket.secure.util;
 
+import cn.hutool.core.util.HexUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.Header;
 import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.exception.InvalidRequestException;
-import org.apache.tomcat.util.buf.HexUtils;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -65,7 +65,7 @@ public enum Hmac {
             Mac engine = Mac.getInstance(algorithm);
             engine.init(new SecretKeySpec(getKey(session), algorithm));
             engine.update(data, 0, data.length);
-            return HexUtils.toHexString(engine.doFinal());
+            return HexUtil.encodeHexStr(engine.doFinal());
         } catch (GeneralSecurityException e) {
             throw new InvalidRequestException(e.getMessage());
         }

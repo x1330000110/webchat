@@ -1,8 +1,8 @@
 package com.socket.secure.util;
 
 import cn.hutool.core.codec.Base64;
+import cn.hutool.core.util.HexUtil;
 import com.socket.secure.exception.InvalidRequestException;
-import org.apache.tomcat.util.buf.HexUtils;
 
 import javax.crypto.Cipher;
 import java.nio.charset.StandardCharsets;
@@ -46,7 +46,7 @@ public class RSA {
             KeySpec keySpec = new X509EncodedKeySpec(Base64.decode(pubkey));
             Key key = KeyFactory.getInstance("RSA").generatePublic(keySpec);
             cipher.init(Cipher.ENCRYPT_MODE, key);
-            return HexUtils.toHexString(cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8)));
+            return HexUtil.encodeHexStr(cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8)));
         } catch (GeneralSecurityException e) {
             throw new InvalidRequestException("RSA encrypt failure: " + e.getMessage());
         }

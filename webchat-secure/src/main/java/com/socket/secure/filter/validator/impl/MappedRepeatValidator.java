@@ -1,8 +1,8 @@
 package com.socket.secure.filter.validator.impl;
 
+import cn.hutool.core.util.HexUtil;
 import com.socket.secure.constant.SecureProperties;
 import com.socket.secure.filter.validator.RepeatValidator;
-import org.apache.tomcat.util.buf.HexUtils;
 import org.springframework.beans.factory.InitializingBean;
 
 import java.io.File;
@@ -163,7 +163,7 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
             byte[] signBytes = new byte[16];
             buffer.get(signBytes);
             // save data
-            map.put(HexUtils.toHexString(signBytes), time);
+            map.put(HexUtil.encodeHexStr(signBytes), time);
         }
         log.debug("Read {} pieces of data", map.size());
         clearExpiredData();
@@ -199,6 +199,6 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
      */
     private void bufferPut(ByteBuffer buffer, long time, String sign) {
         buffer.putLong(time);
-        buffer.put(HexUtils.fromHexString(sign));
+        buffer.put(HexUtil.decodeHex(sign));
     }
 }
