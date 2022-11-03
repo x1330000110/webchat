@@ -1,6 +1,7 @@
 package com.socket.client.model;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.socket.client.model.enums.OnlineState;
 import com.socket.webchat.model.SysUser;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,7 +25,7 @@ public class UserPreview extends SysUser {
     /**
      * 是否在线
      */
-    private boolean online;
+    private OnlineState online;
     /**
      * 登录平台
      */

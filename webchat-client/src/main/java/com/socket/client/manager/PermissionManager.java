@@ -9,6 +9,7 @@ import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
 import com.socket.client.model.enums.Callback;
+import com.socket.client.model.enums.OnlineState;
 import com.socket.client.support.KeywordSupport;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.mapper.ShieldUserMapper;
@@ -98,7 +99,7 @@ public class PermissionManager {
                 preview.setUid(group.getGroupId());
                 preview.setName(group.getName());
                 preview.setOwner(group.getOwner());
-                preview.setOnline(true);
+                preview.setOnline(OnlineState.ONLINE);
                 previews.add(preview);
             }
         }

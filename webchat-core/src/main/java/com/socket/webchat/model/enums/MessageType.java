@@ -30,6 +30,10 @@ public enum MessageType implements EnumItem<MessageType>, IEnum<String> {
      */
     CHOOSE,
     /**
+     * 在线状态变动事件
+     */
+    CHANGE,
+    /**
      * 屏蔽
      */
     SHIELD,

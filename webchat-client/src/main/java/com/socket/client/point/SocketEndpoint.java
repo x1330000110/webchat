@@ -8,6 +8,7 @@ import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
 import com.socket.client.model.enums.Callback;
+import com.socket.client.model.enums.OnlineState;
 import com.socket.client.util.Assert;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.support.SettingSupport;
@@ -133,6 +134,11 @@ public class SocketEndpoint implements ApplicationContextAware {
 
     public void parseSysMsg(WsMsg wsmsg, WsUser target) {
         switch (wsmsg.getType()) {
+            case CHANGE:
+                String content = wsmsg.getContent();
+                self.setOnline(OnlineState.of(content));
+                userManager.sendAll(content, MessageType.CHANGE, self);
+                break;
             case SHIELD:
                 this.shield(target);
                 break;

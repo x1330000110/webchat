@@ -3,6 +3,7 @@ package com.socket.client.model;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONUtil;
 import com.socket.client.model.enums.Callback;
+import com.socket.client.model.enums.OnlineState;
 import com.socket.secure.util.AES;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.enums.MessageType;
@@ -45,7 +46,8 @@ public class WsUser extends SysUser {
      * 是否在线
      */
     @Getter
-    private boolean online;
+    @Setter
+    private OnlineState online;
     /**
      * 当前选择的用户UID
      */
@@ -118,7 +120,7 @@ public class WsUser extends SysUser {
 
     @SneakyThrows
     private void send(WsMsg wsmsg, boolean async) {
-        if (online && session.isOpen()) {
+        if (online != null && session.isOpen()) {
             Supplier<String> supplier = () -> AES.encrypt(JSONUtil.toJsonStr(wsmsg), httpSession);
             if (async) {
                 session.getAsyncRemote().sendText(supplier.get());
@@ -139,7 +141,7 @@ public class WsUser extends SysUser {
         this.session = session;
         this.httpSession = httpSession;
         this.platform = platform;
-        this.online = true;
+        this.online = OnlineState.ONLINE;
     }
 
     /**
@@ -162,7 +164,7 @@ public class WsUser extends SysUser {
             subject.logout();
             this.subject = null;
         }
-        this.online = false;
+        this.online = null;
     }
 
     /**
@@ -175,5 +177,12 @@ public class WsUser extends SysUser {
         this.send(reson.get(), MessageType.WARNING);
         wsmsg.setReject(true);
         this.send(wsmsg);
+    }
+
+    /**
+     * 判断当前用户是否在线
+     */
+    public boolean isOnline() {
+        return online != null;
     }
 }
