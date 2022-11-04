@@ -55,7 +55,7 @@ public class PermissionManager {
     public Collection<UserPreview> getUserPreviews(WsUser self) {
         // 消息发起者
         String suid = self.getUid();
-        // 与此用户关联的所有未读消息
+        // 与此用户关联的最新未读消息
         Collection<ChatRecord> unreadMessages = recordService.getLatestUnreadMessages(suid);
         // 登录记录
         Map<String, Date> logs = this.getUserLoginLogs();
