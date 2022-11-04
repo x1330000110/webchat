@@ -20,14 +20,11 @@ import com.socket.webchat.util.RedisClient;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.support.collections.RedisMap;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.stream.IntStream;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 文件上传服务
@@ -39,12 +36,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
     private final BaiduSpeechRequest baiduSpeechRequest;
     private final ChatRecordMapper chatRecordMapper;
     private final LanzouCloudRequest lanzouRequest;
-    private RedisMap<String, String> urlMapping;
-
-    @Autowired
-    public void setUrlMapping(RedisClient<String> client) {
-        this.urlMapping = client.withMap(RedisTree.LANZOU_URL.get());
-    }
+    private final RedisClient<String> client;
 
     @Override
     public String upload(FileCondition condition, FileType type) throws IOException {
@@ -83,8 +75,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         Assert.notNull(record, "正在同步远程消息", IllegalStateException::new);
         // 检查来源
         if (Wss.checkMessagePermission(record)) {
-            String url = file.getUrl();
-            return urlMapping.computeIfAbsent(url, e -> lanzouRequest.getResourceURL(url));
+            return getResourceURLByCache(file.getUrl());
         }
         return null;
     }
@@ -98,8 +89,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         if (file == null) {
             return null;
         }
-        String url = file.getUrl();
-        return urlMapping.computeIfAbsent(url, e -> lanzouRequest.getResourceURL(url));
+        return getResourceURLByCache(file.getUrl());
     }
 
     @Override
@@ -111,14 +101,18 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         return baiduSpeechRequest.convertText(bytes);
     }
 
-    @Scheduled(cron = "0 0 0/1 * * ?")
-    public void clearResourceUrl() {
-        int size = urlMapping.size();
-        // 总数超过100 随机删除一半的数据
-        if (size > 100) {
-            int clear = size / 2;
-            IntStream.range(0, clear).forEach(i -> urlMapping.remove(urlMapping.randomKey()));
-            log.info("定时清理urlMapping成功：目前缓存{}条数据", size - clear);
+    /**
+     * 优先从Redis缓存获取LanzouAPi直链接
+     */
+    private String getResourceURLByCache(String url) {
+        String key = RedisTree.LANZOU_URL.concat(url);
+        String mapping = client.get(key);
+        if (mapping == null) {
+            mapping = lanzouRequest.getResourceURL(url);
+            if (mapping != null) {
+                client.set(key, mapping, 30, TimeUnit.MINUTES);
+            }
         }
+        return mapping;
     }
 }
