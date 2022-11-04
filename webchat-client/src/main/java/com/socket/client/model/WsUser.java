@@ -112,6 +112,7 @@ public class WsUser extends SysUser {
      *
      * @param callback 回调消息
      * @param type     消息类型
+     * @param data     额外数据
      * @date 额外数据
      */
     public void send(String callback, MessageType type, Object data) {
