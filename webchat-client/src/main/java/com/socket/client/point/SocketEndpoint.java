@@ -80,7 +80,6 @@ public class SocketEndpoint implements ApplicationContextAware {
         }
         // 用户消息
         this.parseUserMsg(wsmsg, target);
-        userManager.cacheRecord(wsmsg, wsmsg.isReject() || wsmsg.isGroup() || target.chooseTarget(self));
     }
 
     public void parseUserMsg(WsMsg wsmsg, WsUser target) {
@@ -102,22 +101,27 @@ public class SocketEndpoint implements ApplicationContextAware {
         if (wsmsg.isGroup()) {
             groupManager.sendGroup(wsmsg, self);
             self.send(wsmsg);
+            userManager.cacheRecord(wsmsg, true);
             return;
         }
         // 你屏蔽了目标
         Assert.isFalse(permissionManager.shield(self, target), Callback.TARGET_SHIELD);
-        // 目标屏蔽了你
-        if (permissionManager.shield(target, self)) {
-            self.reject(Callback.SELF_SHIELD, wsmsg);
-            return;
+        try {
+            // 目标屏蔽了你
+            if (permissionManager.shield(target, self)) {
+                self.reject(Callback.SELF_SHIELD, wsmsg);
+                return;
+            }
+            // 发送至目标
+            target.send(wsmsg);
+            self.send(wsmsg);
+            // AI消息智能回复
+            if (settingSupport.getSetting(Setting.AI_MESSAGE)) {
+                this.parseAiMessage(wsmsg);
+            }
+        } finally {
+            userManager.cacheRecord(wsmsg, wsmsg.isReject() || wsmsg.isGroup() || target.chooseTarget(self));
         }
-        // AI消息智能回复
-        if (settingSupport.getSetting(Setting.AI_MESSAGE)) {
-            this.parseAiMessage(wsmsg);
-        }
-        // 发送至目标
-        target.send(wsmsg);
-        self.send(wsmsg);
     }
 
     /**

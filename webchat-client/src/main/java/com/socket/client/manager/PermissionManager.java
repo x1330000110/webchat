@@ -1,6 +1,5 @@
 package com.socket.client.manager;
 
-import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -174,11 +173,10 @@ public class PermissionManager {
         if (content == null) {
             return true;
         }
-        if (ReUtil.isMatch("</?\\w+(\\s.+?)?>", content)) {
-            wsuser.reject(Callback.VIOLATION_CHARACTER, wsmsg);
-            return false;
-        }
         content = StrUtil.sub(content, 0, Constants.MAX_MESSAGE_LENGTH);
+        // 违规字符检查的代替方案
+        content = content.replace("<", "&lt;");
+        content = content.replace(">", "&gt;");
         if (sensitive && keywordSupport.containsSensitive(content)) {
             wsuser.reject(Callback.SENSITIVE_KEYWORDS, wsmsg);
             return false;
