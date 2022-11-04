@@ -206,7 +206,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
     }
 
     @Override
-    public Collection<ChatRecord> getUnreadMessages(String uid) {
+    public Collection<ChatRecord> getLatestUnreadMessages(String uid) {
         LambdaQueryWrapper<ChatRecord> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ChatRecord::getTarget, uid);
         wrapper.eq(ChatRecord::isUnread, 1);

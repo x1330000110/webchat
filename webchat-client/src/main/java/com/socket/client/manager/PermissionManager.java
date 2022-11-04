@@ -56,7 +56,7 @@ public class PermissionManager {
         // 消息发起者
         String suid = self.getUid();
         // 与此用户关联的所有未读消息
-        Collection<ChatRecord> unreadMessages = recordService.getUnreadMessages(suid);
+        Collection<ChatRecord> unreadMessages = recordService.getLatestUnreadMessages(suid);
         // 登录记录
         Map<String, Date> logs = this.getUserLoginLogs();
         // 链接数据

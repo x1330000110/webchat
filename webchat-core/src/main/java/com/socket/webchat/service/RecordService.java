@@ -63,5 +63,5 @@ public interface RecordService extends BaseService<ChatRecord> {
      * @param uid 用户uid
      * @return 关联未读消息表
      */
-    Collection<ChatRecord> getUnreadMessages(String uid);
+    Collection<ChatRecord> getLatestUnreadMessages(String uid);
 }
