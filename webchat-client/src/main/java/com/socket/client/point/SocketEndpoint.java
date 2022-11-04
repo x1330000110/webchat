@@ -138,7 +138,7 @@ public class SocketEndpoint implements ApplicationContextAware {
                 String content = wsmsg.getContent();
                 self.setOnline(OnlineState.of(content));
                 userManager.sendAll(content, MessageType.CHANGE, self);
-                self.send(wsmsg);
+                self.send(wsmsg.getContent(), MessageType.CHANGE, self);
                 break;
             case SHIELD:
                 this.shield(target);
