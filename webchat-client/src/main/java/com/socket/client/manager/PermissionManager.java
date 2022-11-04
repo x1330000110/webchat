@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -72,15 +73,16 @@ public class PermissionManager {
             String target = preview.getUid();
             int count = redisManager.getUnreadCount(suid, target);
             if (count > 0) {
+                Consumer<ChatRecord> setUnread = unread -> {
+                    MessageType type = unread.getType();
+                    preview.setPreview(type == MessageType.TEXT ? unread.getContent() : '[' + type.getPreview() + ']');
+                    preview.setLastTime(unread.getCreateTime().getTime());
+                    preview.setUnreads(Math.min(count, 99));
+                };
                 unreadMessages.stream()
                         .filter(e -> e.getUid().equals(target))
                         .findFirst()
-                        .ifPresent(unread -> {
-                            MessageType type = unread.getType();
-                            preview.setPreview(type == MessageType.TEXT ? unread.getContent() : '[' + type.getPreview() + ']');
-                            preview.setLastTime(unread.getCreateTime().getTime());
-                            preview.setUnreads(Math.min(count, 99));
-                        });
+                        .ifPresent(setUnread);
             }
             // 为自己赋值屏蔽列表
             if (preview.getUid().equals(suid)) {
