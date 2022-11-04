@@ -1,7 +1,6 @@
 package com.socket.webchat.service.impl;
 
 import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -69,6 +68,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         LambdaQueryWrapper<ChatRecord> wrapper2 = Wrappers.lambdaQuery();
         wrapper2.eq(ChatRecord::getMid, mid);
         ChatRecord record = chatRecordMapper.selectOne(wrapper2);
+        Assert.notNull(record, "正在同步远程消息", IllegalStateException::new);
         // 检查来源
         if (Wss.checkMessagePermission(record)) {
             return lanzouRequest.getResourceURL(file.getUrl());
