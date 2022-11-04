@@ -80,7 +80,7 @@ public class PermissionManager {
                     preview.setUnreads(Math.min(count, 99));
                 };
                 unreadMessages.stream()
-                        .filter(e -> e.getUid().equals(target))
+                        .filter(record -> record.getUid().equals(target))
                         .findFirst()
                         .ifPresent(setUnread);
             }
