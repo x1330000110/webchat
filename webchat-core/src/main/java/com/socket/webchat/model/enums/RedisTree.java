@@ -35,7 +35,11 @@ public enum RedisTree {
     /**
      * 所有者设置
      */
-    SETTING;
+    SETTING,
+    /**
+     * lanzou云请求缓存
+     */
+    LANZOU_URL;
 
     private final String dir;
 
