@@ -2,9 +2,8 @@ package com.socket.webchat.service;
 
 import com.socket.webchat.model.ChatRecord;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
 
 public interface RecordService extends BaseService<ChatRecord> {
     /**
@@ -59,10 +58,10 @@ public interface RecordService extends BaseService<ChatRecord> {
     void readAllMessage(String uid, String target, boolean audio);
 
     /**
-     * 获取指定用户所有未读的消息
+     * 获取发送到此用户的所有人的最新消息，返回的ChatRecord#uid都不相同
      *
      * @param uid 用户uid
      * @return 关联未读消息表
      */
-    Map<String, SortedSet<ChatRecord>> getUnreadMessages(String uid);
+    Collection<ChatRecord> getUnreadMessages(String uid);
 }

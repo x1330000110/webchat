@@ -206,25 +206,20 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
     }
 
     @Override
-    public Map<String, SortedSet<ChatRecord>> getUnreadMessages(String uid) {
-        Map<String, SortedSet<ChatRecord>> mss = new HashMap<>();
+    public Collection<ChatRecord> getUnreadMessages(String uid) {
         LambdaQueryWrapper<ChatRecord> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ChatRecord::getTarget, uid);
         wrapper.eq(ChatRecord::isUnread, 1);
-        // 分组聊天记录
         List<ChatRecord> list = list(wrapper);
+        Map<String, ChatRecord> latest = new HashMap<>();
         for (ChatRecord record : list) {
-            // 未读消息发起者
-            String ruid = record.getUid();
-            Set<ChatRecord> records = mss.get(ruid);
-            if (records == null) {
-                SortedSet<ChatRecord> set = new TreeSet<>();
-                set.add(record);
-                mss.put(ruid, set);
-            } else {
-                records.add(record);
+            String muid = record.getUid();
+            ChatRecord last = latest.get(muid);
+            // 若没有这个人的消息 || 当前消息比未读消息新
+            if (last == null || record.getCreateTime().after(last.getCreateTime())) {
+                latest.put(muid, record);
             }
         }
-        return mss;
+        return latest.values();
     }
 }

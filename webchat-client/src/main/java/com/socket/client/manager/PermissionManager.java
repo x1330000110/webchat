@@ -56,7 +56,7 @@ public class PermissionManager {
         // 消息发起者
         String suid = self.getUid();
         // 与此用户关联的所有未读消息
-        Map<String, SortedSet<ChatRecord>> messages = recordService.getUnreadMessages(suid);
+        Collection<ChatRecord> unreadMessages = recordService.getUnreadMessages(suid);
         // 登录记录
         Map<String, Date> logs = this.getUserLoginLogs();
         // 链接数据
@@ -72,14 +72,15 @@ public class PermissionManager {
             String target = preview.getUid();
             int count = redisManager.getUnreadCount(suid, target);
             if (count > 0) {
-                SortedSet<ChatRecord> records = messages.get(target);
-                ChatRecord first;
-                if (records != null && (first = records.first()) != null) {
-                    MessageType type = first.getType();
-                    preview.setPreview(type == MessageType.TEXT ? first.getContent() : '[' + type.getPreview() + ']');
-                    preview.setLastTime(first.getCreateTime().getTime());
-                    preview.setUnreads(Math.min(count, 99));
-                }
+                unreadMessages.stream()
+                        .filter(e -> e.getUid().equals(target))
+                        .findFirst()
+                        .ifPresent(unread -> {
+                            MessageType type = unread.getType();
+                            preview.setPreview(type == MessageType.TEXT ? unread.getContent() : '[' + type.getPreview() + ']');
+                            preview.setLastTime(unread.getCreateTime().getTime());
+                            preview.setUnreads(Math.min(count, 99));
+                        });
             }
             // 为自己赋值屏蔽列表
             if (preview.getUid().equals(suid)) {
