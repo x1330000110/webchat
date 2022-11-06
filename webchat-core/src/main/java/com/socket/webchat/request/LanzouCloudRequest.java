@@ -4,7 +4,6 @@ import cn.hutool.core.io.resource.BytesResource;
 import cn.hutool.core.io.resource.Resource;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.Header;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONObject;
@@ -30,16 +29,6 @@ public class LanzouCloudRequest {
     private static final String DOWNLOAD_URL = "https://api.leafone.cn/api/lanzou?url={}";
     private static final String UPLOAD_URL = "https://pc.woozooo.com/fileup.php";
     private final LanzouProperties properties;
-
-    /**
-     * 生成数据签名
-     *
-     * @param bytes 数据
-     * @return 签名
-     */
-    public String generateHash(byte[] bytes) {
-        return SecureUtil.hmacMd5(String.valueOf(bytes.length << bytes.length / 2)).digestHex(bytes) + ".txt";
-    }
 
     /**
      * 上传文件到lanzou服务器，手动指定文件名

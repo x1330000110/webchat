@@ -205,7 +205,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         Img.from(scale).setTargetImageType(ImgUtil.IMAGE_TYPE_PNG).write(bos);
         // 图片映射地址
         bytes = bos.toByteArray();
-        String hash = lanzouRequest.generateHash(bytes);
+        String hash = Wss.generateHash(bytes);
         String url = lanzouRequest.upload(FileType.IMAGE, bytes, hash);
         String mapping = uploadService.getMapping(FileType.IMAGE, hash);
         // 保存头像
@@ -214,7 +214,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         wrapper.set(SysUser::getHeadimgurl, mapping);
         Assert.isTrue(super.update(wrapper), "修改失败", IllegalStateException::new);
         // 保存文件映射
-        uploadService.save(new ChatRecordFile(null, FileType.IMAGE, url, hash, bytes.length));
+        uploadService.save(new ChatRecordFile(null, FileType.IMAGE.getKey(), url, hash, (long) bytes.length));
         // 推送变动事件
         publisher.publishEvent(new UserChangeEvent(publisher, UserOperation.HEAD_IMG, mapping));
         return mapping;

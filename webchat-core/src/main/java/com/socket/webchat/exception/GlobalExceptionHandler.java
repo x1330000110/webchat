@@ -52,7 +52,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({NumberFormatException.class,
             StringIndexOutOfBoundsException.class,
             NullPointerException.class,
-            ArrayIndexOutOfBoundsException.class
+            ArrayIndexOutOfBoundsException.class,
+            IllegalArgumentException.class
     })
     public HttpStatus isNumberFormatException(Exception e) {
         e.printStackTrace();

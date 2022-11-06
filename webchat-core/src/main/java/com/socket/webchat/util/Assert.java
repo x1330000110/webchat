@@ -6,7 +6,7 @@ import java.util.function.Function;
 /**
  * Assert异常扩展
  */
-public class Assert {
+public class Assert extends cn.hutool.core.lang.Assert {
     public static <X extends RuntimeException> void isTrue(boolean b, String m, Function<String, ? extends X> f) throws X {
         if (!b) {
             throw f.apply(m);

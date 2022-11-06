@@ -4,7 +4,10 @@ import cn.hutool.core.util.StrUtil;
 import com.socket.webchat.model.condition.FileCondition;
 import com.socket.webchat.model.enums.FileType;
 import com.socket.webchat.model.enums.HttpStatus;
+import com.socket.webchat.request.VideoParseRequest;
+import com.socket.webchat.request.bean.VideoType;
 import com.socket.webchat.service.UploadService;
+import com.socket.webchat.util.Assert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +24,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class UploadController {
     private final UploadService uploadService;
+    private final VideoParseRequest parseRequest;
 
     @PostMapping("/audio")
     public HttpStatus uploadAudio(FileCondition condition) throws IOException {
@@ -37,6 +41,12 @@ public class UploadController {
     @PostMapping("/blob")
     public HttpStatus uploadBlob(FileCondition condition) throws IOException {
         uploadService.upload(condition, FileType.BLOB);
+        return HttpStatus.SUCCESS.body();
+    }
+
+    @PostMapping("/resolve")
+    public HttpStatus resolve(@RequestBody URLCondition condition) {
+        uploadService.saveResolve(condition);
         return HttpStatus.SUCCESS.body();
     }
 
@@ -67,5 +77,14 @@ public class UploadController {
             return HttpStatus.FAILURE.message("找不到指定记录");
         }
         return HttpStatus.SUCCESS.body(text);
+    }
+
+    @GetMapping("/resolveURL")
+    public HttpStatus resolveURL(URLCondition condition) {
+        String url = condition.getUrl();
+        VideoType parse = VideoType.of(condition.getType());
+        Assert.notNull(parse, IllegalArgumentException::new);
+        String data = parseRequest.parseVideo(url, parse);
+        return url == null ? HttpStatus.FAILURE.body() : HttpStatus.SUCCESS.body(data);
     }
 }

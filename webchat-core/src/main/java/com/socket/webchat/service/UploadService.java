@@ -1,6 +1,7 @@
 package com.socket.webchat.service;
 
 import cn.hutool.core.util.StrUtil;
+import com.socket.webchat.controller.URLCondition;
 import com.socket.webchat.model.ChatRecordFile;
 import com.socket.webchat.model.condition.FileCondition;
 import com.socket.webchat.model.enums.FileType;
@@ -17,7 +18,7 @@ public interface UploadService extends BaseService<ChatRecordFile> {
      * @return URL
      */
     default String getMapping(FileType type, String hash) {
-        return StrUtil.format("/resource/{}/{}", type.getValue(), hash);
+        return StrUtil.format("/resource/{}/{}", type.getKey(), hash);
     }
 
     /**
@@ -53,4 +54,11 @@ public interface UploadService extends BaseService<ChatRecordFile> {
      * @return lanzou url
      */
     String getResourceURL(FileType type, String hash);
+
+    /**
+     * 保存要解析的URL地址
+     *
+     * @param condition 条件
+     */
+    void saveResolve(URLCondition condition);
 }

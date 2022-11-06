@@ -5,6 +5,7 @@ import cn.hutool.core.lang.Opt;
 import cn.hutool.core.lang.func.Func1;
 import cn.hutool.core.lang.func.LambdaUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.SecureUtil;
 import cn.hutool.extra.servlet.ServletUtil;
 import cn.hutool.http.Header;
 import cn.hutool.http.useragent.Platform;
@@ -14,19 +15,8 @@ import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
 import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.subject.PrincipalCollection;
-import org.apache.shiro.subject.SimplePrincipalCollection;
-import org.apache.shiro.subject.Subject;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Component;
 
-import java.util.function.Function;
-
-@Component
-public class Wss implements ApplicationContextAware {
-    private static ApplicationContext context;
+public class Wss {
 
     /**
      * 枚举转JSON
@@ -104,19 +94,6 @@ public class Wss implements ApplicationContextAware {
         return Wss.isGroup(record.getTarget()) || userId.equals(record.getUid()) || userId.equals(record.getTarget());
     }
 
-    /**
-     * 更新Shiro凭证
-     *
-     * @param function lambda
-     * @param value    新的值
-     */
-    public static <T> void updatePrincipal(Function<T, SysUser> function, T value) {
-        SysUser user = function.apply(value);
-        Subject subject = SecurityUtils.getSubject();
-        PrincipalCollection principals = subject.getPrincipals();
-        String realm = principals.getRealmNames().iterator().next();
-        subject.runAs(new SimplePrincipalCollection(user, realm));
-    }
 
     /**
      * mybatis group by max合成字符串
@@ -133,12 +110,13 @@ public class Wss implements ApplicationContextAware {
         return target != null && target.startsWith(Constants.GROUP);
     }
 
-    public static <T> T getBean(Class<T> beanClass) {
-        return context.getBean(beanClass);
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext context) throws BeansException {
-        Wss.context = context;
+    /**
+     * 生成数据签名
+     *
+     * @param bytes 数据
+     * @return 签名
+     */
+    public static String generateHash(byte[] bytes) {
+        return SecureUtil.hmacMd5(String.valueOf(bytes.length << bytes.length / 2)).digestHex(bytes) + ".txt";
     }
 }
