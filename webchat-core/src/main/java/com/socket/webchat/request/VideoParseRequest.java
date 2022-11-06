@@ -12,8 +12,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class VideoParseRequest {
-    private static final String VIP_VIDEO_URL = "https://api.leafone.cn/api/jx?url={}";
-    private static final String SHORT_VIDEO_URL = "https://api.leafone.cn/api/dsp?url={}";
 
     public String parseVideo(String url, VideoType type) {
         String body = HttpRequest.get(StrUtil.format(type.getUrl(), url)).execute().body();
