@@ -243,9 +243,10 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
         // join part diest
         if (vaildPart) {
             for (Part part : part) {
-                if (part.getSubmittedFileName() != null) {
-                    byte[] bytes = IoUtil.readBytes(part.getInputStream());
-                    sb.append(Hmac.MD5.digestHex(getSession(), bytes));
+                String fileName = part.getSubmittedFileName();
+                if (fileName != null) {
+                    String digest = Hmac.MD5.digestHex(getSession(), IoUtil.readBytes(part.getInputStream()));
+                    sb.append(Hmac.MD5.digestHex(getSession(), fileName + digest));
                 }
             }
         }
