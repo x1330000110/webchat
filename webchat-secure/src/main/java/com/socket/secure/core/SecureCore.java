@@ -74,9 +74,8 @@ public class SecureCore {
         try (ZipOutputStream zip = new ZipOutputStream(stream)) {
             int random = RandomUtil.randomInt(count);
             for (int i = 0; i <= count; i++) {
-                String name = Randoms.randomHex(40);
+                String name = Randoms.randomHex(96);
                 byte[] bytes = Randoms.randomBytes(pubkey.length);
-                long modtime = SystemClock.now();
                 // Insert real public key
                 if (i == random) {
                     bytes = pubkey;
