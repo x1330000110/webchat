@@ -85,7 +85,10 @@ public class GroupManager extends ConcurrentHashMap<SysGroup, List<WsUser>> impl
                 this.put(group, new ArrayList<>());
                 break;
             case DISSOLVE:
-                this.remove(getGroup(group.getGroupId()));
+                SysGroup find = getGroup(group.getGroupId());
+                WsMsg wsmsg = new WsMsg(Callback.GROUP_DISSOLVE.format(find.getName()), MessageType.GROUP_DISSOLVE, null);
+                sendGroup(wsmsg, userManager.get(find.getOwner()));
+                this.remove(find);
                 break;
             case JOIN:
                 String uid = groupUser.getUid(), gid = groupUser.getGroupId();
@@ -95,7 +98,7 @@ public class GroupManager extends ConcurrentHashMap<SysGroup, List<WsUser>> impl
                 user.send("您已成功加入 " + sysGroup.getName(), MessageType.JOIN_GROUP);
                 break;
             case DELETE:
-                userManager.getUser(groupUser.getUid()).send("您已被管理员移除群聊", MessageType.GROUP_REMOVE);
+                userManager.getUser(groupUser.getUid()).send("您已被管理员移除群聊", MessageType.GROUP_DISSOLVE);
             case EXIT:
                 getGroupUser(groupUser.getGroupId()).remove(userManager.getUser(groupUser.getUid()));
                 break;

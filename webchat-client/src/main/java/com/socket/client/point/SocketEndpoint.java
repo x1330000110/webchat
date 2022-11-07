@@ -48,7 +48,7 @@ public class SocketEndpoint implements ApplicationContextAware {
             Collection<UserPreview> userList = permissionManager.getUserPreviews(user);
             user.send(Callback.JOIN_INIT.get(), MessageType.INIT, userList);
             // 向其他人发送加入通知
-            userManager.sendAll(Callback.USER_LOGIN.format(user), MessageType.JOIN, user);
+            userManager.sendAll(Callback.USER_LOGIN.format(user.getName()), MessageType.JOIN, user);
             // 检查禁言
             permissionManager.checkMute(user);
             this.self = user;
@@ -60,7 +60,7 @@ public class SocketEndpoint implements ApplicationContextAware {
         Optional.ofNullable(self).ifPresent(user -> {
             user.logout(null);
             // 退出通知
-            userManager.sendAll(Callback.USER_LOGOUT.format(user), MessageType.EXIT, user);
+            userManager.sendAll(Callback.USER_LOGOUT.format(user.getName()), MessageType.EXIT, user);
         });
     }
 
@@ -205,7 +205,7 @@ public class SocketEndpoint implements ApplicationContextAware {
     private void shield(WsUser target) {
         boolean shield = permissionManager.shieldTarget(self, target);
         Callback tips = shield ? Callback.SHIELD_USER : Callback.CANCEL_SHIELD;
-        self.send(tips.format(target), MessageType.SHIELD, target);
+        self.send(tips.format(target.getName()), MessageType.SHIELD, target);
     }
 
     /**
@@ -258,15 +258,16 @@ public class SocketEndpoint implements ApplicationContextAware {
      */
     private void mute(WsUser target, WsMsg wsmsg) {
         long time = permissionManager.addMute(wsmsg);
+        String name = target.getName();
         // 禁言
         if (time > 0) {
             target.send(Callback.MUTE_LIMIT.format(time), MessageType.MUTE, time);
-            userManager.sendAll(Callback.G_MUTE_LIMIT.format(target, time), MessageType.PRIMARY, target);
+            userManager.sendAll(Callback.G_MUTE_LIMIT.format(name, time), MessageType.PRIMARY, target);
             return;
         }
         // 取消禁言
         target.send(Callback.C_MUTE_LIMIT.get(), MessageType.MUTE, time);
-        userManager.sendAll(Callback.GC_MUTE_LIMIT.format(target, time), MessageType.PRIMARY, target);
+        userManager.sendAll(Callback.GC_MUTE_LIMIT.format(name, time), MessageType.PRIMARY, target);
     }
 
     /**
@@ -293,7 +294,7 @@ public class SocketEndpoint implements ApplicationContextAware {
         String cb = (target.isAdmin() ? Callback.AUTH_ADMIN : Callback.AUTH_USER).get();
         target.send(cb, MessageType.ROLE, target);
         // 广播消息
-        String gcb = (target.isAdmin() ? Callback.G_AUTH_ADMIN : Callback.G_AUTH_USER).format(target);
+        String gcb = (target.isAdmin() ? Callback.G_AUTH_ADMIN : Callback.G_AUTH_USER).format(target.getName());
         userManager.sendAll(gcb, MessageType.ROLE, target);
     }
 

@@ -35,7 +35,8 @@ public enum Callback {
     SELF_SHIELD("消息已发出，但被对方拒收了"),
     SHIELD_USER("您已将 {} 消息屏蔽"),
     SENSITIVE_KEYWORDS("消息包含敏感关键词，请检查后重新发送"),
-    CANCEL_SHIELD("您已取消屏蔽 {} 消息");
+    CANCEL_SHIELD("您已取消屏蔽 {} 消息"),
+    GROUP_DISSOLVE("群 {} 已被创建者解散");
 
     private final String message;
 
@@ -51,12 +52,11 @@ public enum Callback {
         return StrUtil.format(message, Wss.universal(time));
     }
 
-    public String format(WsUser user) {
-        return StrUtil.format(message, user.getName());
-    }
-
     public String format(WsUser user, long time) {
         return StrUtil.format(message, user.getName(), Wss.universal(time));
     }
 
+    public String format(Object... params) {
+        return StrUtil.format(message, params);
+    }
 }
