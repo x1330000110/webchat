@@ -20,9 +20,9 @@ public class KeywordSupport {
      * 汉字屏蔽
      */
     private static final String[] pinyins = {
-            "sima", "nima", "siquanjia", "meimu",
-            "guer", "zhizhang", "naotan",
-            "shabi", "wori", "hukou"
+            "si ma", "ni ma", "si quan jia", "mei mu",
+            "gu er", "zhi zhang", "nao tan",
+            "sha bi", "wo ri", "hu kou"
     };
 
     /**
@@ -35,7 +35,7 @@ public class KeywordSupport {
         if (Arrays.stream(codes).anyMatch(str::contains)) {
             return true;
         }
-        String pinyin = PinyinUtil.getPinyin(str, "");
+        String pinyin = PinyinUtil.getPinyin(str, " ");
         return Arrays.stream(pinyins).anyMatch(pinyin::contains);
     }
 }
