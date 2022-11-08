@@ -33,7 +33,7 @@ webchat-secure --------|                                        | ----> MappedRe
 
 基于JDK11
 
-* 后端：Spring Boot、Mybatis Plus、Shiro、MySQL、Redis、Kafka、Socket、FTP
+* 后端：Spring Boot、Mybatis Plus、Shiro、MySQL、Redis、Kafka、Socket
 
 需要配置的环境依赖
 
