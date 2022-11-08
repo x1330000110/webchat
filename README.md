@@ -19,7 +19,7 @@ webchat-client -------> SocketEndpoint ----|                             |
                        |---> message
 ------------           |                      | ------> BaiduSpeech
 webchat-core ----------|---> resource --------| 
-------------           |                      | ------> FTP
+------------           |                      | ------> 云储存
                        |---> owner
                        |                      | ------> wechat
                        |---> login -----------|
