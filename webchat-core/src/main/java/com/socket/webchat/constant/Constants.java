@@ -49,10 +49,6 @@ public interface Constants {
      */
     int WITHDRAW_TIME = 120;
     /**
-     * 文件过期时间（单位：天）
-     */
-    int FILE_EXPIRED_DAYS = 3;
-    /**
      * 客户端群组前缀标识
      */
     String GROUP = "Group";
@@ -69,17 +65,17 @@ public interface Constants {
      */
     String OFFSITE = "OFFSITE";
     /**
-     * 平台标记
+     * 保存在session的平台标记
      */
-    String PLATFORM = "PLATFORM";
-    /**
-     * 永久限制登录标记
-     */
-    String FOREVER = "FOREVER";
+    String PLATFORM = "REQUSET.PLATFORM";
     /**
      * 系统管理员账号
      */
     String SYSTEM_UID = "10000";
+    /**
+     * 保存在session的IP地址
+     */
+    String IP = "REQUSET.IP";
     /**
      * 最大消息长度
      */

@@ -58,7 +58,7 @@ public class SocketEndpoint implements ApplicationContextAware {
     @OnClose
     public void onClose() {
         Optional.ofNullable(self).ifPresent(user -> {
-            user.logout(null);
+            userManager.exit(user, null);
             // 退出通知
             userManager.sendAll(Callback.USER_LOGOUT.format(user.getName()), MessageType.EXIT, user);
         });
@@ -120,6 +120,7 @@ public class SocketEndpoint implements ApplicationContextAware {
                 this.parseAiMessage(wsmsg);
             }
         } finally {
+            // 已读条件：消息未送达，目标是群组，目标正在选择你
             userManager.cacheRecord(wsmsg, wsmsg.isReject() || wsmsg.isGroup() || target.chooseTarget(self));
         }
     }
@@ -278,7 +279,7 @@ public class SocketEndpoint implements ApplicationContextAware {
         // 向所有人发布消息
         if (time > 0) {
             // 大于0强制下线
-            target.logout(Callback.LOGIN_LIMIT.format(time));
+            userManager.exit(target, Callback.LOGIN_LIMIT.format(time));
             userManager.sendAll(Callback.G_LOGIN_LIMIT.format(target, time), MessageType.DANGER, target);
             return;
         }

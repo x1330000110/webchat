@@ -1,6 +1,6 @@
 package com.socket.webchat.model;
 
-import com.socket.webchat.util.Wss;
+import com.socket.webchat.model.enums.LogType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -21,15 +21,11 @@ public class SysUserLog extends BaseModel {
      */
     private String ip;
     /**
+     * 日志类型
+     */
+    private LogType type;
+    /**
      * 登录平台
      */
     private String platform;
-
-    public static SysUserLog buildLog() {
-        SysUserLog log = new SysUserLog();
-        log.uid = Wss.getUserId();
-        log.ip = Wss.getRemoteIP();
-        log.platform = Wss.getPlatform();
-        return log;
-    }
 }

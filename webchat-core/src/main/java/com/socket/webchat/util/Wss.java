@@ -7,7 +7,6 @@ import cn.hutool.core.lang.func.LambdaUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.extra.servlet.ServletUtil;
-import cn.hutool.http.Header;
 import cn.hutool.http.useragent.Platform;
 import cn.hutool.http.useragent.UserAgentParser;
 import cn.hutool.json.JSONObject;
@@ -66,13 +65,6 @@ public class Wss {
      */
     public static String getRemoteIP() {
         return ServletUtil.getClientIP(Requests.get());
-    }
-
-    /**
-     * 获取当前请求登录平台
-     */
-    public static String getPlatform() {
-        return getPlatform(Requests.get().getHeader(Header.USER_AGENT.getValue()));
     }
 
     /**

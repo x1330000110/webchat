@@ -11,9 +11,12 @@ import com.socket.client.util.Assert;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.listener.UserChangeEvent;
 import com.socket.webchat.custom.listener.UserChangeListener;
+import com.socket.webchat.mapper.SysUserLogMapper;
 import com.socket.webchat.mapper.SysUserMapper;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
+import com.socket.webchat.model.SysUserLog;
+import com.socket.webchat.model.enums.LogType;
 import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.request.XiaoBingAPIRequest;
 import com.socket.webchat.service.RecordService;
@@ -40,6 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UserManager extends ConcurrentHashMap<String, WsUser> implements InitializingBean, UserChangeListener {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final XiaoBingAPIRequest xiaoBingAPIRequest;
+    private final SysUserLogMapper sysUserLogMapper;
     private final RecordService recordService;
     private final SysUserMapper sysUserMapper;
     private final RedisManager redisManager;
@@ -59,17 +63,20 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
         // 检查登录限制（会话缓存检查）
         long time = redisManager.getLockTime(user.getUid());
         if (time > 0) {
-            user.logout(Callback.LOGIN_LIMIT.format(time));
+            this.exit(user, Callback.LOGIN_LIMIT.format(time));
             return null;
         }
         // 检查重复登录
         if (user.isOnline()) {
-            user.logout(Callback.REPEAT_LOGIN.get());
+            this.exit(user, Callback.REPEAT_LOGIN.get());
         }
         // 登录到聊天室
         HttpSession hs = (HttpSession) properties.get(Constants.HTTP_SESSION);
-        String platform = (String) properties.get(Constants.PLATFORM);
-        user.login(session, hs, platform);
+        user.login(session, hs);
+        // 记录登录信息
+        SysUserLog log = BeanUtil.copyProperties(user, SysUserLog.class);
+        log.setType(LogType.LOGIN);
+        sysUserLogMapper.insert(log);
         return user;
     }
 
@@ -185,6 +192,19 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
     }
 
     /**
+     * 用户退出
+     *
+     * @param user   用户
+     * @param reason 原因
+     */
+    public void exit(WsUser user, String reason) {
+        SysUserLog log = BeanUtil.copyProperties(user, SysUserLog.class);
+        log.setType(LogType.LOGOUT);
+        sysUserLogMapper.insert(log);
+        user.logout(reason);
+    }
+
+    /**
      * 初始化数据
      */
     @Override
@@ -206,7 +226,7 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
                 user.setHeadimgurl(event.getData());
                 break;
             case FOREVER:
-                user.logout(Callback.LIMIT_FOREVER.get());
+                this.exit(user, Callback.LIMIT_FOREVER.get());
                 remove(user.getUid());
                 break;
             default:

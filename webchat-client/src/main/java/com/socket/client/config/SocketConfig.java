@@ -1,8 +1,6 @@
 package com.socket.client.config;
 
-import cn.hutool.http.Header;
 import com.socket.webchat.constant.Constants;
-import com.socket.webchat.util.Wss;
 import org.apache.shiro.SecurityUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,10 +40,8 @@ public class SocketConfig extends ServerEndpointConfig.Configurator {
     @Override
     public void modifyHandshake(ServerEndpointConfig config, HandshakeRequest request, HandshakeResponse response) {
         Map<String, Object> map = config.getUserProperties();
-        String userAgent = request.getHeaders().get(Header.USER_AGENT.getValue()).get(0);
         map.put(Constants.SUBJECT, SecurityUtils.getSubject());
         map.put(Constants.HTTP_SESSION, request.getHttpSession());
-        map.put(Constants.PLATFORM, Wss.getPlatform(userAgent));
         super.modifyHandshake(config, request, response);
     }
 }

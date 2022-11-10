@@ -5,6 +5,7 @@ import cn.hutool.json.JSONUtil;
 import com.socket.client.model.enums.Callback;
 import com.socket.client.model.enums.OnlineState;
 import com.socket.secure.util.AES;
+import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.enums.MessageType;
 import lombok.Getter;
@@ -33,11 +34,11 @@ public class WsUser extends SysUser {
     /**
      * WebSocket Session
      */
-    private Session session;
+    private Session ws;
     /**
      * Http Session
      */
-    private HttpSession httpSession;
+    private HttpSession hs;
     /**
      * Shiro SysUser
      */
@@ -58,6 +59,11 @@ public class WsUser extends SysUser {
      */
     @Getter
     private String platform;
+    /**
+     * 登录IP
+     */
+    @Getter
+    private String ip;
 
     /**
      * 构建ws用户信息
@@ -82,7 +88,7 @@ public class WsUser extends SysUser {
      * 解密消息
      */
     public WsMsg decrypt(String message) {
-        WsMsg wsmsg = JSONUtil.toBean(AES.decrypt(message, httpSession), WsMsg.class);
+        WsMsg wsmsg = JSONUtil.toBean(AES.decrypt(message, hs), WsMsg.class);
         wsmsg.setUid(getUid());
         return wsmsg;
     }
@@ -121,12 +127,12 @@ public class WsUser extends SysUser {
 
     @SneakyThrows
     private void send(WsMsg wsmsg, boolean async) {
-        if (online != null && session.isOpen()) {
-            Supplier<String> supplier = () -> AES.encrypt(JSONUtil.toJsonStr(wsmsg), httpSession);
+        if (online != null && ws.isOpen()) {
+            Supplier<String> supplier = () -> AES.encrypt(JSONUtil.toJsonStr(wsmsg), hs);
             if (async) {
-                session.getAsyncRemote().sendText(supplier.get());
+                ws.getAsyncRemote().sendText(supplier.get());
             } else {
-                session.getBasicRemote().sendText(supplier.get());
+                ws.getBasicRemote().sendText(supplier.get());
             }
         }
     }
@@ -134,14 +140,14 @@ public class WsUser extends SysUser {
     /**
      * 设置登录数据
      *
-     * @param session     ws session
-     * @param httpSession http session
-     * @param platform    登录平台
+     * @param ws ws session
+     * @param hs http session
      */
-    public void login(Session session, HttpSession httpSession, String platform) {
-        this.session = session;
-        this.httpSession = httpSession;
-        this.platform = platform;
+    public void login(Session ws, HttpSession hs) {
+        this.ws = ws;
+        this.hs = hs;
+        this.platform = (String) hs.getAttribute(Constants.PLATFORM);
+        this.ip = (String) hs.getAttribute(Constants.IP);
         this.online = OnlineState.ONLINE;
     }
 
@@ -152,13 +158,13 @@ public class WsUser extends SysUser {
      */
     public void logout(String reason) {
         // 始终清除ws会话
-        if (session != null) {
+        if (ws != null) {
             try {
-                session.close(new CloseReason(CloseCodes.NORMAL_CLOSURE, reason));
+                ws.close(new CloseReason(CloseCodes.NORMAL_CLOSURE, reason));
             } catch (IOException e) {
                 log.warn(e.getMessage());
             }
-            this.session = null;
+            this.ws = null;
         }
         // 原因为null为自主退出 无需立即终止session
         if (reason != null && subject != null) {

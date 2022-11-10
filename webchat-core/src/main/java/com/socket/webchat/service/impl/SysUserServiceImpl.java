@@ -16,11 +16,9 @@ import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.listener.UserChangeEvent;
 import com.socket.webchat.exception.AccountException;
 import com.socket.webchat.exception.UploadException;
-import com.socket.webchat.mapper.SysUserLogMapper;
 import com.socket.webchat.mapper.SysUserMapper;
 import com.socket.webchat.model.ChatRecordFile;
 import com.socket.webchat.model.SysUser;
-import com.socket.webchat.model.SysUserLog;
 import com.socket.webchat.model.condition.EmailCondition;
 import com.socket.webchat.model.condition.LoginCondition;
 import com.socket.webchat.model.condition.PasswordCondition;
@@ -54,13 +52,14 @@ import java.util.concurrent.TimeUnit;
 @Service
 @RequiredArgsConstructor
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
-    private final ApplicationEventPublisher publisher;
-    private final SysUserLogMapper sysUserLogMapper;
-    private final SysGroupService sysGroupService;
-    private final UploadService uploadService;
     private final QQAccountRequest qqAccountRequest;
     private final LanzouCloudRequest lanzouRequest;
     private final RedisClient<Object> redis;
+
+    private final ApplicationEventPublisher publisher;
+    private final SysGroupService sysGroupService;
+    private final UploadService uploadService;
+
     private final Email sender;
 
     @Override
@@ -83,8 +82,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
         // shiro登录
         SecurityUtils.getSubject().login(new UsernamePasswordToken(uid, condition.getPass(), condition.isAuto()));
-        // 写入登录信息
-        sysUserLogMapper.insert(SysUserLog.buildLog());
     }
 
     @Override
