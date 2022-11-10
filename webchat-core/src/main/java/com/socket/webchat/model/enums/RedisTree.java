@@ -25,10 +25,6 @@ public enum RedisTree {
      */
     UNREAD,
     /**
-     * 临时限制登录
-     */
-    LOCK,
-    /**
      * 公告信息
      */
     ANNOUNCE,
@@ -39,7 +35,23 @@ public enum RedisTree {
     /**
      * lanzou云请求缓存
      */
-    LANZOU_URL;
+    LANZOU_URL,
+    /**
+     * 禁言标记
+     */
+    MUTE,
+    /**
+     * 限制登录标记
+     */
+    LOCK,
+    /**
+     * 发言标记
+     */
+    SPEAK,
+    /**
+     * 屏蔽列表
+     */
+    SHIELD;
 
     private final String dir;
 

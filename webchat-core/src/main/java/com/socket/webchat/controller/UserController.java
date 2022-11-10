@@ -3,15 +3,20 @@ package com.socket.webchat.controller;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.http.HttpRequest;
 import com.socket.secure.filter.anno.Encrypted;
+import com.socket.webchat.custom.listener.PermissionEvent;
+import com.socket.webchat.custom.listener.PermissionOperation;
 import com.socket.webchat.model.Announce;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.condition.EmailCondition;
+import com.socket.webchat.model.condition.UserCondition;
 import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.model.enums.RedisTree;
+import com.socket.webchat.service.ShieldUserService;
 import com.socket.webchat.service.SysUserService;
 import com.socket.webchat.util.RedisClient;
 import lombok.RequiredArgsConstructor;
 import org.apache.shiro.SecurityUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.support.collections.RedisMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,6 +28,8 @@ import java.util.Objects;
 @RequestMapping("/user")
 @RequiredArgsConstructor
 public class UserController {
+    private final ApplicationEventPublisher publisher;
+    private final ShieldUserService shieldUserService;
     private final SysUserService sysUserService;
     private final RedisClient<String> redis;
 
@@ -73,5 +80,13 @@ public class UserController {
     @GetMapping("/sentence")
     public String sentence() {
         return HttpRequest.get("https://api.leafone.cn/api/yiyan").execute().body();
+    }
+
+    @PostMapping("/shield")
+    public HttpStatus shield(UserCondition condition) {
+        String uid = condition.getUid();
+        boolean b = shieldUserService.shieldTarget(uid);
+        publisher.publishEvent(new PermissionEvent(publisher, uid, null, PermissionOperation.SHIELD));
+        return HttpStatus.of(b, "屏蔽成功", "取消屏蔽");
     }
 }

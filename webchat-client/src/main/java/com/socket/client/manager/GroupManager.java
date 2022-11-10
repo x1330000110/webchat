@@ -7,10 +7,13 @@ import com.socket.client.model.WsUser;
 import com.socket.client.model.enums.Callback;
 import com.socket.webchat.custom.listener.GroupChangeEvent;
 import com.socket.webchat.custom.listener.GroupChangeLinstener;
+import com.socket.webchat.custom.listener.GroupOperation;
 import com.socket.webchat.mapper.SysGroupMapper;
 import com.socket.webchat.mapper.SysGroupUserMapper;
 import com.socket.webchat.model.SysGroup;
 import com.socket.webchat.model.SysGroupUser;
+import com.socket.webchat.model.SysUser;
+import com.socket.webchat.model.enums.Command;
 import com.socket.webchat.model.enums.MessageType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +48,7 @@ public class GroupManager extends ConcurrentHashMap<SysGroup, List<WsUser>> impl
         List<String> list = Arrays.asList(exclude);
         String uid = sender.getUid();
         // 向群内所有人发送消息
-        for (WsUser target : getGroupUser(wsmsg.getTarget())) {
+        for (WsUser target : getGroupUsers(wsmsg.getTarget())) {
             // 过滤自己 || 已屏蔽
             String tuid = target.getUid();
             if (uid.equals(tuid) || list.contains(tuid)) {
@@ -53,6 +56,28 @@ public class GroupManager extends ConcurrentHashMap<SysGroup, List<WsUser>> impl
             }
             // 发送
             target.send(wsmsg);
+        }
+    }
+
+
+    /**
+     * @see #sendGroup(String, String, Command, T)
+     */
+    public <T extends SysUser> void sendGroup(String groupId, String content, Command type) {
+        sendGroup(groupId, content, type, null);
+    }
+
+    /**
+     * 向群组发送系统消息<br>
+     *
+     * @param groupId 群id
+     * @param content 消息内容
+     * @param type    消息类型
+     * @param data    额外数据
+     */
+    public <T extends SysUser> void sendGroup(String groupId, String content, Command type, T data) {
+        for (WsUser wsuser : getGroupUsers(groupId)) {
+            wsuser.send(content, type, data);
         }
     }
 
@@ -72,13 +97,13 @@ public class GroupManager extends ConcurrentHashMap<SysGroup, List<WsUser>> impl
      * @param groupId 群组id
      * @return 成员
      */
-    public List<WsUser> getGroupUser(String groupId) {
+    public List<WsUser> getGroupUsers(String groupId) {
         return this.get(getGroup(groupId));
     }
 
     @Override
     public void onGroupChange(GroupChangeEvent event) {
-        SysGroupUser groupUser = event.getUser();
+        SysGroupUser guser = event.getUser();
         SysGroup group = event.getGroup();
         switch (event.getOperation()) {
             case CREATE:
@@ -86,21 +111,22 @@ public class GroupManager extends ConcurrentHashMap<SysGroup, List<WsUser>> impl
                 break;
             case DISSOLVE:
                 SysGroup find = getGroup(group.getGroupId());
-                WsMsg wsmsg = new WsMsg(Callback.GROUP_DISSOLVE.format(find.getName()), MessageType.GROUP_DISSOLVE, null);
-                sendGroup(wsmsg, userManager.get(find.getOwner()));
+                String tips = Callback.GROUP_DISSOLVE.format(find.getName());
+                sendGroup(group.getGroupId(), tips, GroupOperation.DISSOLVE);
                 this.remove(find);
                 break;
             case JOIN:
-                String uid = groupUser.getUid(), gid = groupUser.getGroupId();
+                String uid = guser.getUid(), gid = guser.getGroupId();
                 SysGroup sysGroup = getGroup(gid);
                 WsUser user = userManager.getUser(uid);
-                getGroupUser(gid).add(user);
-                user.send("您已成功加入 " + sysGroup.getName(), MessageType.JOIN_GROUP);
+                getGroupUsers(gid).add(user);
+                // 发送通知
+                sendGroup(gid, gid, GroupOperation.JOIN, user);
                 break;
             case DELETE:
-                userManager.getUser(groupUser.getUid()).send("您已被管理员移除群聊", MessageType.GROUP_DISSOLVE);
+                userManager.getUser(guser.getUid()).send("您已被管理员移除群聊", GroupOperation.DELETE);
             case EXIT:
-                getGroupUser(groupUser.getGroupId()).remove(userManager.getUser(groupUser.getUid()));
+                getGroupUsers(guser.getGroupId()).remove(userManager.getUser(guser.getUid()));
                 break;
             default:
                 // ignore

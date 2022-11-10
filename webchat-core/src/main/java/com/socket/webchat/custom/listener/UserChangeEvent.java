@@ -1,6 +1,5 @@
 package com.socket.webchat.custom.listener;
 
-import com.socket.webchat.model.enums.UserOperation;
 import com.socket.webchat.util.Wss;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;

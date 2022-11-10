@@ -1,7 +1,7 @@
 package com.socket.client.model;
 
 import cn.hutool.crypto.digest.MD5;
-import com.socket.webchat.model.enums.MessageType;
+import com.socket.webchat.model.enums.Command;
 import com.socket.webchat.util.Wss;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,7 +27,7 @@ public class WsMsg {
     /**
      * 消息类型
      */
-    private MessageType type;
+    private String type;
     /**
      * 用户uid
      */
@@ -50,12 +50,22 @@ public class WsMsg {
      *
      * @param callback 内容
      * @param type     消息类型
+     */
+    public WsMsg(String callback, Command type) {
+        this(callback, type, null);
+    }
+
+    /**
+     * 系统消息
+     *
+     * @param callback 内容
+     * @param type     消息类型
      * @param data     额外数据
      */
-    public WsMsg(String callback, MessageType type, Object data) {
+    public WsMsg(String callback, Command type, Object data) {
         this.sysmsg = true;
         this.content = callback;
-        this.type = type;
+        this.type = type.getName();
         this.data = data;
     }
 
@@ -67,11 +77,11 @@ public class WsMsg {
      * @param content 内容
      * @param type    消息类型
      */
-    public WsMsg(String uid, String target, String content, MessageType type) {
+    public WsMsg(String uid, String target, String content, Command type) {
         this.uid = uid;
         this.target = target;
         this.content = content;
-        this.type = type;
+        this.type = type.getName();
         this.mid = generateMid();
     }
 
@@ -79,7 +89,7 @@ public class WsMsg {
      * 生成消息MID
      */
     private String generateMid() {
-        return MD5.create().digestHex(uid + content + type.getName() + target + System.currentTimeMillis());
+        return MD5.create().digestHex(uid + content + type + target + System.currentTimeMillis());
     }
 
     /**

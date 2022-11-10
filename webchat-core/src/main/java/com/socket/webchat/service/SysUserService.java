@@ -5,6 +5,7 @@ import com.socket.webchat.model.condition.EmailCondition;
 import com.socket.webchat.model.condition.LoginCondition;
 import com.socket.webchat.model.condition.PasswordCondition;
 import com.socket.webchat.model.condition.RegisterCondition;
+import com.socket.webchat.model.enums.UserRole;
 
 public interface SysUserService extends BaseService<SysUser> {
     /**
@@ -66,4 +67,20 @@ public interface SysUserService extends BaseService<SysUser> {
      * @return {@link SysUser}
      */
     SysUser getUserInfo(String uid);
+
+    /**
+     * 切换目标用户管理员身份
+     *
+     * @param target 用户
+     * @return 修改后的权限
+     */
+    UserRole switchRole(String target);
+
+    /**
+     * 设置指定用户头衔
+     *
+     * @param target 用户uid
+     * @param alias  头衔
+     */
+    void updateAlias(String target, String alias);
 }

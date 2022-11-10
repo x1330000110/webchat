@@ -16,29 +16,19 @@ public interface RecordService extends BaseService<ChatRecord> {
     List<ChatRecord> getRecords(String mid, String target);
 
     /**
-     * 通过消息id删除消息
-     *
-     * @param uid 发起者
-     * @param mid 消息id
-     * @return 成功删除，返回被删除的消息
-     */
-    ChatRecord removeMessage(String uid, String mid);
-
-    /**
-     * 移除消息（只能移除消息目标是自己或自己发送的消息）
+     * 撤回消息（未送达必定撤回成功）
      *
      * @param mid 消息id
      * @return 是否成功
      */
-    boolean removeMessage(String mid);
+    boolean withdrawMessage(String mid);
 
     /**
-     * 删除指定用户所有消息（更新消息标记offset）
+     * 删除当前用户对于目标用户的所有消息（更新消息标记offset）
      *
-     * @param uid    发起者
      * @param target 目标uid
      */
-    void removeAllMessage(String uid, String target);
+    void removeAllMessage(String target);
 
     /**
      * 同步指定消息为已读

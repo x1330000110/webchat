@@ -16,7 +16,6 @@ import com.socket.webchat.model.SysUser;
 import org.apache.shiro.SecurityUtils;
 
 public class Wss {
-
     /**
      * 枚举转JSON
      */

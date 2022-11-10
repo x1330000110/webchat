@@ -1,8 +1,7 @@
 package com.socket.client.manager;
 
+import cn.hutool.core.lang.Opt;
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
@@ -10,13 +9,20 @@ import com.socket.client.model.enums.Callback;
 import com.socket.client.model.enums.OnlineState;
 import com.socket.client.support.KeywordSupport;
 import com.socket.webchat.constant.Constants;
-import com.socket.webchat.mapper.ShieldUserMapper;
+import com.socket.webchat.custom.RedisManager;
+import com.socket.webchat.custom.listener.PermissionEvent;
+import com.socket.webchat.custom.listener.PermissionListener;
+import com.socket.webchat.custom.listener.PermissionOperation;
 import com.socket.webchat.mapper.SysUserMapper;
-import com.socket.webchat.model.*;
+import com.socket.webchat.model.ChatRecord;
+import com.socket.webchat.model.SysGroup;
+import com.socket.webchat.model.SysUser;
+import com.socket.webchat.model.SysUserLog;
 import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.service.RecordService;
 import com.socket.webchat.service.SysUserLogService;
+import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -32,10 +38,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class PermissionManager {
+public class PermissionManager implements PermissionListener {
     private final KeywordSupport keywordSupport;
 
-    private final ShieldUserMapper shieldUserMapper;
     private final SysUserLogService logService;
     private final SysUserMapper sysUserMapper;
     private final RecordService recordService;
@@ -107,43 +112,12 @@ public class PermissionManager {
     }
 
     /**
-     * 设置指定用户头衔
-     *
-     * @param target 目标用户
-     * @param alias  头衔
-     * @return 是否成功
-     */
-    public boolean updateAlias(WsUser target, String alias) {
-        LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
-        wrapper.eq(SysUser::getUid, target.getUid());
-        wrapper.set(SysUser::getAlias, alias);
-        if (sysUserMapper.update(null, wrapper) == 1) {
-            target.setAlias(alias);
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * 检查指定用户禁言情况，若用户被禁言将发送一条系统通知
      */
     public void checkMute(WsUser user) {
         long time = redisManager.getMuteTime(user.getUid());
         if (time > 0) {
-            user.send(Callback.MUTE_LIMIT.format(time), MessageType.MUTE, time);
-        }
-    }
-
-    /**
-     * 推送公告
-     *
-     * @param wsmsg 系统消息
-     */
-    public void pushNotice(WsMsg wsmsg, SysUser sender) {
-        String content = wsmsg.getContent();
-        redisManager.pushNotice(content);
-        if (StrUtil.isNotEmpty(content)) {
-            userManager.sendAll(content, MessageType.ANNOUNCE, sender);
+            user.send(null, PermissionOperation.MUTE, time);
         }
     }
 
@@ -190,38 +164,6 @@ public class PermissionManager {
         return redisManager.getShield(wsuser.getUid());
     }
 
-    /**
-     * 屏蔽/取消屏蔽 指定用户
-     *
-     * @param user   用户信息
-     * @param target 目标用户
-     * @return 若成功屏蔽返回true, 取消屏蔽返回false
-     */
-    public boolean shieldTarget(WsUser user, WsUser target) {
-        String uid = user.getUid();
-        List<String> shields = this.getShield(user);
-        String tuid = target.getUid();
-        LambdaUpdateWrapper<ShieldUser> wrapper = Wrappers.lambdaUpdate();
-        wrapper.eq(ShieldUser::getUid, uid);
-        wrapper.eq(ShieldUser::getTarget, tuid);
-        // 包含此目标uid，取消屏蔽
-        if (shields.contains(tuid)) {
-            wrapper.set(ShieldUser::isDeleted, 1);
-            shieldUserMapper.update(null, wrapper);
-            shields.remove(tuid);
-            return false;
-        }
-        // 不包含目标uid，屏蔽
-        wrapper.set(ShieldUser::isDeleted, 0);
-        // 更新失败则添加
-        if (shieldUserMapper.update(null, wrapper) == 0) {
-            ShieldUser suser = new ShieldUser();
-            suser.setUid(uid);
-            suser.setTarget(tuid);
-            shieldUserMapper.insert(suser);
-        }
-        return shields.add(tuid);
-    }
 
     /**
      * 连续发言标记（排除所有者） <br>
@@ -232,23 +174,9 @@ public class PermissionManager {
             long time = TimeUnit.HOURS.toSeconds(Constants.FREQUENT_SPEECHES_MUTE_TIME);
             if (redisManager.incrSpeak(user.getUid()) > Constants.FREQUENT_SPEECH_THRESHOLD) {
                 redisManager.setMute(user.getUid(), time);
-                user.send(Callback.BRUSH_SCREEN.format(time), MessageType.MUTE, time);
+                user.send(Callback.BRUSH_SCREEN.format(time), PermissionOperation.MUTE, time);
             }
         }
-    }
-
-    /**
-     * 更新用户权限
-     *
-     * @param user 指定用户
-     * @param role 新权限
-     */
-    public void updateRole(WsUser user, UserRole role) {
-        LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
-        wrapper.eq(SysUser::getUid, user.getUid());
-        wrapper.set(SysUser::getRole, role.getRole());
-        sysUserMapper.update(null, wrapper);
-        user.setRole(role);
     }
 
     /**
@@ -259,28 +187,6 @@ public class PermissionManager {
      */
     public boolean isMute(WsUser user) {
         return redisManager.getMuteTime(user.getUid()) > 0;
-    }
-
-    /**
-     * 禁言指定用户
-     *
-     * @return 禁言时间
-     */
-    public long addMute(WsMsg wsmsg) {
-        int time = Integer.parseInt(wsmsg.getContent());
-        redisManager.setMute(wsmsg.getTarget(), time);
-        return time;
-    }
-
-    /**
-     * 冻结指定用户
-     *
-     * @return 冻结时间
-     */
-    public long addLock(WsMsg wsmsg) {
-        int time = Integer.parseInt(wsmsg.getContent());
-        redisManager.setLock(wsmsg.getTarget(), time);
-        return time;
     }
 
     /**
@@ -299,5 +205,59 @@ public class PermissionManager {
             return user;
         }
         return userManager.getUser(target);
+    }
+
+    @Override
+    public void onPermission(PermissionEvent event) {
+        WsUser user = Opt.ofNullable(event.getTarget()).map(userManager::getUser).get();
+        String data = event.getData();
+        // 解析命令
+        switch (event.getOperation()) {
+            case ANNOUNCE:
+                userManager.sendAll(data, PermissionOperation.ANNOUNCE);
+                break;
+            case WITHDRAW:
+                withdraw(event.getRecord());
+                break;
+            case ROLE:
+                user.setRole(UserRole.of(data));
+                userManager.sendAll(PermissionOperation.ROLE, user);
+                break;
+            case SHIELD:
+                userManager.sendAll(PermissionOperation.SHIELD, user);
+                break;
+            case ALIAS:
+                userManager.sendAll(data, PermissionOperation.ALIAS, user);
+                break;
+            case MUTE:
+                userManager.sendAll(data, PermissionOperation.MUTE, user);
+                break;
+            case LOCK:
+                userManager.sendAll(data, PermissionOperation.LOCK, user);
+                break;
+            case FOREVER:
+                userManager.exit(user, Callback.LIMIT_FOREVER.get());
+                userManager.remove(user.getUid());
+                break;
+            default:
+                // ignore
+        }
+    }
+
+    /**
+     * 撤回消息后续处理
+     */
+    private void withdraw(ChatRecord record) {
+        WsUser self = userManager.getUser(record.getUid());
+        // 目标是群组 通知群组撤回此消息
+        String target = record.getTarget();
+        String mid = record.getMid();
+        if (Wss.isGroup(target)) {
+            groupManager.sendGroup(target, mid, PermissionOperation.WITHDRAW, self);
+            return;
+        }
+        // 通知双方撤回此消息
+        userManager.getUser(target).send(mid, PermissionOperation.WITHDRAW, self);
+        self.send(mid, PermissionOperation.WITHDRAW);
     }
 }

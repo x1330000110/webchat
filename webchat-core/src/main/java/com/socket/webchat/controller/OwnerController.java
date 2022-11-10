@@ -1,10 +1,13 @@
 package com.socket.webchat.controller;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.secure.exception.InvalidRequestException;
 import com.socket.secure.filter.anno.Encrypted;
-import com.socket.webchat.custom.listener.UserChangeEvent;
+import com.socket.webchat.custom.RedisManager;
+import com.socket.webchat.custom.listener.PermissionEvent;
+import com.socket.webchat.custom.listener.PermissionOperation;
 import com.socket.webchat.custom.support.SettingSupport;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
@@ -13,7 +16,7 @@ import com.socket.webchat.model.condition.SettingCondition;
 import com.socket.webchat.model.condition.UserCondition;
 import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.model.enums.Setting;
-import com.socket.webchat.model.enums.UserOperation;
+import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.service.RecordService;
 import com.socket.webchat.service.SysUserService;
 import com.socket.webchat.util.Assert;
@@ -33,10 +36,32 @@ public class OwnerController {
     private final SettingSupport settingSupport;
     private final SysUserService sysUserService;
     private final RecordService recordService;
+    private final RedisManager redisManager;
 
     @ModelAttribute
     public void checkPermission() {
         Assert.isTrue(Wss.getUser().isOwner(), "权限不足", InvalidRequestException::new);
+    }
+
+    @PostMapping("/alias")
+    public void alias(String target, String alias) {
+        sysUserService.updateAlias(target, alias);
+        publisher.publishEvent(new PermissionEvent(publisher, target, alias, PermissionOperation.ALIAS));
+    }
+
+    @PostMapping("/role")
+    public void role(String target) {
+        UserRole role = sysUserService.switchRole(target);
+        Wss.getUser().setRole(role);
+        publisher.publishEvent(new PermissionEvent(publisher, target, role.getRole(), PermissionOperation.ROLE));
+    }
+
+    @PostMapping("/announce")
+    public void announce(@RequestBody String content) {
+        redisManager.pushNotice(content);
+        if (StrUtil.isNotEmpty(content)) {
+            publisher.publishEvent(new PermissionEvent(publisher, content, PermissionOperation.ANNOUNCE));
+        }
     }
 
     @Encrypted
@@ -48,8 +73,7 @@ public class OwnerController {
         wrapper.set(SysUser::isDeleted, 1);
         boolean update = sysUserService.update(wrapper);
         if (update) {
-            // 强制目标用户下线
-            publisher.publishEvent(new UserChangeEvent(publisher, UserOperation.FOREVER, null, uid));
+            publisher.publishEvent(new PermissionEvent(publisher, uid, PermissionOperation.FOREVER));
         }
         return HttpStatus.of(update, "操作成功", "找不到此用户");
     }

@@ -3,6 +3,8 @@ package com.socket.webchat.model.enums;
 import com.baomidou.mybatisplus.annotation.IEnum;
 import com.fasterxml.jackson.annotation.JsonValue;
 
+import java.util.Arrays;
+
 /**
  * 角色枚举
  */
@@ -22,6 +24,10 @@ public enum UserRole implements IEnum<String> {
 
     public String getRole() {
         return name().toLowerCase();
+    }
+
+    public static UserRole of(String role) {
+        return Arrays.stream(values()).filter(e -> e.getRole().equals(role)).findFirst().orElseThrow();
     }
 
     @JsonValue

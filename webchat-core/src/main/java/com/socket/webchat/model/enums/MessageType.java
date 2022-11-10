@@ -1,6 +1,5 @@
 package com.socket.webchat.model.enums;
 
-import cn.hutool.core.lang.EnumItem;
 import com.baomidou.mybatisplus.annotation.IEnum;
 import lombok.Getter;
 
@@ -8,7 +7,7 @@ import lombok.Getter;
  * ws命令操作枚举
  */
 @Getter
-public enum MessageType implements EnumItem<MessageType>, IEnum<String> {
+public enum MessageType implements Command, IEnum<String> {
     /**
      * 加载聊天室所有用户
      */
@@ -22,10 +21,6 @@ public enum MessageType implements EnumItem<MessageType>, IEnum<String> {
      */
     EXIT,
     /**
-     * 群组解散
-     */
-    GROUP_DISSOLVE,
-    /**
      * 选择用户变动事件
      */
     CHOOSE,
@@ -33,30 +28,6 @@ public enum MessageType implements EnumItem<MessageType>, IEnum<String> {
      * 在线状态变动事件
      */
     CHANGE,
-    /**
-     * 屏蔽
-     */
-    SHIELD,
-    /**
-     * 撤回消息
-     */
-    WITHDRAW,
-    /**
-     * 禁言
-     */
-    MUTE,
-    /**
-     * 限制登录
-     */
-    LOCK,
-    /**
-     * 设为/取消管理员权限
-     */
-    ROLE,
-    /**
-     * 设置头衔
-     */
-    ALIAS,
     /**
      * 消息类型：文字
      */
@@ -78,45 +49,23 @@ public enum MessageType implements EnumItem<MessageType>, IEnum<String> {
      */
     VIDEO("视频文件"),
     /**
-     * 公告
+     * 消息已读标记
      */
-    ANNOUNCE,
+    READ,
     /**
-     * 系统通知等级：主要的
+     * 系统通知等级
      */
     PRIMARY,
-    /**
-     * 系统通知等级：成功
-     */
     SUCCESS,
-    /**
-     * 系统通知等级：警告
-     */
     WARNING,
-    /**
-     * 系统通知等级：错误
-     */
     DANGER,
-    /**
-     * 系统通知等级：信息
-     */
-    INFO,
-
     /**
      * WebRTC会话标识
      */
     OFFER,
     ANSWER,
     CANDIDATE,
-    LEAVE,
-    /**
-     * 消息已读标记
-     */
-    READ,
-    /**
-     * 加入群组
-     */
-    JOIN_GROUP;
+    LEAVE;
 
     private final String name;
     private String preview;
@@ -130,14 +79,8 @@ public enum MessageType implements EnumItem<MessageType>, IEnum<String> {
         this.preview = preview;
     }
 
-    @Override
-    public String toString() {
+    public String getName() {
         return name;
-    }
-
-    @Override
-    public int intVal() {
-        return ordinal();
     }
 
     @Override

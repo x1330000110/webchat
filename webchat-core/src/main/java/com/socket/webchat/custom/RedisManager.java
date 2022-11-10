@@ -1,9 +1,8 @@
-package com.socket.client.manager;
+package com.socket.webchat.custom;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.socket.client.model.enums.SocketTree;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.mapper.ShieldUserMapper;
 import com.socket.webchat.model.Announce;
@@ -39,7 +38,7 @@ public class RedisManager {
      */
     public void setMute(String uid, long time) {
         long value = (System.currentTimeMillis() / 1000) + time;
-        permission.set(SocketTree.MUTE.concat(uid), (int) value, time);
+        permission.set(RedisTree.MUTE.concat(uid), (int) value, time);
     }
 
     /**
@@ -50,21 +49,21 @@ public class RedisManager {
      */
     public void setLock(String uid, long time) {
         long value = (System.currentTimeMillis() / 1000) + time;
-        permission.set(SocketTree.LOCK.concat(uid), (int) value, time);
+        permission.set(RedisTree.LOCK.concat(uid), (int) value, time);
     }
 
     /**
      * 获取禁言剩余时间（单位：秒）
      */
     public long getMuteTime(String uid) {
-        return permission.getExpired(SocketTree.MUTE.concat(uid));
+        return permission.getExpired(RedisTree.MUTE.concat(uid));
     }
 
     /**
      * 获取冻结剩余时间（单位：秒）
      */
     public long getLockTime(String uid) {
-        return permission.getExpired(SocketTree.LOCK.concat(uid));
+        return permission.getExpired(RedisTree.LOCK.concat(uid));
     }
 
     /**
@@ -74,7 +73,7 @@ public class RedisManager {
      * @return 发言次数
      */
     public long incrSpeak(String uid) {
-        String key = SocketTree.SPEAK.concat(uid);
+        String key = RedisTree.SPEAK.concat(uid);
         return permission.exist(key) ? permission.incr(key, 1) : permission.incr(key, 1, 10);
     }
 
@@ -87,7 +86,7 @@ public class RedisManager {
      */
     public void setUnreadCount(String uid, String target, int delta) {
         RedisMap<String, Integer> map = permission.withMap(RedisTree.UNREAD.concat(uid));
-        if (delta == 0 || map.increment(target, delta) == 0) {
+        if (delta == 0 || map.increment(target, delta) <= 0) {
             map.remove(target);
         }
     }
@@ -126,7 +125,7 @@ public class RedisManager {
      * @return 屏蔽列表
      */
     public List<String> getShield(String uid) {
-        RedisList<String> redisList = shield.withList(SocketTree.SHIELD.concat(uid));
+        RedisList<String> redisList = shield.withList(RedisTree.SHIELD.concat(uid));
         // 检查缓存
         if (redisList.isEmpty()) {
             // 查询数据库

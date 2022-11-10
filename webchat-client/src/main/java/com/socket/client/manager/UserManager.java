@@ -9,12 +9,14 @@ import com.socket.client.model.WsUser;
 import com.socket.client.model.enums.Callback;
 import com.socket.client.util.Assert;
 import com.socket.webchat.constant.Constants;
+import com.socket.webchat.custom.RedisManager;
 import com.socket.webchat.custom.listener.UserChangeEvent;
 import com.socket.webchat.custom.listener.UserChangeListener;
 import com.socket.webchat.mapper.SysUserMapper;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.SysUserLog;
+import com.socket.webchat.model.enums.Command;
 import com.socket.webchat.model.enums.LogType;
 import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.request.XiaoBingAPIRequest;
@@ -31,6 +33,7 @@ import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -85,12 +88,24 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
      * @param type    消息类型
      * @param data    附加用户信息
      */
-    public void sendAll(String content, MessageType type, SysUser data) {
+    public void sendAll(String content, Command type, SysUser data) {
         for (WsUser wsuser : this.values()) {
-            if (!wsuser.getUid().equals(data.getUid())) {
-                wsuser.send(content, type, data);
-            }
+            wsuser.send(content, type, data);
         }
+    }
+
+    /**
+     * @see #sendAll(String, Command, SysUser)
+     */
+    public void sendAll(String content, Command type) {
+        this.sendAll(content, type, null);
+    }
+
+    /**
+     * @see #sendAll(String, Command, SysUser)
+     */
+    public void sendAll(Command type, SysUser data) {
+        this.sendAll(null, type, data);
     }
 
     /**
@@ -123,7 +138,7 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
     public void cacheRecord(WsMsg wsmsg, boolean isread) {
         ChatRecord record = BeanUtil.copyProperties(wsmsg, ChatRecord.class);
         // 群组以外的语音消息始终未读
-        boolean audio = !wsmsg.isGroup() && wsmsg.getType() == MessageType.AUDIO;
+        boolean audio = !wsmsg.isGroup() && Objects.equals(wsmsg.getType(), MessageType.AUDIO.toString());
         record.setUnread(audio || !isread);
         kafkaTemplate.send(Constants.KAFKA_RECORD, JSONUtil.toJsonStr(record));
         // 目标列表添加发起者uid
@@ -146,20 +161,6 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
         redisManager.setUnreadCount(suid, tuid, 0);
     }
 
-    /**
-     * 撤回消息
-     *
-     * @param wsmsg 消息
-     * @return 撤回的消息
-     */
-    public ChatRecord withdrawMessage(WsMsg wsmsg) {
-        ChatRecord record = recordService.removeMessage(wsmsg.getUid(), wsmsg.getContent());
-        // 未读计数器-1
-        Optional.ofNullable(record)
-                .filter(ChatRecord::isUnread)
-                .ifPresent(msg -> redisManager.setUnreadCount(msg.getTarget(), msg.getUid(), -1));
-        return record;
-    }
 
     /**
      * 获取指定用户的未读消息数量
@@ -218,12 +219,8 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
             case NAME:
                 user.setName(event.getData());
                 break;
-            case HEAD_IMG:
+            case HEADIMG:
                 user.setHeadimgurl(event.getData());
-                break;
-            case FOREVER:
-                this.exit(user, Callback.LIMIT_FOREVER.get());
-                remove(user.getUid());
                 break;
             default:
                 // ignore

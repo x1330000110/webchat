@@ -27,7 +27,7 @@ public class MessageController {
     @Encrypted
     @PostMapping("/clear")
     public HttpStatus clear(@RequestBody MessageCondition condition) {
-        recordService.removeAllMessage(Wss.getUserId(), condition.getTarget());
+        recordService.removeAllMessage(condition.getTarget());
         return HttpStatus.SUCCESS.message("清除成功");
     }
 
@@ -43,10 +43,10 @@ public class MessageController {
     }
 
     @Encrypted
-    @PostMapping("/remove")
+    @PostMapping("/withdraw")
     public HttpStatus remove(@RequestBody MessageCondition condition) {
-        boolean state = recordService.removeMessage(condition.getMid());
-        return HttpStatus.of(state, "操作成功", "权限不足");
+        boolean state = recordService.withdrawMessage(condition.getMid());
+        return HttpStatus.state(state, "操作");
     }
 
     @GetMapping

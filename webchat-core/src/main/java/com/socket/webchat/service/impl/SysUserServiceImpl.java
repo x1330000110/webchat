@@ -14,6 +14,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.listener.UserChangeEvent;
+import com.socket.webchat.custom.listener.UserOperation;
 import com.socket.webchat.exception.AccountException;
 import com.socket.webchat.exception.UploadException;
 import com.socket.webchat.mapper.SysUserMapper;
@@ -25,7 +26,7 @@ import com.socket.webchat.model.condition.PasswordCondition;
 import com.socket.webchat.model.condition.RegisterCondition;
 import com.socket.webchat.model.enums.FileType;
 import com.socket.webchat.model.enums.RedisTree;
-import com.socket.webchat.model.enums.UserOperation;
+import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.request.LanzouCloudRequest;
 import com.socket.webchat.request.QQAccountRequest;
 import com.socket.webchat.request.bean.QQUser;
@@ -55,7 +56,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final ApplicationEventPublisher publisher;
     private final SysGroupService sysGroupService;
     private final UploadService uploadService;
-    
+
     private final QQAccountRequest qqAccountRequest;
     private final LanzouCloudRequest lanzouRequest;
     private final RedisClient<Object> redis;
@@ -212,7 +213,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 保存文件映射
         uploadService.save(new ChatRecordFile(null, FileType.IMAGE.getKey(), url, hash, (long) bytes.length));
         // 推送变动事件
-        publisher.publishEvent(new UserChangeEvent(publisher, UserOperation.HEAD_IMG, mapping));
+        publisher.publishEvent(new UserChangeEvent(publisher, UserOperation.HEADIMG, mapping));
         return mapping;
     }
 
@@ -248,5 +249,25 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         SysUser user = this.getFirst(wrapper);
         Assert.notNull(user, "找不到此用户信息", AccountException::new);
         return user;
+    }
+
+    @Override
+    public UserRole switchRole(String target) {
+        LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
+        wrapper.eq(SysUser::getUid, target);
+        SysUser first = getFirst(wrapper);
+        UserRole role = first.getRole() == UserRole.ADMIN ? UserRole.USER : UserRole.ADMIN;
+        wrapper.set(SysUser::getRole, role);
+        update(wrapper);
+        return role;
+    }
+
+    @Override
+    public void updateAlias(String target, String alias) {
+        LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
+        wrapper.eq(SysUser::getUid, target);
+        wrapper.set(SysUser::getAlias, alias);
+        update(wrapper);
+        // TODO
     }
 }

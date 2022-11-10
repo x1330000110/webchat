@@ -12,10 +12,8 @@ import com.socket.client.model.enums.OnlineState;
 import com.socket.client.util.Assert;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.support.SettingSupport;
-import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.model.enums.Setting;
-import com.socket.webchat.model.enums.UserRole;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -25,6 +23,7 @@ import org.springframework.stereotype.Service;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -48,7 +47,7 @@ public class SocketEndpoint implements ApplicationContextAware {
             Collection<UserPreview> userList = permissionManager.getUserPreviews(user);
             user.send(Callback.JOIN_INIT.get(), MessageType.INIT, userList);
             // 向其他人发送加入通知
-            userManager.sendAll(Callback.USER_LOGIN.format(user.getName()), MessageType.JOIN, user);
+            userManager.sendAll(MessageType.JOIN, user);
             // 检查禁言
             permissionManager.checkMute(user);
             this.self = user;
@@ -60,7 +59,7 @@ public class SocketEndpoint implements ApplicationContextAware {
         Optional.ofNullable(self).ifPresent(user -> {
             userManager.exit(user, null);
             // 退出通知
-            userManager.sendAll(Callback.USER_LOGOUT.format(user.getName()), MessageType.EXIT, user);
+            userManager.sendAll(MessageType.EXIT, user);
         });
     }
 
@@ -99,8 +98,8 @@ public class SocketEndpoint implements ApplicationContextAware {
         permissionManager.operateMark(self);
         // 群组消息
         if (wsmsg.isGroup()) {
-            groupManager.sendGroup(wsmsg, self);
             self.send(wsmsg);
+            groupManager.sendGroup(wsmsg, self);
             userManager.cacheRecord(wsmsg, true);
             return;
         }
@@ -130,7 +129,7 @@ public class SocketEndpoint implements ApplicationContextAware {
      */
     private void parseAiMessage(WsMsg wsmsg) {
         boolean sysuid = Constants.SYSTEM_UID.equals(wsmsg.getTarget());
-        boolean text = wsmsg.getType() == MessageType.TEXT;
+        boolean text = Objects.equals(wsmsg.getType(), MessageType.TEXT.toString());
         // 判断AI消息
         if (sysuid && text && !userManager.getUser(Constants.SYSTEM_UID).isOnline()) {
             userManager.sendAIMessage(self, wsmsg);
@@ -138,18 +137,12 @@ public class SocketEndpoint implements ApplicationContextAware {
     }
 
     public void parseSysMsg(WsMsg wsmsg, WsUser target) {
-        switch (wsmsg.getType()) {
+        String type = wsmsg.getType().toUpperCase();
+        switch (MessageType.valueOf(type)) {
             case CHANGE:
                 String content = wsmsg.getContent();
                 self.setOnline(OnlineState.of(content));
                 userManager.sendAll(content, MessageType.CHANGE, self);
-                self.send(wsmsg.getContent(), MessageType.CHANGE, self);
-                break;
-            case SHIELD:
-                this.shield(target);
-                break;
-            case WITHDRAW:
-                this.withdraw(target, wsmsg);
                 break;
             case CHOOSE:
                 this.choose(target, wsmsg);
@@ -163,75 +156,8 @@ public class SocketEndpoint implements ApplicationContextAware {
                 this.forwardWebRTC(target, wsmsg);
                 break;
             default:
-                this.parseAdminSysMsg(wsmsg, target);
+                // ignore
         }
-    }
-
-    public void parseAdminSysMsg(WsMsg wsmsg, WsUser target) {
-        // 管理员权限检查
-        Assert.isAdmin(self, target, Callback.REJECT_EXECUTE);
-        switch (wsmsg.getType()) {
-            case MUTE:
-                this.mute(target, wsmsg);
-                break;
-            case LOCK:
-                this.lock(target, wsmsg);
-                break;
-            default:
-                this.parseOwnerSysMsg(wsmsg, target);
-        }
-    }
-
-    public void parseOwnerSysMsg(WsMsg wsmsg, WsUser target) {
-        // 所有者权限检查
-        Assert.isOwner(self, Callback.REJECT_EXECUTE);
-        switch (wsmsg.getType()) {
-            case ROLE:
-                this.switchRole(target);
-                break;
-            case ALIAS:
-                this.setAlias(target, wsmsg);
-                break;
-            case ANNOUNCE:
-                permissionManager.pushNotice(wsmsg, self);
-                break;
-            default:
-                self.send(Callback.INVALID_COMMAND.get(), MessageType.DANGER);
-        }
-    }
-
-    /**
-     * 屏蔽指定用户
-     */
-    private void shield(WsUser target) {
-        boolean shield = permissionManager.shieldTarget(self, target);
-        Callback tips = shield ? Callback.SHIELD_USER : Callback.CANCEL_SHIELD;
-        self.send(tips.format(target.getName()), MessageType.SHIELD, target);
-    }
-
-    /**
-     * 撤回消息
-     */
-    private void withdraw(WsUser target, WsMsg wsmsg) {
-        ChatRecord record = userManager.withdrawMessage(wsmsg);
-        // 转发系统消息
-        if (record != null) {
-            // 若此撤回的消息指向群组，则通知群组内所有人撤回此消息
-            if (wsmsg.isGroup()) {
-                groupManager.sendGroup(wsmsg, self);
-            } else if (!permissionManager.shield(target, self)) {
-                // 仅通知目标撤回此消息（若目标已将此用户屏蔽，则忽略此撤回消息）
-                target.send(wsmsg);
-            }
-            // 若这是一条未能送达是消息 则不提示任何回调
-            if (!record.isReject()) {
-                self.send(wsmsg);
-            }
-            return;
-        }
-        // 撤回失败通知
-        final int withdrawTime = Constants.WITHDRAW_TIME;
-        self.send(Callback.WITHDRAW_FAILURE.format(withdrawTime), MessageType.WARNING, Constants.WITHDRAW_TIME);
     }
 
     /**
@@ -251,62 +177,6 @@ public class SocketEndpoint implements ApplicationContextAware {
         self.setChoose(wsmsg.getTarget());
         if (!wsmsg.isGroup() && userManager.getUnreadCount(self, target) > 0) {
             userManager.readAllMessage(self, target, false);
-        }
-    }
-
-    /**
-     * 禁言
-     */
-    private void mute(WsUser target, WsMsg wsmsg) {
-        long time = permissionManager.addMute(wsmsg);
-        String name = target.getName();
-        // 禁言
-        if (time > 0) {
-            target.send(Callback.MUTE_LIMIT.format(time), MessageType.MUTE, time);
-            userManager.sendAll(Callback.G_MUTE_LIMIT.format(name, time), MessageType.PRIMARY, target);
-            return;
-        }
-        // 取消禁言
-        target.send(Callback.C_MUTE_LIMIT.get(), MessageType.MUTE, time);
-        userManager.sendAll(Callback.GC_MUTE_LIMIT.format(name, time), MessageType.PRIMARY, target);
-    }
-
-    /**
-     * 限制登陆
-     */
-    private void lock(WsUser target, WsMsg wsmsg) {
-        long time = permissionManager.addLock(wsmsg);
-        // 向所有人发布消息
-        if (time > 0) {
-            // 大于0强制下线
-            userManager.exit(target, Callback.LOGIN_LIMIT.format(time));
-            userManager.sendAll(Callback.G_LOGIN_LIMIT.format(target, time), MessageType.DANGER, target);
-            return;
-        }
-        userManager.sendAll(Callback.GC_LOGIN_LIMIT.format(target, time), MessageType.DANGER, target);
-    }
-
-    /**
-     * 切换用户角色
-     */
-    private void switchRole(WsUser target) {
-        permissionManager.updateRole(target, target.isAdmin() ? UserRole.USER : UserRole.ADMIN);
-        // 通知目标
-        String cb = (target.isAdmin() ? Callback.AUTH_ADMIN : Callback.AUTH_USER).get();
-        target.send(cb, MessageType.ROLE, target);
-        // 广播消息
-        String gcb = (target.isAdmin() ? Callback.G_AUTH_ADMIN : Callback.G_AUTH_USER).format(target.getName());
-        userManager.sendAll(gcb, MessageType.ROLE, target);
-    }
-
-    /**
-     * 设置头衔
-     */
-    private void setAlias(WsUser target, WsMsg wsmsg) {
-        String alias = wsmsg.getContent();
-        if (permissionManager.updateAlias(target, alias)) {
-            target.send(alias, MessageType.ALIAS);
-            userManager.sendAll(alias, MessageType.ALIAS, target);
         }
     }
 

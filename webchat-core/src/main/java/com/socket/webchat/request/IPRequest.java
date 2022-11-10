@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class IPRequest {
-   private static final String URL = "https://apibug.cn/api/ip/?apiKey=1d381bf0c6d5db52490d77f00b9403bf&ip={}";
+    private static final String URL = "https://apibug.cn/api/ip/?apiKey=1d381bf0c6d5db52490d77f00b9403bf&ip={}";
 
     /**
      * 获取IP地址所在城市

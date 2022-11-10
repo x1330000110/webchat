@@ -1,9 +1,11 @@
-package com.socket.webchat.model.enums;
+package com.socket.webchat.custom.listener;
+
+import com.socket.webchat.model.enums.Command;
 
 /**
  * 群组信息变动枚举
  */
-public enum GroupOperation {
+public enum GroupOperation implements Command {
     /**
      * 新增群组
      */
@@ -24,4 +26,9 @@ public enum GroupOperation {
      * 移除用户
      */
     DELETE;
+
+    @Override
+    public String getName() {
+        return getClass().getSimpleName() + "." + name().toLowerCase();
+    }
 }

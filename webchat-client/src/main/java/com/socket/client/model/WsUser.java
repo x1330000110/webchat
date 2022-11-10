@@ -7,6 +7,7 @@ import com.socket.client.model.enums.OnlineState;
 import com.socket.secure.util.AES;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.SysUser;
+import com.socket.webchat.model.enums.Command;
 import com.socket.webchat.model.enums.MessageType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -109,7 +110,7 @@ public class WsUser extends SysUser {
      * @param type     消息类型
      * @date 额外数据
      */
-    public void send(String callback, MessageType type) {
+    public void send(String callback, Command type) {
         this.send(callback, type, null);
     }
 
@@ -121,7 +122,7 @@ public class WsUser extends SysUser {
      * @param data     额外数据
      * @date 额外数据
      */
-    public void send(String callback, MessageType type, Object data) {
+    public void send(String callback, Command type, Object data) {
         this.send(new WsMsg(callback, type, data), false);
     }
 

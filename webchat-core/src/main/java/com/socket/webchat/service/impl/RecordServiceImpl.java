@@ -1,14 +1,18 @@
 package com.socket.webchat.service.impl;
 
+import cn.hutool.core.date.DateUnit;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.enums.SqlKeyword;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.webchat.constant.Constants;
+import com.socket.webchat.custom.RedisManager;
+import com.socket.webchat.custom.listener.PermissionEvent;
+import com.socket.webchat.custom.listener.PermissionOperation;
 import com.socket.webchat.mapper.ChatRecordDeletedMapper;
 import com.socket.webchat.mapper.ChatRecordMapper;
 import com.socket.webchat.mapper.ChatRecordOffsetMapper;
@@ -17,14 +21,13 @@ import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.ChatRecordDeleted;
 import com.socket.webchat.model.ChatRecordOffset;
 import com.socket.webchat.model.enums.MessageType;
-import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.service.RecordService;
 import com.socket.webchat.util.Assert;
-import com.socket.webchat.util.RedisClient;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -35,9 +38,10 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord> implements RecordService {
-    private final ChatRecordDeletedMapper chatRecordDeletedMapper;
-    private final ChatRecordOffsetMapper chatRecordOffsetMapper;
-    private final RedisClient<?> redis;
+    private final ApplicationEventPublisher publisher;
+    private final ChatRecordDeletedMapper deletedMapper;
+    private final ChatRecordOffsetMapper offsetMapper;
+    private final RedisManager redisManager;
 
     @KafkaListener(topics = Constants.KAFKA_RECORD)
     public void saveRecord(ConsumerRecord<String, String> data) {
@@ -70,7 +74,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         LambdaQueryWrapper<ChatRecordOffset> wrapper1 = Wrappers.lambdaQuery();
         wrapper1.eq(ChatRecordOffset::getUid, userId);
         wrapper1.eq(ChatRecordOffset::getTarget, target);
-        ChatRecordOffset limit = chatRecordOffsetMapper.selectOne(wrapper1);
+        ChatRecordOffset limit = offsetMapper.selectOne(wrapper1);
         Optional.ofNullable(limit).ifPresent(e -> wrapper.gt(BaseModel::getId, e.getOffset()));
         // 限制结束边界id
         ChatRecord offset = null;
@@ -86,7 +90,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         LambdaQueryWrapper<ChatRecordDeleted> wrapper3 = Wrappers.lambdaQuery();
         wrapper3.eq(ChatRecordDeleted::getUid, userId);
         Optional.ofNullable(offset).ifPresent(m -> wrapper3.lt(ChatRecordDeleted::getRecordTime, m.getCreateTime()));
-        List<String> deleted = chatRecordDeletedMapper.selectList(wrapper3)
+        List<String> deleted = deletedMapper.selectList(wrapper3)
                 .stream()
                 .map(ChatRecordDeleted::getMid)
                 .collect(Collectors.toList());
@@ -98,50 +102,33 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
     }
 
     @Override
-    public boolean removeMessage(String mid) {
+    public boolean withdrawMessage(String mid) {
         LambdaUpdateWrapper<ChatRecord> wrapper = Wrappers.lambdaUpdate();
+        wrapper.eq(ChatRecord::getUid, Wss.getUserId());
         wrapper.eq(ChatRecord::getMid, mid);
         ChatRecord record = getFirst(wrapper);
-        // 检查消息权限
-        if (!Wss.checkMessagePermission(record)) {
-            return false;
+        Assert.notNull(record, "消息同步中", IllegalStateException::new);
+        // 消息未送达或未超过规定撤回时间
+        long second = DateUtil.between(record.getCreateTime(), new Date(), DateUnit.SECOND);
+        if (record.isReject() || second <= Constants.WITHDRAW_TIME) {
+            wrapper.set(BaseModel::isDeleted, 1);
+            update(wrapper);
+            // 若消息未读 计数器-1
+            if (record.isUnread()) {
+                redisManager.setUnreadCount(record.getTarget(), record.getUid(), -1);
+            }
+            // 通知成员撤回
+            if (!record.isReject()) {
+                publisher.publishEvent(new PermissionEvent(publisher, record, PermissionOperation.WITHDRAW));
+            }
+            return true;
         }
-        // 添加删除标记
-        ChatRecordDeleted deleted = new ChatRecordDeleted();
-        String userId = Wss.getUserId();
-        deleted.setUid(userId);
-        // 确保移除的目标不是自己（自己可能是发起者或目标）
-        String uid = record.getUid(), target = record.getTarget();
-        deleted.setTarget(Wss.isGroup(target) || uid.equals(userId) ? target : uid);
-        deleted.setMid(record.getMid());
-        deleted.setRecordTime(record.getCreateTime());
-        return chatRecordDeletedMapper.insert(deleted) == 1;
+        return false;
     }
 
     @Override
-    public ChatRecord removeMessage(String uid, String mid) {
-        LambdaQueryWrapper<ChatRecord> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(ChatRecord::getMid, mid);
-        wrapper.eq(ChatRecord::getUid, uid);
-        // 未送达的消息无撤回时间限制
-        wrapper.and(ew -> {
-            String condition = StrUtil.format("NOW() - INTERVAL {} SECOND", Constants.WITHDRAW_TIME);
-            String column = Wss.columnToString(ChatRecord::getCreateTime);
-            ew.eq(ChatRecord::isReject, true).or().getExpression().add(() -> column, SqlKeyword.GE, () -> condition);
-        });
-        ChatRecord record = getFirst(wrapper);
-        if (record != null) {
-            LambdaUpdateWrapper<ChatRecord> wrapper1 = Wrappers.lambdaUpdate();
-            wrapper1.eq(BaseModel::getId, record.getId());
-            wrapper1.set(BaseModel::isDeleted, 1);
-            super.update(wrapper1);
-            return record;
-        }
-        return null;
-    }
-
-    @Override
-    public void removeAllMessage(String uid, String target) {
+    public void removeAllMessage(String target) {
+        String uid = Wss.getUserId();
         QueryWrapper<ChatRecord> wrapper = Wrappers.query();
         wrapper.select(Wss.selectMax(BaseModel::getId));
         LambdaQueryWrapper<ChatRecord> lambda = wrapper.lambda();
@@ -162,19 +149,19 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
             wrapper1.eq(ChatRecordOffset::getUid, uid);
             wrapper1.eq(ChatRecordOffset::getTarget, target);
             wrapper1.set(ChatRecordOffset::getOffset, last.getId());
-            int update = chatRecordOffsetMapper.update(null, wrapper1);
+            int update = offsetMapper.update(null, wrapper1);
             if (update == 0) {
                 ChatRecordOffset offset = new ChatRecordOffset();
                 offset.setUid(uid);
                 offset.setTarget(target);
                 offset.setOffset(last.getId());
-                chatRecordOffsetMapper.insert(offset);
+                offsetMapper.insert(offset);
             }
             // 单条消息设置失效
             LambdaUpdateWrapper<ChatRecordDeleted> wrapper2 = Wrappers.lambdaUpdate();
             wrapper2.eq(ChatRecordDeleted::getTarget, target);
             wrapper2.set(BaseModel::isDeleted, 1);
-            chatRecordDeletedMapper.update(null, wrapper2);
+            deletedMapper.update(null, wrapper2);
         }
     }
 
@@ -202,7 +189,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         wrapper.set(ChatRecord::isUnread, false);
         super.update(wrapper);
         // 清空redis计数器
-        redis.remove(RedisTree.UNREAD.concat(uid));
+        redisManager.setUnreadCount(uid, target, 0);
     }
 
     @Override
