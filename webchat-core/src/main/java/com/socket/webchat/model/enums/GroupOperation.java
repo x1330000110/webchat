@@ -9,7 +9,7 @@ public enum GroupOperation {
      */
     CREATE,
     /**
-     * 移除群组
+     * 解散群组
      */
     DISSOLVE,
     /**
