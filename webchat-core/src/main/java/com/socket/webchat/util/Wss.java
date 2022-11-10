@@ -90,9 +90,17 @@ public class Wss {
     /**
      * mybatis group by max合成字符串
      */
-    public static <T> String selecterMax(Func1<T, ?> lambda) {
+    public static <T> String selectMax(Func1<T, ?> lambda) {
         String column = columnToString(lambda);
         return StrUtil.format("MAX({}) AS {}", column, column);
+    }
+
+    /**
+     * mybatis distinct合成字符串（注意 这个方法只能调用一次）
+     */
+    public static <T> String selectDistinct(Func1<T, ?> lambda) {
+        String column = columnToString(lambda);
+        return StrUtil.format("DISTINCT {}", column, column);
     }
 
     /**

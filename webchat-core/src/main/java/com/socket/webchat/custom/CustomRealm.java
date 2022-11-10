@@ -100,14 +100,14 @@ public class CustomRealm extends AuthorizingRealm {
     /**
      * 异地登录检查
      */
-    private void checkOffsite(SysUser sysUser) {
+    private void checkOffsite(SysUser user) {
         // 未绑定邮箱
-        if (StrUtil.isEmpty(sysUser.getEmail())) {
+        if (StrUtil.isEmpty(user.getEmail())) {
             return;
         }
         // 查询登录记录
         LambdaQueryWrapper<SysUserLog> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(SysUserLog::getUid, sysUser.getUid());
+        wrapper.eq(SysUserLog::getUid, user.getUid());
         wrapper.orderByDesc(BaseModel::getCreateTime);
         wrapper.last("LIMIT 1");
         SysUserLog log = sysUserLogMapper.selectOne(wrapper);
@@ -119,12 +119,11 @@ public class CustomRealm extends AuthorizingRealm {
         if (Requests.notExist(Constants.OFFSITE)) {
             // 检查异地
             String remoteIP = Wss.getRemoteIP();
-            String lastIP = log.getIp();
-            if (!Objects.equals(lastIP, remoteIP)) {
+            if (!Objects.equals(log.getIp(), remoteIP)) {
                 // IP所属省是否相同
-                boolean offsite = Objects.equals(ipRequest.getProvince(remoteIP), ipRequest.getProvince(lastIP));
+                boolean offsite = Objects.equals(log.getRemoteProvince(), ipRequest.getProvince(remoteIP));
                 // 返回的异常为脱敏的绑定邮箱信息
-                Assert.isTrue(offsite, DesensitizedUtil.email(sysUser.getEmail()), OffsiteLoginException::new);
+                Assert.isTrue(offsite, DesensitizedUtil.email(user.getEmail()), OffsiteLoginException::new);
             }
         }
     }

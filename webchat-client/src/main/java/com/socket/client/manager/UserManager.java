@@ -11,7 +11,6 @@ import com.socket.client.util.Assert;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.listener.UserChangeEvent;
 import com.socket.webchat.custom.listener.UserChangeListener;
-import com.socket.webchat.mapper.SysUserLogMapper;
 import com.socket.webchat.mapper.SysUserMapper;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
@@ -20,6 +19,7 @@ import com.socket.webchat.model.enums.LogType;
 import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.request.XiaoBingAPIRequest;
 import com.socket.webchat.service.RecordService;
+import com.socket.webchat.service.SysUserLogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.subject.Subject;
@@ -43,9 +43,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UserManager extends ConcurrentHashMap<String, WsUser> implements InitializingBean, UserChangeListener {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final XiaoBingAPIRequest xiaoBingAPIRequest;
-    private final SysUserLogMapper sysUserLogMapper;
+    private final SysUserLogService logService;
     private final RecordService recordService;
-    private final SysUserMapper sysUserMapper;
+    private final SysUserMapper userMapper;
     private final RedisManager redisManager;
 
     /**
@@ -74,9 +74,7 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
         HttpSession hs = (HttpSession) properties.get(Constants.HTTP_SESSION);
         user.login(session, hs);
         // 记录登录信息
-        SysUserLog log = BeanUtil.copyProperties(user, SysUserLog.class);
-        log.setType(LogType.LOGIN);
-        sysUserLogMapper.insert(log);
+        logService.saveLog(BeanUtil.copyProperties(user, SysUserLog.class), LogType.LOGIN);
         return user;
     }
 
@@ -106,7 +104,7 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
             // 从数据库查询
             LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
             wrapper.eq(SysUser::getUid, uid);
-            SysUser find = sysUserMapper.selectOne(wrapper);
+            SysUser find = userMapper.selectOne(wrapper);
             WsUser wsuser = Optional.ofNullable(find).map(WsUser::new).orElse(null);
             // 写入缓存
             Optional.ofNullable(wsuser).ifPresent(e -> this.put(uid, e));
@@ -198,9 +196,7 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
      * @param reason 原因
      */
     public void exit(WsUser user, String reason) {
-        SysUserLog log = BeanUtil.copyProperties(user, SysUserLog.class);
-        log.setType(LogType.LOGOUT);
-        sysUserLogMapper.insert(log);
+        logService.saveLog(BeanUtil.copyProperties(user, SysUserLog.class), LogType.LOGOUT);
         user.logout(reason);
     }
 
@@ -210,7 +206,7 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
     @Override
     public void afterPropertiesSet() {
         // 缓存用户
-        List<SysUser> userList = sysUserMapper.selectList(Wrappers.emptyWrapper());
+        List<SysUser> userList = userMapper.selectList(Wrappers.emptyWrapper());
         userList.stream().map(WsUser::new).forEach(e -> this.put(e.getUid(), e));
     }
 

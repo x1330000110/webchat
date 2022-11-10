@@ -1,7 +1,6 @@
 package com.socket.client.manager;
 
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.client.model.UserPreview;
@@ -12,13 +11,12 @@ import com.socket.client.model.enums.OnlineState;
 import com.socket.client.support.KeywordSupport;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.mapper.ShieldUserMapper;
-import com.socket.webchat.mapper.SysUserLogMapper;
 import com.socket.webchat.mapper.SysUserMapper;
 import com.socket.webchat.model.*;
 import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.service.RecordService;
-import com.socket.webchat.util.Wss;
+import com.socket.webchat.service.SysUserLogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -37,8 +35,8 @@ import java.util.stream.Collectors;
 public class PermissionManager {
     private final KeywordSupport keywordSupport;
 
-    private final SysUserLogMapper sysUserLogMapper;
     private final ShieldUserMapper shieldUserMapper;
+    private final SysUserLogService logService;
     private final SysUserMapper sysUserMapper;
     private final RecordService recordService;
 
@@ -58,16 +56,16 @@ public class PermissionManager {
         // 与此用户关联的最新未读消息
         Collection<ChatRecord> unreadMessages = recordService.getLatestUnreadMessages(suid);
         // 登录记录
-        Map<String, Date> logs = this.getUserLoginLogs();
+        Map<String, SysUserLog> logs = logService.getUserLogs();
         // 链接数据
         List<UserPreview> previews = new ArrayList<>();
         for (WsUser user : userManager.values()) {
             UserPreview preview = new UserPreview(user);
-            // 最后登录时间
-            Date time = logs.get(preview.getUid());
-            if (time != null) {
-                preview.setLastTime(time.getTime());
-            }
+            // 关联日志
+            Optional.ofNullable(logs.get(preview.getUid())).ifPresent(log -> {
+                preview.setLastTime(log.getCreateTime().getTime());
+                preview.setRemoteProvince(log.getRemoteProvince());
+            });
             // 检查未读消息
             String target = preview.getUid();
             int count = redisManager.getUnreadCount(suid, target);
@@ -106,17 +104,6 @@ public class PermissionManager {
             }
         }
         return previews;
-    }
-
-    /**
-     * 获取所有用户登录最新时间
-     */
-    private Map<String, Date> getUserLoginLogs() {
-        QueryWrapper<SysUserLog> wrapper = Wrappers.query();
-        wrapper.select(Wss.columnToString(SysUserLog::getUid), Wss.selecterMax(BaseModel::getCreateTime));
-        wrapper.lambda().groupBy(SysUserLog::getUid);
-        List<SysUserLog> userLogs = sysUserLogMapper.selectList(wrapper);
-        return userLogs.stream().collect(Collectors.toMap(SysUserLog::getUid, BaseModel::getCreateTime));
     }
 
     /**
