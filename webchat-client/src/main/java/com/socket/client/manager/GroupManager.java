@@ -78,7 +78,7 @@ public class GroupManager extends ConcurrentHashMap<SysGroup, List<WsUser>> impl
 
     @Override
     public void onGroupChange(GroupChangeEvent event) {
-        SysGroupUser groupUser = event.getGroupUser();
+        SysGroupUser groupUser = event.getUser();
         SysGroup group = event.getGroup();
         switch (event.getOperation()) {
             case CREATE:

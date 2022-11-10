@@ -52,14 +52,13 @@ import java.util.concurrent.TimeUnit;
 @Service
 @RequiredArgsConstructor
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
-    private final QQAccountRequest qqAccountRequest;
-    private final LanzouCloudRequest lanzouRequest;
-    private final RedisClient<Object> redis;
-
     private final ApplicationEventPublisher publisher;
     private final SysGroupService sysGroupService;
     private final UploadService uploadService;
-
+    
+    private final QQAccountRequest qqAccountRequest;
+    private final LanzouCloudRequest lanzouRequest;
+    private final RedisClient<Object> redis;
     private final Email sender;
 
     @Override

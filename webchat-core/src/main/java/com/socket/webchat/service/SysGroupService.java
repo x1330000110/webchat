@@ -22,10 +22,10 @@ public interface SysGroupService extends BaseService<SysGroup> {
     boolean removeUser(String stater, String groupId, String uid);
 
     /**
-     * 加入用户
+     * 加入群组
      *
      * @param groupId 群组id
-     * @param uid     用户id
+     * @param uid     用户uid
      * @return 是否成功
      */
     boolean joinGroup(String groupId, String uid);
@@ -33,18 +33,16 @@ public interface SysGroupService extends BaseService<SysGroup> {
     /**
      * 解散群组
      *
-     * @param owner   所有者id
      * @param groupId 群组id
      * @return 是否成功
      */
-    boolean dissolveGroup(String owner, String groupId);
+    boolean dissolveGroup(String groupId);
 
     /**
      * 退出群组
      *
      * @param groupId 群组id
-     * @param uid     用户id
      * @return 是否成功
      */
-    boolean exitGroup(String groupId, String uid);
+    boolean exitGroup(String groupId);
 }

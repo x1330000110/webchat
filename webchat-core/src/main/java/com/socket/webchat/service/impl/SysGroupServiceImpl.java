@@ -90,13 +90,17 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         return false;
     }
 
-    public boolean dissolveGroup(String owner, String groupId) {
+    public boolean dissolveGroup(String groupId) {
+        String userId = Wss.getUserId();
         LambdaUpdateWrapper<SysGroup> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(SysGroup::getGroupId, groupId);
-        wrapper.eq(SysGroup::getOwner, owner);
+        wrapper.eq(SysGroup::getOwner, userId);
         if (super.update(wrapper)) {
             // 推送事件
-            GroupChangeEvent event = new GroupChangeEvent(publisher, new SysGroup(), GroupOperation.DISSOLVE);
+            SysGroup group = new SysGroup();
+            group.setGroupId(groupId);
+            group.setOwner(userId);
+            GroupChangeEvent event = new GroupChangeEvent(publisher, group, GroupOperation.DISSOLVE);
             publisher.publishEvent(event);
             return true;
         }
@@ -104,16 +108,16 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
     }
 
     @Override
-    public boolean exitGroup(String groupId, String uid) {
+    public boolean exitGroup(String groupId) {
+        String userId = Wss.getUserId();
         LambdaUpdateWrapper<SysGroupUser> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(SysGroupUser::getGroupId, groupId);
-        wrapper.eq(SysGroupUser::getUid, uid);
+        wrapper.eq(SysGroupUser::getUid, userId);
         wrapper.set(BaseModel::isDeleted, 1);
         int ok = sysGroupUserMapper.update(null, wrapper);
         if (SqlHelper.retBool(ok)) {
             // 推送事件
-            SysGroupUser sgu = SysGroupUser.of(groupId, uid);
-            GroupChangeEvent event = new GroupChangeEvent(publisher, sgu, GroupOperation.EXIT);
+            GroupChangeEvent event = new GroupChangeEvent(publisher, new SysGroupUser(groupId, userId), GroupOperation.EXIT);
             publisher.publishEvent(event);
             return true;
         }

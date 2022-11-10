@@ -23,7 +23,7 @@ public class GroupController {
 
     @PostMapping("/exit")
     public HttpStatus exitGroup(GroupCondition condition) {
-        boolean b = sysGroupService.exitGroup(condition.getGroupId(), Wss.getUserId());
+        boolean b = sysGroupService.exitGroup(condition.getGroupId());
         return HttpStatus.state(b, "退出");
     }
 
@@ -41,7 +41,7 @@ public class GroupController {
 
     @PostMapping("/dissolve")
     public HttpStatus dissolve(GroupCondition condition) {
-        boolean b = sysGroupService.dissolveGroup(condition.getGroupId(), Wss.getUserId());
+        boolean b = sysGroupService.dissolveGroup(condition.getGroupId());
         return HttpStatus.state(b, "解散");
     }
 }

@@ -13,17 +13,17 @@ public class GroupChangeEvent extends ApplicationEvent {
      */
     private final GroupOperation operation;
     /**
-     * 群组信息
+     * 群组用户信息
      */
-    private SysGroupUser groupUser;
+    private SysGroupUser user;
     /**
-     * 用户信息
+     * 群组信息
      */
     private SysGroup group;
 
-    public GroupChangeEvent(Object source, SysGroupUser groupUser, GroupOperation operation) {
+    public GroupChangeEvent(Object source, SysGroupUser user, GroupOperation operation) {
         super(source);
-        this.groupUser = groupUser;
+        this.user = user;
         this.operation = operation;
     }
 
