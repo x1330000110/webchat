@@ -39,6 +39,8 @@ public class SysUserLogServiceImpl extends ServiceImpl<SysUserLogMapper, SysUser
         // 保存数据
         log.setType(type);
         log.setRemoteProvince(province);
+        log.setCreateTime(null);
+        log.setUpdateTime(null);
         save(log);
     }
 
