@@ -3,9 +3,10 @@ package com.socket.webchat.model.enums;
 /**
  * 命令枚举
  */
-public interface Command {
-    /**
-     * 返回此命令的唯一标识
-     */
-    String getName();
+public interface Command<E extends Enum<E>> {
+
+    default String getName() {
+        //noinspection unchecked
+        return getClass().getSimpleName() + '.' + ((Enum<E>) this).name();
+    }
 }

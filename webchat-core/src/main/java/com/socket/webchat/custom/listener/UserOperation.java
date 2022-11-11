@@ -5,7 +5,7 @@ import com.socket.webchat.model.enums.Command;
 /**
  * 用户数据更新枚举
  */
-public enum UserOperation implements Command {
+public enum UserOperation implements Command<UserOperation> {
     /**
      * 昵称变动
      */
@@ -13,10 +13,5 @@ public enum UserOperation implements Command {
     /**
      * 头像变动
      */
-    HEADIMG;
-
-    @Override
-    public String getName() {
-        return getClass().getSimpleName() + "." + name().toLowerCase();
-    }
+    HEADIMG
 }

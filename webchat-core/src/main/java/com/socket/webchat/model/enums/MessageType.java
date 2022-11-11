@@ -7,7 +7,7 @@ import lombok.Getter;
  * ws命令操作枚举
  */
 @Getter
-public enum MessageType implements Command, IEnum<String> {
+public enum MessageType implements Command<MessageType>, IEnum<String> {
     /**
      * 加载聊天室所有用户
      */

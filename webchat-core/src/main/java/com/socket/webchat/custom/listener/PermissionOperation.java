@@ -5,7 +5,7 @@ import com.socket.webchat.model.enums.Command;
 /**
  * 权限变动枚举
  */
-public enum PermissionOperation implements Command {
+public enum PermissionOperation implements Command<PermissionOperation> {
     /**
      * 屏蔽
      */
@@ -37,10 +37,5 @@ public enum PermissionOperation implements Command {
     /**
      * 设置管理员
      */
-    ROLE;
-
-    @Override
-    public String getName() {
-        return getClass().getSimpleName() + "." + name().toLowerCase();
-    }
+    ROLE
 }
