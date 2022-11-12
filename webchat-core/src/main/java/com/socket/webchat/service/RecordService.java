@@ -24,6 +24,14 @@ public interface RecordService extends BaseService<ChatRecord> {
     boolean withdrawMessage(String mid);
 
     /**
+     * 移除消息（仅自己）
+     *
+     * @param mid 消息id
+     * @return 是否成功
+     */
+    boolean removeMessage(String mid);
+
+    /**
      * 删除当前用户对于目标用户的所有消息（更新消息标记offset）
      *
      * @param target 目标uid

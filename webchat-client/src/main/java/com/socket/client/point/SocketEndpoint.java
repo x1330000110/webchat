@@ -98,8 +98,7 @@ public class SocketEndpoint implements ApplicationContextAware {
         permissionManager.operateMark(self);
         // 群组消息
         if (wsmsg.isGroup()) {
-            self.send(wsmsg);
-            groupManager.sendGroup(wsmsg, self);
+            groupManager.sendGroup(wsmsg);
             userManager.cacheRecord(wsmsg, true);
             return;
         }

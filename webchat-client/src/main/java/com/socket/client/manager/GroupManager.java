@@ -21,7 +21,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -40,28 +39,16 @@ public class GroupManager extends ConcurrentHashMap<SysGroup, List<WsUser>> impl
     /**
      * 向群组发送消息<br>
      *
-     * @param wsmsg   消息
-     * @param sender  发起者
-     * @param exclude 排除列表
+     * @param wsmsg 消息
      */
-    public void sendGroup(WsMsg wsmsg, WsUser sender, String... exclude) {
-        List<String> list = Arrays.asList(exclude);
-        String uid = sender.getUid();
-        // 向群内所有人发送消息
+    public void sendGroup(WsMsg wsmsg) {
         for (WsUser target : getGroupUsers(wsmsg.getTarget())) {
-            // 过滤自己 || 已屏蔽
-            String tuid = target.getUid();
-            if (uid.equals(tuid) || list.contains(tuid)) {
-                continue;
-            }
-            // 发送
             target.send(wsmsg);
         }
     }
 
-
     /**
-     * @see #sendGroup(String, String, Command, T)
+     * @see #sendGroup(String, String, Command, Object)
      */
     public <T extends SysUser> void sendGroup(String groupId, String content, Command type) {
         sendGroup(groupId, content, type, null);
@@ -75,7 +62,7 @@ public class GroupManager extends ConcurrentHashMap<SysGroup, List<WsUser>> impl
      * @param type    消息类型
      * @param data    额外数据
      */
-    public <T extends SysUser> void sendGroup(String groupId, String content, Command type, T data) {
+    public void sendGroup(String groupId, String content, Command type, Object data) {
         for (WsUser wsuser : getGroupUsers(groupId)) {
             wsuser.send(content, type, data);
         }

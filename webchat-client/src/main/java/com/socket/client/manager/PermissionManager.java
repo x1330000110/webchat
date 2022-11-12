@@ -233,6 +233,7 @@ public class PermissionManager implements PermissionListener {
                 userManager.sendAll(data, PermissionOperation.MUTE, user);
                 break;
             case LOCK:
+                userManager.exit(user, Callback.LOGIN_LIMIT.format(Long.parseLong(data)));
                 userManager.sendAll(data, PermissionOperation.LOCK, user);
                 break;
             case FOREVER:
@@ -249,15 +250,21 @@ public class PermissionManager implements PermissionListener {
      */
     private void withdraw(ChatRecord record) {
         WsUser self = userManager.getUser(record.getUid());
-        // 目标是群组 通知群组撤回此消息
+        // 构建消息
         String target = record.getTarget();
         String mid = record.getMid();
+        WsMsg wsmsg = new WsMsg(mid, PermissionOperation.WITHDRAW);
+        wsmsg.setUid(self.getUid());
+        wsmsg.setTarget(target);
+        // 目标是群组 通知群组撤回此消息
         if (Wss.isGroup(target)) {
-            groupManager.sendGroup(target, mid, PermissionOperation.WITHDRAW, self);
+            wsmsg.setData(groupManager.getGroup(target));
+            groupManager.sendGroup(wsmsg);
             return;
         }
         // 通知双方撤回此消息
-        userManager.getUser(target).send(mid, PermissionOperation.WITHDRAW, self);
-        self.send(mid, PermissionOperation.WITHDRAW);
+        wsmsg.setData(self);
+        userManager.getUser(target).send(wsmsg);
+        self.send(wsmsg);
     }
 }

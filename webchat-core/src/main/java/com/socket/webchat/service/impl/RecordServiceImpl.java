@@ -107,7 +107,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         wrapper.eq(ChatRecord::getUid, Wss.getUserId());
         wrapper.eq(ChatRecord::getMid, mid);
         ChatRecord record = getFirst(wrapper);
-        Assert.notNull(record, "消息同步中", IllegalStateException::new);
+        Assert.notNull(record, "服务器消息同步中，请稍后再试", IllegalStateException::new);
         // 消息未送达或未超过规定撤回时间
         long second = DateUtil.between(record.getCreateTime(), new Date(), DateUnit.SECOND);
         if (record.isReject() || second <= Constants.WITHDRAW_TIME) {
@@ -124,6 +124,25 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
             return true;
         }
         return false;
+    }
+
+    @Override
+    public boolean removeMessage(String mid) {
+        String userId = Wss.getUserId();
+        LambdaUpdateWrapper<ChatRecord> wrapper = Wrappers.lambdaUpdate();
+        wrapper.eq(ChatRecord::getMid, mid);
+        wrapper.eq(ChatRecord::getUid, userId);
+        ChatRecord record = getFirst(wrapper);
+        Assert.notNull(record, "服务器消息同步中，请稍后再试", IllegalStateException::new);
+        // 添加删除标记
+        ChatRecordDeleted deleted = new ChatRecordDeleted();
+        deleted.setUid(userId);
+        // 确保移除的目标不是自己（自己可能是发起者或目标）
+        String uid = record.getUid(), target = record.getTarget();
+        deleted.setTarget(Wss.isGroup(target) || uid.equals(userId) ? target : uid);
+        deleted.setMid(record.getMid());
+        deleted.setRecordTime(record.getCreateTime());
+        return deletedMapper.insert(deleted) == 1;
     }
 
     @Override

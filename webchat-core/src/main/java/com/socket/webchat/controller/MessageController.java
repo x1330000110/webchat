@@ -44,8 +44,15 @@ public class MessageController {
 
     @Encrypted
     @PostMapping("/withdraw")
-    public HttpStatus remove(@RequestBody MessageCondition condition) {
+    public HttpStatus withdrawMessage(@RequestBody MessageCondition condition) {
         boolean state = recordService.withdrawMessage(condition.getMid());
+        return HttpStatus.state(state, "操作");
+    }
+
+    @Encrypted
+    @PostMapping("/remove")
+    public HttpStatus removeMessage(@RequestBody MessageCondition condition) {
+        boolean state = recordService.removeMessage(condition.getMid());
         return HttpStatus.state(state, "操作");
     }
 

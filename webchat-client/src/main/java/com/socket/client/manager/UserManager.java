@@ -63,12 +63,6 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
         Subject subject = (Subject) properties.get(Constants.SUBJECT);
         SysUser principal = (SysUser) subject.getPrincipal();
         WsUser user = getUser(principal.getUid());
-        // 检查登录限制（会话缓存检查）
-        long time = redisManager.getLockTime(user.getUid());
-        if (time > 0) {
-            this.exit(user, Callback.LOGIN_LIMIT.format(time));
-            return null;
-        }
         // 检查重复登录
         if (user.isOnline()) {
             this.exit(user, Callback.REPEAT_LOGIN.get());
@@ -76,6 +70,12 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
         // 登录到聊天室
         HttpSession hs = (HttpSession) properties.get(Constants.HTTP_SESSION);
         user.login(session, hs);
+        // 检查登录限制（会话缓存检查）
+        long time = redisManager.getLockTime(user.getUid());
+        if (time > 0) {
+            this.exit(user, Callback.LOGIN_LIMIT.format(time));
+            return null;
+        }
         // 记录登录信息
         logService.saveLog(BeanUtil.copyProperties(user, SysUserLog.class), LogType.LOGIN);
         return user;
