@@ -76,7 +76,7 @@ public class PermissionManager implements PermissionListener {
             int count = redisManager.getUnreadCount(suid, target);
             if (count > 0) {
                 Consumer<ChatRecord> setUnread = unread -> {
-                    MessageType type = unread.getType();
+                    MessageType type = MessageType.valueOf(unread.getType().toUpperCase());
                     preview.setPreview(type == MessageType.TEXT ? unread.getContent() : '[' + type.getPreview() + ']');
                     preview.setLastTime(unread.getCreateTime().getTime());
                     preview.setUnreads(Math.min(count, 99));

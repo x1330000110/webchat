@@ -44,16 +44,19 @@ public class OwnerController {
     }
 
     @PostMapping("/alias")
-    public void alias(String target, String alias) {
-        sysUserService.updateAlias(target, alias);
-        publisher.publishEvent(new PermissionEvent(publisher, target, alias, PermissionOperation.ALIAS));
+    public void alias(@RequestBody UserCondition condition) {
+        String uid = condition.getUid();
+        String content = condition.getContent();
+        sysUserService.updateAlias(uid, content);
+        publisher.publishEvent(new PermissionEvent(publisher, uid, content, PermissionOperation.ALIAS));
     }
 
     @PostMapping("/role")
-    public void role(String target) {
-        UserRole role = sysUserService.switchRole(target);
+    public void role(@RequestBody UserCondition condition) {
+        String uid = condition.getUid();
+        UserRole role = sysUserService.switchRole(uid);
         Wss.getUser().setRole(role);
-        publisher.publishEvent(new PermissionEvent(publisher, target, role.getRole(), PermissionOperation.ROLE));
+        publisher.publishEvent(new PermissionEvent(publisher, uid, role.getRole(), PermissionOperation.ROLE));
     }
 
     @PostMapping("/announce")

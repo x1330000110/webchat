@@ -83,7 +83,7 @@ public class UserController {
     }
 
     @PostMapping("/shield")
-    public HttpStatus shield(UserCondition condition) {
+    public HttpStatus shield(@RequestBody UserCondition condition) {
         String uid = condition.getUid();
         boolean b = shieldUserService.shieldTarget(uid);
         publisher.publishEvent(new PermissionEvent(publisher, uid, null, PermissionOperation.SHIELD));

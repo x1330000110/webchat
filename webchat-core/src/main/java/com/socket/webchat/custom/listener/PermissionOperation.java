@@ -37,5 +37,9 @@ public enum PermissionOperation implements Command<PermissionOperation> {
     /**
      * 设置管理员
      */
-    ROLE
+    ROLE;
+
+    public static void main(String[] args) {
+        System.out.println(PermissionOperation.SHIELD.getName());
+    }
 }

@@ -8,10 +8,7 @@ import com.socket.webchat.util.Assert;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,14 +23,18 @@ public class AdminController {
     }
 
     @PostMapping("/mute")
-    public void mute(String target, Long time) {
-        redisManager.setMute(target, time);
-        publisher.publishEvent(new PermissionEvent(publisher, target, time.toString(), PermissionOperation.MUTE));
+    public void mute(@RequestBody LimitCondition condition) {
+        String uid = condition.getUid();
+        Long time = condition.getTime();
+        redisManager.setMute(uid, time);
+        publisher.publishEvent(new PermissionEvent(publisher, uid, time.toString(), PermissionOperation.MUTE));
     }
 
     @PostMapping("/lock")
-    public void lock(String target, Long time) {
-        redisManager.setLock(target, time);
-        publisher.publishEvent(new PermissionEvent(publisher, target, time.toString(), PermissionOperation.LOCK));
+    public void lock(@RequestBody LimitCondition condition) {
+        String uid = condition.getUid();
+        Long time = condition.getTime();
+        redisManager.setLock(uid, time);
+        publisher.publishEvent(new PermissionEvent(publisher, uid, time.toString(), PermissionOperation.LOCK));
     }
 }

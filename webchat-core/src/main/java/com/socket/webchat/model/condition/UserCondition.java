@@ -11,4 +11,8 @@ public class UserCondition {
      * 用户UID
      */
     private String uid;
+    /**
+     * 要变更的数据
+     */
+    private String content;
 }

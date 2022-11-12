@@ -1,6 +1,5 @@
 package com.socket.webchat.model;
 
-import com.socket.webchat.model.enums.MessageType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -34,7 +33,7 @@ public class ChatRecord extends BaseModel implements Comparable<ChatRecord> {
     /**
      * 消息类型
      */
-    private MessageType type;
+    private String type;
     /**
      * 附加数据
      */
