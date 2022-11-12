@@ -2,11 +2,13 @@ package com.socket.webchat.model;
 
 import cn.hutool.crypto.digest.MD5;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * 公共信息
+ * 公告信息
  */
 @Data
+@NoArgsConstructor
 public class Announce {
     /**
      * 公共内容

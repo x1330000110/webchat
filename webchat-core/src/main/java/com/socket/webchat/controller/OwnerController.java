@@ -9,6 +9,7 @@ import com.socket.webchat.custom.RedisManager;
 import com.socket.webchat.custom.listener.PermissionEvent;
 import com.socket.webchat.custom.listener.PermissionOperation;
 import com.socket.webchat.custom.support.SettingSupport;
+import com.socket.webchat.model.Announce;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.condition.MessageCondition;
@@ -60,7 +61,8 @@ public class OwnerController {
     }
 
     @PostMapping("/announce")
-    public void announce(@RequestBody String content) {
+    public void announce(@RequestBody Announce announce) {
+        String content = announce.getContent();
         redisManager.pushNotice(content);
         if (StrUtil.isNotEmpty(content)) {
             publisher.publishEvent(new PermissionEvent(publisher, content, PermissionOperation.ANNOUNCE));
