@@ -29,8 +29,8 @@ public class GroupController {
 
     @PostMapping("/create")
     public HttpStatus createGroup(GroupCondition condition) {
-        boolean b = sysGroupService.createGroup(condition.getGroupName());
-        return HttpStatus.state(b, "创建");
+        String gid = sysGroupService.createGroup(condition.getGroupName());
+        return HttpStatus.SUCCESS.body("创建成功", gid);
     }
 
     @PostMapping("/remove")

@@ -7,9 +7,9 @@ public interface SysGroupService extends BaseService<SysGroup> {
      * 创建群组
      *
      * @param groupName 群名
-     * @return 是否成功
+     * @return 群组Id
      */
-    boolean createGroup(String groupName);
+    String createGroup(String groupName);
 
     /**
      * 移除群组内用户

@@ -69,7 +69,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         return false;
     }
 
-    public boolean createGroup(String groupName) {
+    public String createGroup(String groupName) {
         // 必要的组名检查
         Assert.isFalse(StrUtil.isEmpty(groupName), "空的群组名称", IllegalStateException::new);
         Assert.isTrue(StrUtil.length(groupName) <= 8, "无效的群组名称", IllegalStateException::new);
@@ -78,16 +78,17 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         Assert.isNull(getFirst(wrapper), "群组名称已存在", IllegalStateException::new);
         // 写入数据库
         SysGroup group = new SysGroup();
-        group.setGroupId(Constants.GROUP + RandomUtil.randomNumbers(6));
+        String groupId = Constants.GROUP + RandomUtil.randomNumbers(6);
+        group.setGroupId(groupId);
         group.setName(groupName);
         group.setOwner(Wss.getUserId());
         if (super.save(group)) {
             // 推送事件
             GroupChangeEvent event = new GroupChangeEvent(publisher, group, GroupOperation.CREATE);
             publisher.publishEvent(event);
-            return true;
+            return groupId;
         }
-        return false;
+        return null;
     }
 
     public boolean dissolveGroup(String groupId) {
