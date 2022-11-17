@@ -7,7 +7,7 @@ import cn.hutool.json.JSONException;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.script.JavaScriptEngine;
-import com.socket.webchat.util.Assert;
+import com.socket.secure.util.Assert;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;

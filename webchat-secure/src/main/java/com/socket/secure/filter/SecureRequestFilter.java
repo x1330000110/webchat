@@ -1,11 +1,11 @@
 package com.socket.secure.filter;
 
 import cn.hutool.core.date.SystemClock;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.servlet.ServletUtil;
 import cn.hutool.http.Header;
 import cn.hutool.http.useragent.UserAgent;
 import cn.hutool.http.useragent.UserAgentParser;
+import com.socket.secure.constant.RequsetTemplate;
 import com.socket.secure.constant.SecureProperties;
 import com.socket.secure.event.entity.InitiatorEvent;
 import com.socket.secure.exception.ExpiredRequestException;
@@ -13,6 +13,8 @@ import com.socket.secure.exception.InvalidRequestException;
 import com.socket.secure.exception.RepeatedRequestException;
 import com.socket.secure.filter.anno.Encrypted;
 import com.socket.secure.filter.validator.RepeatValidator;
+import com.socket.secure.util.Assert;
+import com.socket.secure.util.IPHash;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,26 +63,23 @@ public final class SecureRequestFilter implements Filter {
         }
         // Decrypt request
         if (anno != null) {
+            // check hash ip
+            boolean checkHash = IPHash.checkHash(_request.getSession(), ServletUtil.getClientIP(_request));
+            Assert.isTrue(checkHash, RequsetTemplate.IP_ADDRESS_MISMATCH, InvalidRequestException::new);
             try {
                 SecureRequestWrapper wrapper = new SecureRequestWrapper(_request);
                 // Decryption request
                 wrapper.decryptRequset(anno.sign());
                 // Expired request validation
                 long time = wrapper.getTimestamp();
-                if (validator.isExpired(time, properties.getLinkValidTime())) {
-                    String template = "URL expired request interception [Request time: {}, System time: {}]";
-                    throw new ExpiredRequestException(StrUtil.format(template, time, SystemClock.now()));
-                }
+                boolean expired = validator.isExpired(time, properties.getLinkValidTime());
+                Assert.isFalse(expired, () -> new ExpiredRequestException(RequsetTemplate.EXPIRED_REQUEST, time, SystemClock.now()));
                 // Repeat request validation
-                if (validator.isRepeated(time, wrapper.sign())) {
-                    String template = "URL repeated request interception [Request time: {}, System time: {}]";
-                    throw new RepeatedRequestException(StrUtil.format(template, time, SystemClock.now()));
-                }
+                boolean repeated = validator.isRepeated(time, wrapper.sign());
+                Assert.isFalse(repeated, () -> new RepeatedRequestException(RequsetTemplate.REPEATED_REQUEST, time, SystemClock.now()));
                 // Signature verification
-                if (!wrapper.matchSignature(properties.isVerifyFileSignature())) {
-                    String template = "Signature verification failed: {}";
-                    throw new InvalidRequestException(StrUtil.format(template, wrapper.sign()));
-                }
+                boolean signature = wrapper.matchSignature(properties.isVerifyFileSignature());
+                Assert.isTrue(signature, () -> new InvalidRequestException(RequsetTemplate.INVALID_REQUEST_SIGNATURE, wrapper.sign()));
                 request = wrapper;
             } catch (InvalidRequestException | IllegalArgumentException e) {
                 ((HttpServletResponse) response).setStatus(HttpStatus.BAD_REQUEST.value());

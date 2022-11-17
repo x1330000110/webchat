@@ -19,6 +19,14 @@ public interface SecureConstant {
      */
     String DIGEST_UA = "DIGEST_UA";
     /**
+     * Hash requset-ip
+     */
+    String DIGEST_IP = "DIGEST_IP";
+    /**
+     * The time when the key exchange was initiated for the first time.
+     */
+    String CONCURRENT_TIME = "CONCURRENT_TIME";
+    /**
      * Client encryption public key separator
      */
     String ENCRYPT_PUBKEY_SPLIT = "Z";
@@ -26,4 +34,8 @@ public interface SecureConstant {
      * array identifier
      */
     String ARRAY_MARK = "\u1000";
+    /**
+     * AES key maximum exchange time interval (unit: ms)
+     */
+    long AES_KEY_EXCHANGE_MAXIMUM_TIME = 60000;
 }

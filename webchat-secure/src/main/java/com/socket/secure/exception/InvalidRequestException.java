@@ -1,5 +1,7 @@
 package com.socket.secure.exception;
 
+import com.socket.secure.constant.RequsetTemplate;
+
 /**
  * Security Authentication Failed Exception <br>
  *
@@ -7,10 +9,13 @@ package com.socket.secure.exception;
  */
 public class InvalidRequestException extends RuntimeException {
     public InvalidRequestException() {
-
     }
 
     public InvalidRequestException(String message) {
         super(message);
+    }
+
+    public InvalidRequestException(RequsetTemplate template, Object... objs) {
+        super(template.format(objs));
     }
 }

@@ -1,5 +1,6 @@
 package com.socket.secure.core;
 
+import com.socket.secure.constant.RequsetTemplate;
 import com.socket.secure.exception.InvalidRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +35,7 @@ public class SecureHandler {
         if (signature != null && signature.length() == 168) {
             return core.syncAeskey(certificate, signature.substring(0, 40), signature.substring(40));
         }
-        throw new InvalidRequestException("Invalid request header signature");
+        throw new InvalidRequestException(RequsetTemplate.INVALID_HEADER_SIGNATURE);
     }
 
     @ExceptionHandler(InvalidRequestException.class)

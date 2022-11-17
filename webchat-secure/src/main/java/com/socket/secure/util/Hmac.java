@@ -3,6 +3,7 @@ package com.socket.secure.util;
 import cn.hutool.core.util.HexUtil;
 import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.Header;
+import com.socket.secure.constant.RequsetTemplate;
 import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.exception.InvalidRequestException;
 
@@ -34,12 +35,12 @@ public enum Hmac {
     }
 
     /**
-     * Cache the current Resqust user-agent to the Session
+     * Cache global hmac key
      */
-    public static void cacheRequestUserAgent(HttpServletRequest request) {
+    public static void cacheGlobalHmacKey(HttpServletRequest request) {
         String header = request.getHeader(Header.USER_AGENT.getValue());
-        String hash = SecureUtil.sha1().digestHex(header);
-        request.getSession().setAttribute(SecureConstant.DIGEST_UA, hash);
+        String digest = SecureUtil.sha1().digestHex(header);
+        request.getSession().setAttribute(SecureConstant.DIGEST_UA, digest);
     }
 
     /**
@@ -67,7 +68,7 @@ public enum Hmac {
             engine.update(data, 0, data.length);
             return HexUtil.encodeHexStr(engine.doFinal());
         } catch (GeneralSecurityException e) {
-            throw new InvalidRequestException(e.getMessage());
+            throw new InvalidRequestException(RequsetTemplate.HMAC_DIGEST_ERROR);
         }
     }
 
@@ -75,10 +76,8 @@ public enum Hmac {
      * Get the Hmac key for this session.
      */
     private byte[] getKey(HttpSession session) {
-        Object key = session.getAttribute(SecureConstant.DIGEST_UA);
-        if (key == null) {
-            throw new InvalidRequestException("The current session does not contain user-agent hash data");
-        }
-        return String.valueOf(key).getBytes();
+        String key = (String) session.getAttribute(SecureConstant.DIGEST_UA);
+        Assert.notNull(key, RequsetTemplate.DIGEST_UA_NOT_FOUNT, InvalidRequestException::new);
+        return key.getBytes();
     }
 }

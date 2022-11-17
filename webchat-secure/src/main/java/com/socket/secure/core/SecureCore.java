@@ -3,15 +3,14 @@ package com.socket.secure.core;
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.date.SystemClock;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.extra.servlet.ServletUtil;
 import cn.hutool.http.Header;
+import com.socket.secure.constant.RequsetTemplate;
 import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.constant.SecureProperties;
 import com.socket.secure.event.entity.KeyEvent;
 import com.socket.secure.exception.InvalidRequestException;
-import com.socket.secure.util.AES;
-import com.socket.secure.util.Hmac;
-import com.socket.secure.util.RSA;
-import com.socket.secure.util.Randoms;
+import com.socket.secure.util.*;
 import org.apache.tomcat.util.http.FastHttpDateFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -43,10 +42,12 @@ public class SecureCore {
      * @param response {@link HttpServletResponse}
      */
     public void syncPubkey(HttpServletResponse response) throws IOException {
-        // cache hash ua
-        Hmac.cacheRequestUserAgent(request);
+        // Cache user identity
+        Hmac.cacheGlobalHmacKey(request);
+        IPHash.cacheIPHash(session, ServletUtil.getClientIP(request));
+        session.setAttribute(SecureConstant.CONCURRENT_TIME, SystemClock.now());
+        // Write camouflage picture
         ServletOutputStream stream = response.getOutputStream();
-        // Write Camouflage picture
         stream.write(SecureConstant.CAMOUFLAGE_PICTURE_BYTES);
         // Write public key
         long timestamp = this.writePublickey(stream);
@@ -99,10 +100,16 @@ public class SecureCore {
      * @return Server encrypted AES key
      */
     public String syncAeskey(String certificate, String key, String digest) {
+        // check ip hash
+        boolean checkHash = IPHash.checkHash(session, ServletUtil.getClientIP(request));
+        Assert.isTrue(checkHash, RequsetTemplate.IP_ADDRESS_MISMATCH, InvalidRequestException::new);
+        // check time
+        Long time = (Long) session.getAttribute(SecureConstant.CONCURRENT_TIME);
+        boolean checkTime = time != null && SystemClock.now() - time <= SecureConstant.AES_KEY_EXCHANGE_MAXIMUM_TIME;
+        Assert.isTrue(checkTime, RequsetTemplate.MAX_EXCHANGE_TIME, InvalidRequestException::new);
+        // get private key
         String prikey = (String) session.getAttribute(key);
-        if (prikey == null) {
-            throw new InvalidRequestException("The correct private key cannot be obtained through the hash.");
-        }
+        Assert.notNull(prikey, RequsetTemplate.PRIVATE_KEY_NOT_FOUND, InvalidRequestException::new);
         // Decrypt client public key
         StringBuilder sb = new StringBuilder();
         for (String str : certificate.split(SecureConstant.ENCRYPT_PUBKEY_SPLIT)) {
@@ -115,9 +122,8 @@ public class SecureCore {
         }
         String pubkey = sb.toString();
         // Verify signature
-        if (!Hmac.SHA512.digestHex(session, pubkey).toUpperCase().equals(digest)) {
-            throw new InvalidRequestException("Incorrect public key signature");
-        }
+        boolean equals = Hmac.SHA512.digestHex(session, pubkey).toUpperCase().equals(digest);
+        Assert.isTrue(equals, RequsetTemplate.PUBLIC_KEY_SIGNATURE_MISMATCH, InvalidRequestException::new);
         session.removeAttribute(key);
         // Generate AES key
         String aeskey = AES.generateAesKey();

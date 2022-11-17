@@ -2,6 +2,7 @@ package com.socket.secure.util;
 
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.util.HexUtil;
+import com.socket.secure.constant.RequsetTemplate;
 import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.exception.InvalidRequestException;
 import org.springframework.util.StringUtils;
@@ -33,7 +34,7 @@ public class AES {
         try {
             generator = KeyGenerator.getInstance("AES");
         } catch (NoSuchAlgorithmException e) {
-            throw new InvalidRequestException(e.getMessage());
+            throw new InvalidRequestException(RequsetTemplate.GENERATE_AESKEY_ERROR, e.getMessage());
         }
         generator.init(128);
         return HexUtil.encodeHexStr(generator.generateKey().getEncoded());
@@ -75,14 +76,12 @@ public class AES {
      * @return ciphertext
      */
     public static String encrypt(String plaintext, String key) {
-        if (key == null) {
-            throw new InvalidRequestException("AES key is invalid");
-        }
+        Assert.notNull(key, RequsetTemplate.AESKEY_NOT_FOUNT, InvalidRequestException::new);
         try {
             Cipher cipher = getCipher(Cipher.ENCRYPT_MODE, key);
             return Base64.encode(cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8)));
         } catch (GeneralSecurityException e) {
-            throw new InvalidRequestException("AES encrypt failure: " + e.getMessage());
+            throw new InvalidRequestException(RequsetTemplate.AES_ENCRYPT_ERROR, plaintext);
         }
     }
 
@@ -93,9 +92,7 @@ public class AES {
      * @return plaintext
      */
     public static String decrypt(String ciphertext, String key) {
-        if (key == null) {
-            throw new InvalidRequestException("AES key is invalid");
-        }
+        Assert.notNull(key, RequsetTemplate.AESKEY_NOT_FOUNT, InvalidRequestException::new);
         if (!StringUtils.hasLength(ciphertext)) {
             return "";
         }
@@ -108,7 +105,7 @@ public class AES {
             Cipher cipher = getCipher(Cipher.DECRYPT_MODE, key);
             return new String(cipher.doFinal(bytes)).substring(RANDOM_PREFIX_LENGTH);
         } catch (GeneralSecurityException e) {
-            throw new InvalidRequestException("AES decrypt failure: " + e.getMessage());
+            throw new InvalidRequestException(RequsetTemplate.AES_DECRYPT_ERROR, ciphertext);
         }
     }
 

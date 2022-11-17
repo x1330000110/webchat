@@ -6,6 +6,7 @@ import cn.hutool.http.ContentType;
 import cn.hutool.json.JSONConfig;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.socket.secure.constant.RequsetTemplate;
 import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.exception.InvalidRequestException;
 import com.socket.secure.util.AES;
@@ -206,7 +207,7 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
             return (String) body.remove(sign);
         }
         // Can't find throws exception
-        throw new InvalidRequestException("Signature is Null");
+        throw new InvalidRequestException(RequsetTemplate.REQUSET_SIGNATURE_NOT_FOUNT);
     }
 
     /**

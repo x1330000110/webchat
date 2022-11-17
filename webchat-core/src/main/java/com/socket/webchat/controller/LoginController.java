@@ -3,13 +3,13 @@ package com.socket.webchat.controller;
 import cn.hutool.core.util.StrUtil;
 import com.socket.secure.exception.InvalidRequestException;
 import com.socket.secure.filter.anno.Encrypted;
+import com.socket.secure.util.Assert;
 import com.socket.webchat.model.condition.EmailCondition;
 import com.socket.webchat.model.condition.LoginCondition;
 import com.socket.webchat.model.condition.PasswordCondition;
 import com.socket.webchat.model.condition.RegisterCondition;
 import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.service.SysUserService;
-import com.socket.webchat.util.Assert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

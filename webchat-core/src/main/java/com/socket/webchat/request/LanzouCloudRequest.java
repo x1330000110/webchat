@@ -8,9 +8,9 @@ import cn.hutool.http.Header;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.socket.secure.util.Assert;
 import com.socket.webchat.constant.properties.LanzouProperties;
 import com.socket.webchat.model.enums.FileType;
-import com.socket.webchat.util.Assert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

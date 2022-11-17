@@ -1,10 +1,10 @@
 package com.socket.webchat.controller;
 
 import com.socket.secure.exception.InvalidRequestException;
+import com.socket.secure.util.Assert;
 import com.socket.webchat.custom.RedisManager;
 import com.socket.webchat.custom.listener.PermissionEvent;
 import com.socket.webchat.custom.listener.PermissionOperation;
-import com.socket.webchat.util.Assert;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;

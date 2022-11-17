@@ -2,6 +2,7 @@ package com.socket.secure.util;
 
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.util.HexUtil;
+import com.socket.secure.constant.RequsetTemplate;
 import com.socket.secure.exception.InvalidRequestException;
 
 import javax.crypto.Cipher;
@@ -27,7 +28,7 @@ public class RSA {
         try {
             generator = KeyPairGenerator.getInstance("RSA");
         } catch (NoSuchAlgorithmException e) {
-            throw new InvalidRequestException(e.getMessage());
+            throw new InvalidRequestException(RequsetTemplate.GENERATE_RSAKEY_ERROR, e.getMessage());
         }
         generator.initialize(1024);
         return generator.generateKeyPair();
@@ -48,7 +49,7 @@ public class RSA {
             cipher.init(Cipher.ENCRYPT_MODE, key);
             return HexUtil.encodeHexStr(cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8)));
         } catch (GeneralSecurityException e) {
-            throw new InvalidRequestException("RSA encrypt failure: " + e.getMessage());
+            throw new InvalidRequestException(RequsetTemplate.RSA_ENCRYPT_ERROR, plaintext);
         }
     }
 
@@ -67,7 +68,7 @@ public class RSA {
             cipher.init(Cipher.DECRYPT_MODE, key);
             return new String(cipher.doFinal(Base64.decode(ciphertext)));
         } catch (GeneralSecurityException e) {
-            throw new InvalidRequestException("RSA decrypt failure: " + e.getMessage());
+            throw new InvalidRequestException(RequsetTemplate.RSA_DECRYPT_ERROR, ciphertext);
         }
     }
 }

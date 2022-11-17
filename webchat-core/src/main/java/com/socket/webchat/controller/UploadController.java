@@ -1,13 +1,13 @@
 package com.socket.webchat.controller;
 
 import cn.hutool.core.util.StrUtil;
+import com.socket.secure.util.Assert;
 import com.socket.webchat.model.condition.FileCondition;
 import com.socket.webchat.model.enums.FileType;
 import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.request.VideoParseRequest;
 import com.socket.webchat.request.bean.VideoType;
 import com.socket.webchat.service.UploadService;
-import com.socket.webchat.util.Assert;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
