@@ -11,6 +11,6 @@ public class IPHash {
     }
 
     public static void cacheIPHash(HttpSession session, String ip) {
-        session.setAttribute(SecureConstant.DIGEST_IP, SecureUtil.sha1().digest(ip));
+        session.setAttribute(SecureConstant.DIGEST_IP, SecureUtil.sha1().digestHex(ip));
     }
 }
