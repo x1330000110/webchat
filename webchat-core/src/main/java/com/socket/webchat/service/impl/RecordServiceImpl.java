@@ -212,7 +212,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
     }
 
     @Override
-    public Collection<ChatRecord> getLatestUnreadMessages(String uid) {
+    public Map<String, ChatRecord> getLatestUnreadMessages(String uid) {
         LambdaQueryWrapper<ChatRecord> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ChatRecord::getTarget, uid);
         wrapper.eq(ChatRecord::isUnread, 1);
@@ -226,6 +226,6 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
                 latest.put(muid, record);
             }
         }
-        return latest.values();
+        return latest;
     }
 }

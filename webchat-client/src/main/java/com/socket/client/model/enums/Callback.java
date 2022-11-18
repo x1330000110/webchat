@@ -10,7 +10,7 @@ import com.socket.webchat.util.Wss;
 public enum Callback {
     REPEAT_LOGIN("您的账号已在别处登录"),
     SELF_MUTE("您已被禁言，请稍后再试"),
-    USER_NOT_FOUND("找不到相关用户（可能已注销）"),
+    USER_NOT_FOUND("找不到相关用户（可能已注销）: {}"),
     BRUSH_SCREEN("检查到存在刷屏行为，您已被禁言{}"),
     JOIN_INIT("INIT"),
     LOGIN_LIMIT("您已被管理员限制登陆{}"),

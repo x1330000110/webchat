@@ -75,7 +75,7 @@ public class GroupManager extends ConcurrentHashMap<SysGroup, List<WsUser>> impl
         return this.keySet().stream()
                 .filter(e -> e.getGroupId().equals(groupId))
                 .findFirst()
-                .orElseThrow(() -> new SocketException(Callback.USER_NOT_FOUND.get(), MessageType.DANGER));
+                .orElseThrow(() -> new SocketException(Callback.USER_NOT_FOUND.format(groupId), MessageType.DANGER));
     }
 
     /**

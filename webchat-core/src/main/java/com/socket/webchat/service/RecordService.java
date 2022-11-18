@@ -2,8 +2,8 @@ package com.socket.webchat.service;
 
 import com.socket.webchat.model.ChatRecord;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public interface RecordService extends BaseService<ChatRecord> {
     /**
@@ -61,5 +61,5 @@ public interface RecordService extends BaseService<ChatRecord> {
      * @param uid 用户uid
      * @return 关联未读消息表
      */
-    Collection<ChatRecord> getLatestUnreadMessages(String uid);
+    Map<String, ChatRecord> getLatestUnreadMessages(String uid);
 }

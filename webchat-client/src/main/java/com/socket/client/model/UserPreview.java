@@ -2,7 +2,9 @@ package com.socket.client.model;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.socket.client.model.enums.OnlineState;
+import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
+import com.socket.webchat.model.enums.MessageType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -61,5 +63,10 @@ public class UserPreview extends SysUser {
 
     public UserPreview(SysUser sysUser) {
         BeanUtil.copyProperties(sysUser, this);
+    }
+
+    public void setPreview(ChatRecord unread) {
+        MessageType type = MessageType.valueOf(unread.getType().toUpperCase());
+        this.preview = type == MessageType.TEXT ? unread.getContent() : '[' + type.getPreview() + ']';
     }
 }

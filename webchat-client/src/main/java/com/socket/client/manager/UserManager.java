@@ -64,7 +64,7 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
         SysUser principal = (SysUser) subject.getPrincipal();
         WsUser user = getUser(principal.getUid());
         // 检查重复登录
-        if (user.isOnline()) {
+        if (user.isOnline() && !session.getId().equals(user.getSessionId())) {
             this.exit(user, Callback.REPEAT_LOGIN.get());
         }
         // 登录到聊天室
@@ -125,7 +125,7 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
             Optional.ofNullable(wsuser).ifPresent(e -> this.put(uid, e));
             return wsuser;
         });
-        Assert.notNull(user, Callback.USER_NOT_FOUND);
+        Assert.notNull(user, Callback.USER_NOT_FOUND, uid);
         return user;
     }
 
@@ -213,8 +213,9 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
 
     @Override
     public void onUserChange(UserChangeEvent event) {
-        WsUser user = this.getUser(event.getUid());
-        Assert.isFalse(user == null, Callback.USER_NOT_FOUND);
+        String uid = event.getUid();
+        WsUser user = this.getUser(uid);
+        Assert.isFalse(user == null, Callback.USER_NOT_FOUND, uid);
         switch (event.getOperation()) {
             case NAME:
                 user.setName(event.getData());

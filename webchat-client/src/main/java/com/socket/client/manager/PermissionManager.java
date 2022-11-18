@@ -13,12 +13,10 @@ import com.socket.webchat.custom.RedisManager;
 import com.socket.webchat.custom.listener.PermissionEvent;
 import com.socket.webchat.custom.listener.PermissionListener;
 import com.socket.webchat.custom.listener.PermissionOperation;
-import com.socket.webchat.mapper.SysUserMapper;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysGroup;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.SysUserLog;
-import com.socket.webchat.model.enums.MessageType;
 import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.service.RecordService;
 import com.socket.webchat.service.SysUserLogService;
@@ -29,7 +27,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -42,7 +39,6 @@ public class PermissionManager implements PermissionListener {
     private final KeywordSupport keywordSupport;
 
     private final SysUserLogService logService;
-    private final SysUserMapper sysUserMapper;
     private final RecordService recordService;
 
     private final RedisManager redisManager;
@@ -59,43 +55,36 @@ public class PermissionManager implements PermissionListener {
         // 消息发起者
         String suid = self.getUid();
         // 与此用户关联的最新未读消息
-        Collection<ChatRecord> unreadMessages = recordService.getLatestUnreadMessages(suid);
+        Map<String, ChatRecord> unreadMessages = recordService.getLatestUnreadMessages(suid);
         // 登录记录
         Map<String, SysUserLog> logs = logService.getUserLogs();
         // 链接数据
         List<UserPreview> previews = new ArrayList<>();
-        for (WsUser user : userManager.values()) {
-            UserPreview preview = new UserPreview(user);
-            // 关联日志
-            Optional.ofNullable(logs.get(preview.getUid())).ifPresent(log -> {
-                preview.setLastTime(log.getCreateTime().getTime());
-                preview.setRemoteProvince(log.getRemoteProvince());
-            });
-            // 检查未读消息
-            String target = preview.getUid();
-            int count = redisManager.getUnreadCount(suid, target);
-            if (count > 0) {
-                Consumer<ChatRecord> setUnread = unread -> {
-                    MessageType type = MessageType.valueOf(unread.getType().toUpperCase());
-                    preview.setPreview(type == MessageType.TEXT ? unread.getContent() : '[' + type.getPreview() + ']');
-                    preview.setLastTime(unread.getCreateTime().getTime());
-                    preview.setUnreads(Math.min(count, 99));
-                };
-                unreadMessages.stream()
-                        .filter(record -> record.getUid().equals(target))
-                        .findFirst()
-                        .ifPresent(setUnread);
-            }
-            // 为自己赋值屏蔽列表
-            if (preview.getUid().equals(suid)) {
-                preview.setShields(getShield(self));
-            }
-            previews.add(preview);
-        }
+        userManager.values().stream().map(UserPreview::new)
+                .peek(preview -> Optional.ofNullable(logs.get(preview.getUid())).ifPresent(log -> {
+                    // 关联日志
+                    preview.setLastTime(log.getCreateTime().getTime());
+                    preview.setRemoteProvince(log.getRemoteProvince());
+                })).forEach(preview -> {
+                    String target = preview.getUid();
+                    // 检查未读消息
+                    int count = redisManager.getUnreadCount(suid, target);
+                    if (count > 0) {
+                        Optional.ofNullable(unreadMessages.get(target)).ifPresent(unread -> {
+                            preview.setPreview(unread);
+                            preview.setLastTime(unread.getCreateTime().getTime());
+                            preview.setUnreads(Math.min(count, 99));
+                        });
+                    }
+                    // 为自己赋值屏蔽列表
+                    if (preview.getUid().equals(suid)) {
+                        preview.setShields(getShield(self));
+                    }
+                    previews.add(preview);
+                });
         // 添加群组到列表
-        for (Map.Entry<SysGroup, List<WsUser>> entry : groupManager.entrySet()) {
-            SysGroup group = entry.getKey();
-            List<String> uids = entry.getValue().stream().map(SysUser::getUid).collect(Collectors.toList());
+        groupManager.forEach((group, value) -> {
+            List<String> uids = value.stream().map(SysUser::getUid).collect(Collectors.toList());
             // 需要在群里
             if (uids.contains(suid)) {
                 UserPreview preview = new UserPreview();
@@ -107,7 +96,7 @@ public class PermissionManager implements PermissionListener {
                 preview.setOnline(OnlineState.ONLINE);
                 previews.add(preview);
             }
-        }
+        });
         return previews;
     }
 
