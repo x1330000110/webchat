@@ -59,6 +59,7 @@ public enum MessageType implements Command<MessageType>, IEnum<String> {
     SUCCESS,
     WARNING,
     DANGER,
+    ERROR,
     /**
      * WebRTC会话标识
      */

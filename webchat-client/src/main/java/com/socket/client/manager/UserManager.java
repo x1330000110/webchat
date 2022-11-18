@@ -10,8 +10,8 @@ import com.socket.client.model.enums.Callback;
 import com.socket.client.util.Assert;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.RedisManager;
-import com.socket.webchat.custom.listener.UserChangeEvent;
 import com.socket.webchat.custom.listener.UserChangeListener;
+import com.socket.webchat.custom.listener.event.UserChangeEvent;
 import com.socket.webchat.mapper.SysUserMapper;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
@@ -61,14 +61,15 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
     public WsUser join(Session session, Map<String, Object> properties) {
         // 查找用户
         Subject subject = (Subject) properties.get(Constants.SUBJECT);
+        HttpSession hs = (HttpSession) properties.get(Constants.HTTP_SESSION);
         SysUser principal = (SysUser) subject.getPrincipal();
         WsUser user = getUser(principal.getUid());
         // 检查重复登录
-        if (user.isOnline() && !session.getId().equals(user.getSessionId())) {
-            this.exit(user, Callback.REPEAT_LOGIN.get());
+        boolean equals = hs.getId().equals(user.getSessionId());
+        if (user.isOnline() || equals) {
+            this.exit(user, equals ? "无法同时打开多个聊天窗口" : "您的账号已在别处登录");
         }
-        // 登录到聊天室
-        HttpSession hs = (HttpSession) properties.get(Constants.HTTP_SESSION);
+        // 写入聊天室
         user.login(session, hs);
         // 检查登录限制（会话缓存检查）
         long time = redisManager.getLockTime(user.getUid());
@@ -88,7 +89,7 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
      * @param type    消息类型
      * @param data    附加用户信息
      */
-    public void sendAll(String content, Command type, SysUser data) {
+    public void sendAll(String content, Command<?> type, SysUser data) {
         for (WsUser wsuser : this.values()) {
             wsuser.send(content, type, data);
         }
@@ -97,14 +98,14 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
     /**
      * @see #sendAll(String, Command, SysUser)
      */
-    public void sendAll(String content, Command type) {
+    public void sendAll(String content, Command<?> type) {
         this.sendAll(content, type, null);
     }
 
     /**
      * @see #sendAll(String, Command, SysUser)
      */
-    public void sendAll(Command type, SysUser data) {
+    public void sendAll(Command<?> type, SysUser data) {
         this.sendAll(null, type, data);
     }
 
@@ -125,7 +126,7 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
             Optional.ofNullable(wsuser).ifPresent(e -> this.put(uid, e));
             return wsuser;
         });
-        Assert.notNull(user, Callback.USER_NOT_FOUND, uid);
+        Assert.notNull(user, Callback.USER_NOT_FOUND.format(uid));
         return user;
     }
 
@@ -215,7 +216,7 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
     public void onUserChange(UserChangeEvent event) {
         String uid = event.getUid();
         WsUser user = this.getUser(uid);
-        Assert.isFalse(user == null, Callback.USER_NOT_FOUND, uid);
+        Assert.isFalse(user == null, Callback.USER_NOT_FOUND.format(uid));
         switch (event.getOperation()) {
             case NAME:
                 user.setName(event.getData());

@@ -7,8 +7,8 @@ import com.socket.secure.exception.InvalidRequestException;
 import com.socket.secure.filter.anno.Encrypted;
 import com.socket.secure.util.Assert;
 import com.socket.webchat.custom.RedisManager;
-import com.socket.webchat.custom.listener.PermissionEvent;
-import com.socket.webchat.custom.listener.PermissionOperation;
+import com.socket.webchat.custom.listener.command.PermissionEnum;
+import com.socket.webchat.custom.listener.event.PermissionEvent;
 import com.socket.webchat.custom.support.SettingSupport;
 import com.socket.webchat.model.Announce;
 import com.socket.webchat.model.ChatRecord;
@@ -49,7 +49,7 @@ public class OwnerController {
         String uid = condition.getUid();
         String content = condition.getContent();
         sysUserService.updateAlias(uid, content);
-        publisher.publishEvent(new PermissionEvent(publisher, uid, content, PermissionOperation.ALIAS));
+        publisher.publishEvent(new PermissionEvent(publisher, uid, content, PermissionEnum.ALIAS));
     }
 
     @PostMapping("/role")
@@ -57,7 +57,7 @@ public class OwnerController {
         String uid = condition.getUid();
         UserRole role = sysUserService.switchRole(uid);
         Wss.getUser().setRole(role);
-        publisher.publishEvent(new PermissionEvent(publisher, uid, role.getRole(), PermissionOperation.ROLE));
+        publisher.publishEvent(new PermissionEvent(publisher, uid, role.getRole(), PermissionEnum.ROLE));
     }
 
     @PostMapping("/announce")
@@ -65,7 +65,7 @@ public class OwnerController {
         String content = announce.getContent();
         redisManager.pushNotice(content);
         if (StrUtil.isNotEmpty(content)) {
-            publisher.publishEvent(new PermissionEvent(publisher, content, PermissionOperation.ANNOUNCE));
+            publisher.publishEvent(new PermissionEvent(publisher, content, PermissionEnum.ANNOUNCE));
         }
     }
 
@@ -78,7 +78,7 @@ public class OwnerController {
         wrapper.set(SysUser::isDeleted, 1);
         boolean update = sysUserService.update(wrapper);
         if (update) {
-            publisher.publishEvent(new PermissionEvent(publisher, uid, PermissionOperation.FOREVER));
+            publisher.publishEvent(new PermissionEvent(publisher, uid, PermissionEnum.FOREVER));
         }
         return HttpStatus.of(update, "操作成功", "找不到此用户");
     }

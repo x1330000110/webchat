@@ -1,11 +1,11 @@
-package com.socket.webchat.custom.listener;
+package com.socket.webchat.custom.listener.command;
 
 import com.socket.webchat.model.enums.Command;
 
 /**
  * 群组信息变动枚举
  */
-public enum GroupOperation implements Command<GroupOperation> {
+public enum GroupEnum implements Command<GroupEnum> {
     /**
      * 新增群组
      */

@@ -14,8 +14,8 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.secure.util.Assert;
 import com.socket.webchat.constant.Constants;
-import com.socket.webchat.custom.listener.UserChangeEvent;
-import com.socket.webchat.custom.listener.UserOperation;
+import com.socket.webchat.custom.listener.command.UserEnum;
+import com.socket.webchat.custom.listener.event.UserChangeEvent;
 import com.socket.webchat.exception.AccountException;
 import com.socket.webchat.exception.UploadException;
 import com.socket.webchat.mapper.SysUserMapper;
@@ -181,7 +181,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         wrapper.eq(SysUser::getUid, Wss.getUserId());
         Assert.isTrue(super.update(user, wrapper), "修改失败", IllegalStateException::new);
         // 推送变动事件
-        publisher.publishEvent(new UserChangeEvent(publisher, UserOperation.NAME, user.getName()));
+        publisher.publishEvent(new UserChangeEvent(publisher, UserEnum.NAME, user.getName()));
     }
 
     @Override
@@ -214,7 +214,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 保存文件映射
         uploadService.save(new ChatRecordFile(null, FileType.IMAGE.getKey(), url, hash, (long) bytes.length));
         // 推送变动事件
-        publisher.publishEvent(new UserChangeEvent(publisher, UserOperation.HEADIMG, mapping));
+        publisher.publishEvent(new UserChangeEvent(publisher, UserEnum.HEADIMG, mapping));
         return mapping;
     }
 

@@ -1,5 +1,6 @@
 package com.socket.webchat.custom.listener;
 
+import com.socket.webchat.custom.listener.event.PermissionEvent;
 import org.springframework.context.ApplicationListener;
 
 /**

@@ -1,11 +1,11 @@
-package com.socket.webchat.custom.listener;
+package com.socket.webchat.custom.listener.command;
 
 import com.socket.webchat.model.enums.Command;
 
 /**
  * 用户数据更新枚举
  */
-public enum UserOperation implements Command<UserOperation> {
+public enum UserEnum implements Command<UserEnum> {
     /**
      * 昵称变动
      */

@@ -1,5 +1,6 @@
-package com.socket.webchat.custom.listener;
+package com.socket.webchat.custom.listener.event;
 
+import com.socket.webchat.custom.listener.command.GroupEnum;
 import com.socket.webchat.model.SysGroup;
 import com.socket.webchat.model.SysGroupUser;
 import lombok.Getter;
@@ -10,7 +11,7 @@ public class GroupChangeEvent extends ApplicationEvent {
     /**
      * 操作
      */
-    private final GroupOperation operation;
+    private final GroupEnum operation;
     /**
      * 群组用户信息
      */
@@ -20,13 +21,13 @@ public class GroupChangeEvent extends ApplicationEvent {
      */
     private SysGroup group;
 
-    public GroupChangeEvent(Object source, SysGroupUser user, GroupOperation operation) {
+    public GroupChangeEvent(Object source, SysGroupUser user, GroupEnum operation) {
         super(source);
         this.user = user;
         this.operation = operation;
     }
 
-    public GroupChangeEvent(Object source, SysGroup group, GroupOperation operation) {
+    public GroupChangeEvent(Object source, SysGroup group, GroupEnum operation) {
         super(source);
         this.group = group;
         this.operation = operation;

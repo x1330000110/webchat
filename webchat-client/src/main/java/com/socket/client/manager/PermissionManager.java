@@ -10,9 +10,9 @@ import com.socket.client.model.enums.OnlineState;
 import com.socket.client.support.KeywordSupport;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.RedisManager;
-import com.socket.webchat.custom.listener.PermissionEvent;
 import com.socket.webchat.custom.listener.PermissionListener;
-import com.socket.webchat.custom.listener.PermissionOperation;
+import com.socket.webchat.custom.listener.command.PermissionEnum;
+import com.socket.webchat.custom.listener.event.PermissionEvent;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysGroup;
 import com.socket.webchat.model.SysUser;
@@ -106,7 +106,7 @@ public class PermissionManager implements PermissionListener {
     public void checkMute(WsUser user) {
         long time = redisManager.getMuteTime(user.getUid());
         if (time > 0) {
-            user.send(null, PermissionOperation.MUTE, time);
+            user.send(null, PermissionEnum.MUTE, time);
         }
     }
 
@@ -128,7 +128,7 @@ public class PermissionManager implements PermissionListener {
         content = content.replace("<", "&lt;");
         content = content.replace(">", "&gt;");
         if (sensitive && keywordSupport.containsSensitive(content)) {
-            wsuser.reject(Callback.SENSITIVE_KEYWORDS, wsmsg);
+            wsuser.reject("消息包含敏感关键词，请检查后重新发送", wsmsg);
             return false;
         }
         wsmsg.setContent(content);
@@ -163,7 +163,7 @@ public class PermissionManager implements PermissionListener {
             long time = TimeUnit.HOURS.toSeconds(Constants.FREQUENT_SPEECHES_MUTE_TIME);
             if (redisManager.incrSpeak(user.getUid()) > Constants.FREQUENT_SPEECH_THRESHOLD) {
                 redisManager.setMute(user.getUid(), time);
-                user.send(Callback.BRUSH_SCREEN.format(time), PermissionOperation.MUTE, time);
+                user.send(Callback.BRUSH_SCREEN.format(time), PermissionEnum.MUTE, time);
             }
         }
     }
@@ -203,30 +203,30 @@ public class PermissionManager implements PermissionListener {
         // 解析命令
         switch (event.getOperation()) {
             case ANNOUNCE:
-                userManager.sendAll(data, PermissionOperation.ANNOUNCE);
+                userManager.sendAll(data, PermissionEnum.ANNOUNCE);
                 break;
             case WITHDRAW:
                 withdraw(event.getRecord());
                 break;
             case ROLE:
                 user.setRole(UserRole.of(data));
-                userManager.sendAll(PermissionOperation.ROLE, user);
+                userManager.sendAll(PermissionEnum.ROLE, user);
                 break;
             case SHIELD:
-                userManager.sendAll(PermissionOperation.SHIELD, user);
+                userManager.sendAll(PermissionEnum.SHIELD, user);
                 break;
             case ALIAS:
-                userManager.sendAll(data, PermissionOperation.ALIAS, user);
+                userManager.sendAll(data, PermissionEnum.ALIAS, user);
                 break;
             case MUTE:
-                userManager.sendAll(data, PermissionOperation.MUTE, user);
+                userManager.sendAll(data, PermissionEnum.MUTE, user);
                 break;
             case LOCK:
                 userManager.exit(user, Callback.LOGIN_LIMIT.format(Long.parseLong(data)));
-                userManager.sendAll(data, PermissionOperation.LOCK, user);
+                userManager.sendAll(data, PermissionEnum.LOCK, user);
                 break;
             case FOREVER:
-                userManager.exit(user, Callback.LIMIT_FOREVER.get());
+                userManager.exit(user, "您已被管理员永久限制登陆");
                 userManager.remove(user.getUid());
                 break;
             default:
@@ -242,7 +242,7 @@ public class PermissionManager implements PermissionListener {
         // 构建消息
         String target = record.getTarget();
         String mid = record.getMid();
-        WsMsg wsmsg = new WsMsg(mid, PermissionOperation.WITHDRAW);
+        WsMsg wsmsg = new WsMsg(mid, PermissionEnum.WITHDRAW);
         wsmsg.setUid(self.getUid());
         wsmsg.setTarget(target);
         // 目标是群组 通知群组撤回此消息

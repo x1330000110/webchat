@@ -7,7 +7,6 @@ import com.socket.client.manager.UserManager;
 import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
-import com.socket.client.model.enums.Callback;
 import com.socket.client.model.enums.OnlineState;
 import com.socket.client.util.Assert;
 import com.socket.webchat.constant.Constants;
@@ -45,7 +44,7 @@ public class SocketEndpoint implements ApplicationContextAware {
         Optional.ofNullable(userManager.join(session, config.getUserProperties())).ifPresent(user -> {
             // 推送所有用户数据
             Collection<UserPreview> userList = permissionManager.getUserPreviews(user);
-            user.send(Callback.JOIN_INIT.get(), MessageType.INIT, userList);
+            user.send("Initialize user", MessageType.INIT, userList);
             // 向其他人发送加入通知
             userManager.sendAll(MessageType.JOIN, user);
             // 检查禁言
@@ -83,10 +82,10 @@ public class SocketEndpoint implements ApplicationContextAware {
 
     public void parseUserMsg(WsMsg wsmsg, WsUser target) {
         // 禁言状态无法发送消息
-        Assert.isFalse(permissionManager.isMute(self), Callback.SELF_MUTE);
+        Assert.isFalse(permissionManager.isMute(self), "您已被禁言，请稍后再试");
         // 所有者全员禁言检查
         if (settingSupport.getSetting(Setting.ALL_MUTE) && !self.isOwner()) {
-            self.reject(Callback.ALL_MUTE, wsmsg);
+            self.reject("所有者开启了全员禁言", wsmsg);
             return;
         }
         // 消息检查
@@ -103,11 +102,11 @@ public class SocketEndpoint implements ApplicationContextAware {
             return;
         }
         // 你屏蔽了目标
-        Assert.isFalse(permissionManager.shield(self, target), Callback.TARGET_SHIELD);
+        Assert.isFalse(permissionManager.shield(self, target), "意外的错误，你在屏蔽对方时发送了消息");
         try {
             // 目标屏蔽了你
             if (permissionManager.shield(target, self)) {
-                self.reject(Callback.SELF_SHIELD, wsmsg);
+                self.reject("消息未送达，您已被目标用户屏蔽", wsmsg);
                 return;
             }
             // 发送至目标
@@ -164,8 +163,10 @@ public class SocketEndpoint implements ApplicationContextAware {
      */
     private void forwardWebRTC(WsUser target, WsMsg wsmsg) {
         // 屏蔽检查
-        Assert.isFalse(permissionManager.shield(self, target), Callback.TARGET_SHIELD);
-        Assert.isFalse(permissionManager.shield(target, self), Callback.TARGET_SHIELD);
+        Assert.isFalse(permissionManager.shield(self, target), "屏蔽目标时无法发起通话请求");
+        if (permissionManager.shield(target, self)) {
+            self.send("对方屏蔽了你", MessageType.ERROR);
+        }
         target.send(wsmsg);
     }
 

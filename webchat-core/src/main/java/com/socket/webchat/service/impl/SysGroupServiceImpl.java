@@ -9,8 +9,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
 import com.socket.secure.util.Assert;
 import com.socket.webchat.constant.Constants;
-import com.socket.webchat.custom.listener.GroupChangeEvent;
-import com.socket.webchat.custom.listener.GroupOperation;
+import com.socket.webchat.custom.listener.command.GroupEnum;
+import com.socket.webchat.custom.listener.event.GroupChangeEvent;
 import com.socket.webchat.mapper.SysGroupMapper;
 import com.socket.webchat.mapper.SysGroupUserMapper;
 import com.socket.webchat.model.BaseModel;
@@ -41,7 +41,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         user.setUid(uid);
         // 推送事件
         if (SqlHelper.retBool(sysGroupUserMapper.insert(user))) {
-            GroupChangeEvent event = new GroupChangeEvent(publisher, user, GroupOperation.JOIN);
+            GroupChangeEvent event = new GroupChangeEvent(publisher, user, GroupEnum.JOIN);
             publisher.publishEvent(event);
             return true;
         }
@@ -62,7 +62,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         // 推送事件
         if (SqlHelper.retBool(sysGroupUserMapper.update(null, wrapper2))) {
             SysGroupUser sysGroupUser = new SysGroupUser(groupId, uid);
-            GroupChangeEvent event = new GroupChangeEvent(publisher, sysGroupUser, GroupOperation.DELETE);
+            GroupChangeEvent event = new GroupChangeEvent(publisher, sysGroupUser, GroupEnum.DELETE);
             publisher.publishEvent(event);
             return true;
         }
@@ -84,7 +84,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         group.setOwner(Wss.getUserId());
         if (super.save(group)) {
             // 推送事件
-            GroupChangeEvent event = new GroupChangeEvent(publisher, group, GroupOperation.CREATE);
+            GroupChangeEvent event = new GroupChangeEvent(publisher, group, GroupEnum.CREATE);
             publisher.publishEvent(event);
             return groupId;
         }
@@ -101,7 +101,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
             SysGroup group = new SysGroup();
             group.setGroupId(groupId);
             group.setOwner(userId);
-            GroupChangeEvent event = new GroupChangeEvent(publisher, group, GroupOperation.DISSOLVE);
+            GroupChangeEvent event = new GroupChangeEvent(publisher, group, GroupEnum.DISSOLVE);
             publisher.publishEvent(event);
             return true;
         }
@@ -118,7 +118,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         int ok = sysGroupUserMapper.update(null, wrapper);
         if (SqlHelper.retBool(ok)) {
             // 推送事件
-            GroupChangeEvent event = new GroupChangeEvent(publisher, new SysGroupUser(groupId, userId), GroupOperation.EXIT);
+            GroupChangeEvent event = new GroupChangeEvent(publisher, new SysGroupUser(groupId, userId), GroupEnum.EXIT);
             publisher.publishEvent(event);
             return true;
         }

@@ -3,8 +3,8 @@ package com.socket.webchat.controller;
 import com.socket.secure.exception.InvalidRequestException;
 import com.socket.secure.util.Assert;
 import com.socket.webchat.custom.RedisManager;
-import com.socket.webchat.custom.listener.PermissionEvent;
-import com.socket.webchat.custom.listener.PermissionOperation;
+import com.socket.webchat.custom.listener.command.PermissionEnum;
+import com.socket.webchat.custom.listener.event.PermissionEvent;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -27,7 +27,7 @@ public class AdminController {
         String uid = condition.getUid();
         Long time = condition.getTime();
         redisManager.setMute(uid, time);
-        publisher.publishEvent(new PermissionEvent(publisher, uid, time.toString(), PermissionOperation.MUTE));
+        publisher.publishEvent(new PermissionEvent(publisher, uid, time.toString(), PermissionEnum.MUTE));
     }
 
     @PostMapping("/lock")
@@ -35,6 +35,6 @@ public class AdminController {
         String uid = condition.getUid();
         Long time = condition.getTime();
         redisManager.setLock(uid, time);
-        publisher.publishEvent(new PermissionEvent(publisher, uid, time.toString(), PermissionOperation.LOCK));
+        publisher.publishEvent(new PermissionEvent(publisher, uid, time.toString(), PermissionEnum.LOCK));
     }
 }

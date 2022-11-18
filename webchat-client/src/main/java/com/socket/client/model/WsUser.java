@@ -2,7 +2,6 @@ package com.socket.client.model;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONUtil;
-import com.socket.client.model.enums.Callback;
 import com.socket.client.model.enums.OnlineState;
 import com.socket.secure.util.AES;
 import com.socket.webchat.constant.Constants;
@@ -110,7 +109,7 @@ public class WsUser extends SysUser {
      * @param type     消息类型
      * @date 额外数据
      */
-    public void send(String callback, Command type) {
+    public void send(String callback, Command<?> type) {
         this.send(callback, type, null);
     }
 
@@ -122,7 +121,7 @@ public class WsUser extends SysUser {
      * @param data     额外数据
      * @date 额外数据
      */
-    public void send(String callback, Command type, Object data) {
+    public void send(String callback, Command<?> type, Object data) {
         this.send(new WsMsg(callback, type, data), false);
     }
 
@@ -178,11 +177,11 @@ public class WsUser extends SysUser {
     /**
      * 发送拒绝消息
      *
-     * @param reson 原因
-     * @param wsmsg 消息
+     * @param reason 原因
+     * @param wsmsg  消息
      */
-    public void reject(Callback reson, WsMsg wsmsg) {
-        this.send(reson.get(), MessageType.WARNING);
+    public void reject(String reason, WsMsg wsmsg) {
+        this.send(reason, MessageType.WARNING);
         wsmsg.setReject(true);
         this.send(wsmsg);
     }
@@ -195,9 +194,9 @@ public class WsUser extends SysUser {
     }
 
     /**
-     * 获取ws session id
+     * 获取http session id
      */
     public String getSessionId() {
-        return ws.getId();
+        return isOnline() ? hs.getId() : null;
     }
 }

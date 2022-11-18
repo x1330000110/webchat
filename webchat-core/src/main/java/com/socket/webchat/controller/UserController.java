@@ -3,8 +3,8 @@ package com.socket.webchat.controller;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.http.HttpRequest;
 import com.socket.secure.filter.anno.Encrypted;
-import com.socket.webchat.custom.listener.PermissionEvent;
-import com.socket.webchat.custom.listener.PermissionOperation;
+import com.socket.webchat.custom.listener.command.PermissionEnum;
+import com.socket.webchat.custom.listener.event.PermissionEvent;
 import com.socket.webchat.model.Announce;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.condition.EmailCondition;
@@ -86,7 +86,7 @@ public class UserController {
     public HttpStatus shield(@RequestBody UserCondition condition) {
         String uid = condition.getUid();
         boolean b = shieldUserService.shieldTarget(uid);
-        publisher.publishEvent(new PermissionEvent(publisher, uid, null, PermissionOperation.SHIELD));
+        publisher.publishEvent(new PermissionEvent(publisher, uid, null, PermissionEnum.SHIELD));
         return HttpStatus.of(b, "屏蔽成功", "取消屏蔽");
     }
 }

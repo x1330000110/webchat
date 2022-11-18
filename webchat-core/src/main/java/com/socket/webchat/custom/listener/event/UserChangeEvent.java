@@ -1,5 +1,6 @@
-package com.socket.webchat.custom.listener;
+package com.socket.webchat.custom.listener.event;
 
+import com.socket.webchat.custom.listener.command.UserEnum;
 import com.socket.webchat.util.Wss;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
@@ -9,7 +10,7 @@ public class UserChangeEvent extends ApplicationEvent {
     /**
      * 触发事件
      */
-    private final UserOperation operation;
+    private final UserEnum operation;
     /**
      * 触发者
      */
@@ -19,11 +20,11 @@ public class UserChangeEvent extends ApplicationEvent {
      */
     private final String data;
 
-    public UserChangeEvent(Object source, UserOperation operation, String data) {
+    public UserChangeEvent(Object source, UserEnum operation, String data) {
         this(source, operation, data, Wss.getUserId());
     }
 
-    public UserChangeEvent(Object source, UserOperation operation, String data, String uid) {
+    public UserChangeEvent(Object source, UserEnum operation, String data, String uid) {
         super(source);
         this.operation = operation;
         this.data = data;

@@ -51,7 +51,7 @@ public class WsMsg {
      * @param callback 内容
      * @param type     消息类型
      */
-    public WsMsg(String callback, Command type) {
+    public WsMsg(String callback, Command<?> type) {
         this(callback, type, null);
     }
 
@@ -62,7 +62,7 @@ public class WsMsg {
      * @param type     消息类型
      * @param data     额外数据
      */
-    public WsMsg(String callback, Command type, Object data) {
+    public WsMsg(String callback, Command<?> type, Object data) {
         this.sysmsg = true;
         this.content = callback;
         this.type = type.getName();
@@ -77,7 +77,7 @@ public class WsMsg {
      * @param content 内容
      * @param type    消息类型
      */
-    public WsMsg(String uid, String target, String content, Command type) {
+    public WsMsg(String uid, String target, String content, Command<?> type) {
         this.uid = uid;
         this.target = target;
         this.content = content;

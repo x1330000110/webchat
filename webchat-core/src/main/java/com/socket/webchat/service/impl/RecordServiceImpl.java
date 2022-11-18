@@ -12,8 +12,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.secure.util.Assert;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.RedisManager;
-import com.socket.webchat.custom.listener.PermissionEvent;
-import com.socket.webchat.custom.listener.PermissionOperation;
+import com.socket.webchat.custom.listener.command.PermissionEnum;
+import com.socket.webchat.custom.listener.event.PermissionEvent;
 import com.socket.webchat.mapper.ChatRecordDeletedMapper;
 import com.socket.webchat.mapper.ChatRecordMapper;
 import com.socket.webchat.mapper.ChatRecordOffsetMapper;
@@ -119,7 +119,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
             }
             // 通知成员撤回
             if (!record.isReject()) {
-                publisher.publishEvent(new PermissionEvent(publisher, record, PermissionOperation.WITHDRAW));
+                publisher.publishEvent(new PermissionEvent(publisher, record, PermissionEnum.WITHDRAW));
             }
             return true;
         }

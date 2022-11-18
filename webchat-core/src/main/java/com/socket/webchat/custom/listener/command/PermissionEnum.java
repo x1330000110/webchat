@@ -1,11 +1,11 @@
-package com.socket.webchat.custom.listener;
+package com.socket.webchat.custom.listener.command;
 
 import com.socket.webchat.model.enums.Command;
 
 /**
  * 权限变动枚举
  */
-public enum PermissionOperation implements Command<PermissionOperation> {
+public enum PermissionEnum implements Command<PermissionEnum> {
     /**
      * 屏蔽
      */
@@ -38,8 +38,4 @@ public enum PermissionOperation implements Command<PermissionOperation> {
      * 设置管理员
      */
     ROLE;
-
-    public static void main(String[] args) {
-        System.out.println(PermissionOperation.SHIELD.getName());
-    }
 }
