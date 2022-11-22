@@ -5,6 +5,7 @@ import com.socket.secure.util.Assert;
 import com.socket.webchat.custom.RedisManager;
 import com.socket.webchat.custom.listener.command.PermissionEnum;
 import com.socket.webchat.custom.listener.event.PermissionEvent;
+import com.socket.webchat.model.condition.LimitCondition;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;

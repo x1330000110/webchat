@@ -3,6 +3,7 @@ package com.socket.webchat.controller;
 import cn.hutool.core.util.StrUtil;
 import com.socket.secure.util.Assert;
 import com.socket.webchat.model.condition.FileCondition;
+import com.socket.webchat.model.condition.URLCondition;
 import com.socket.webchat.model.enums.FileType;
 import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.request.VideoParseRequest;

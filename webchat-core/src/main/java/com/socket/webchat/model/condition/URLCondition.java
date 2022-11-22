@@ -1,4 +1,4 @@
-package com.socket.webchat.controller;
+package com.socket.webchat.model.condition;
 
 import lombok.Data;
 

@@ -1,9 +1,9 @@
 package com.socket.webchat.service;
 
 import cn.hutool.core.util.StrUtil;
-import com.socket.webchat.controller.URLCondition;
 import com.socket.webchat.model.ChatRecordFile;
 import com.socket.webchat.model.condition.FileCondition;
+import com.socket.webchat.model.condition.URLCondition;
 import com.socket.webchat.model.enums.FileType;
 
 import java.io.IOException;
