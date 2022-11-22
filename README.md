@@ -15,15 +15,16 @@
 webchat-client -------> SocketEndpoint ----|                             |
 --------------                             |----> SettingSupport         | ---> RedisManager
 
-                       |---> user
+                       |---> message
                        |                      | ------> BaiduSpeech
                        |---> resource --------| 
 ------------           |                      | ------> 云储存
-webchat-core ----------|---> message
-------------           |                      | ------> Wechat
-                       |---> login -----------|
-                       |                      | ------> shiro
-
+webchat-core ----------|---> group
+------------           |              |---> admin
+                       |---> user ----|
+                       |              |---> owner    | ------> Wechat
+                       |---> login  -----------------|
+                                                     | ------> shiro
 
 --------------         | ---> core
 webchat-secure --------|                                        | ----> MappedRepeatValidator
