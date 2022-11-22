@@ -1,4 +1,4 @@
-package com.socket.webchat.custom;
+package com.socket.client.custom;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
