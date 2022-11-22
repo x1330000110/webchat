@@ -1,13 +1,12 @@
 package com.socket.webchat.model.enums;
 
-import com.baomidou.mybatisplus.annotation.IEnum;
 import lombok.Getter;
 
 /**
  * ws命令操作枚举
  */
 @Getter
-public enum MessageType implements Command<MessageType>, IEnum<String> {
+public enum MessageType implements Command<MessageType> {
     /**
      * 加载聊天室所有用户
      */
@@ -49,10 +48,6 @@ public enum MessageType implements Command<MessageType>, IEnum<String> {
      */
     VIDEO("视频文件"),
     /**
-     * 消息已读标记
-     */
-    READ,
-    /**
      * 系统通知等级
      */
     PRIMARY,
@@ -81,11 +76,6 @@ public enum MessageType implements Command<MessageType>, IEnum<String> {
     }
 
     public String getName() {
-        return name;
-    }
-
-    @Override
-    public String getValue() {
         return name;
     }
 }
