@@ -13,7 +13,7 @@ public enum RequsetTemplate {
     PUBLIC_KEY_SIGNATURE_MISMATCH("Incorrect public key signature"),
     AES_ENCRYPT_ERROR("AES encrypt error: {}"),
     AES_DECRYPT_ERROR("AES decrypt error: {}"),
-    RSA_ENCRYPT_ERROR("RSA decrypt error: {}"),
+    RSA_ENCRYPT_ERROR("RSA encrypt error: {}"),
     RSA_DECRYPT_ERROR("RSA decrypt error: {}"),
     HMAC_DIGEST_ERROR("HMAC digest error: {}"),
     GENERATE_AESKEY_ERROR("Generate AES key error: {}"),
