@@ -65,9 +65,9 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
         SysUser principal = (SysUser) subject.getPrincipal();
         WsUser user = getUser(principal.getUid());
         // 检查重复登录
-        boolean equals = hs.getId().equals(user.getSessionId());
-        if (user.isOnline() || equals) {
-            this.exit(user, equals ? "无法同时打开多个聊天窗口" : "您的账号已在别处登录");
+        if (user.isOnline()) {
+            this.exit(user, "您的账号已在别处登录");
+            return null;
         }
         // 写入聊天室
         user.login(session, hs);

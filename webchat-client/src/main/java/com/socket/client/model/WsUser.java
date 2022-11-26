@@ -192,11 +192,5 @@ public class WsUser extends SysUser {
     public boolean isOnline() {
         return online != null;
     }
-
-    /**
-     * 获取http session id
-     */
-    public String getSessionId() {
-        return isOnline() ? hs.getId() : null;
-    }
 }
+
