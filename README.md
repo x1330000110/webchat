@@ -15,16 +15,16 @@
 webchat-client -------> SocketEndpoint ----|                             |
 --------------                             |----> SettingSupport         | ---> RedisManager
 
-                       |---> user
-                       |
                        |---> message
-------------           |                      | ------> BaiduSpeech
-webchat-core ----------|---> resource --------| 
+                       |                      | ------> BaiduSpeech
+                       |---> resource --------| 
 ------------           |                      | ------> 云储存
-                       |---> owner
-                       |                      | ------> wechat
-                       |---> login -----------|
-                                              | ------> shiro
+webchat-core ----------|---> group
+------------           |              |---> admin
+                       |---> user ----|
+                       |              |---> owner    | ------> Wechat
+                       |---> login  -----------------|
+                                                     | ------> shiro
 
 --------------         | ---> core
 webchat-secure --------|                                        | ----> MappedRepeatValidator
@@ -118,7 +118,7 @@ webchat-secure --------|                                        | ----> MappedRe
 * 来电铃声
 * 全屏
 * 读取粘贴板图片（复制图片后，在消息输入框粘贴，需要粘贴板权限）
-* 文件拖拽支持（可将文件直接拖拽到消息列表发送，通过扩展名识别文件类型）
+* 文件拖拽支持（可将文件直接拖拽到消息列表发送，通过MIME识别类型）
 * 所有者接入小冰机器人（仅在所有者离线时，发送文字消息将由小冰接管）
 * 敏感关键词屏蔽
 * 全员禁言
