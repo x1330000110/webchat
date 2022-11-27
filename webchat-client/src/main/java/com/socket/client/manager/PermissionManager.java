@@ -10,19 +10,19 @@ import com.socket.client.model.enums.OnlineState;
 import com.socket.client.support.KeywordSupport;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.RedisManager;
-import com.socket.webchat.custom.listener.PermissionListener;
-import com.socket.webchat.custom.listener.command.PermissionEnum;
-import com.socket.webchat.custom.listener.event.PermissionEvent;
+import com.socket.webchat.custom.event.PermissionEvent;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysGroup;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.SysUserLog;
+import com.socket.webchat.model.enums.PermissionEnum;
 import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.service.RecordService;
 import com.socket.webchat.service.SysUserLogService;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -35,15 +35,15 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class PermissionManager implements PermissionListener {
+public class PermissionManager {
     private final KeywordSupport keywordSupport;
 
     private final SysUserLogService logService;
     private final RecordService recordService;
 
     private final RedisManager redisManager;
-    private final GroupManager groupManager;
-    private final UserManager userManager;
+    private final WsGroupMap groupMap;
+    private final WsUserMap userMap;
 
 
     /**
@@ -60,7 +60,7 @@ public class PermissionManager implements PermissionListener {
         Map<String, SysUserLog> logs = logService.getUserLogs();
         // 链接数据
         List<UserPreview> previews = new ArrayList<>();
-        userManager.values().stream().map(UserPreview::new)
+        userMap.values().stream().map(UserPreview::new)
                 .peek(preview -> Optional.ofNullable(logs.get(preview.getUid())).ifPresent(log -> {
                     // 关联日志
                     preview.setLastTime(log.getCreateTime().getTime());
@@ -83,7 +83,7 @@ public class PermissionManager implements PermissionListener {
                     previews.add(preview);
                 });
         // 添加群组到列表
-        groupManager.forEach((group, value) -> {
+        groupMap.forEach((group, value) -> {
             List<String> uids = value.stream().map(SysUser::getUid).collect(Collectors.toList());
             // 需要在群里
             if (uids.contains(suid)) {
@@ -188,46 +188,49 @@ public class PermissionManager implements PermissionListener {
         String target = wsmsg.getTarget();
         if (wsmsg.isGroup()) {
             WsUser user = new WsUser();
-            SysGroup group = groupManager.getGroup(target);
+            SysGroup group = groupMap.getGroup(target);
             user.setUid(group.getGroupId());
             user.setName(group.getName());
             return user;
         }
-        return userManager.getUser(target);
+        return userMap.getUser(target);
     }
 
-    @Override
+    /**
+     * 权限事件监视器
+     */
+    @EventListener(PermissionEvent.class)
     public void onPermission(PermissionEvent event) {
-        WsUser user = Opt.ofNullable(event.getTarget()).map(userManager::getUser).get();
+        WsUser user = Opt.ofNullable(event.getTarget()).map(userMap::getUser).get();
         String data = event.getData();
         // 解析命令
         switch (event.getOperation()) {
             case ANNOUNCE:
-                userManager.sendAll(data, PermissionEnum.ANNOUNCE);
+                userMap.sendAll(data, PermissionEnum.ANNOUNCE);
                 break;
             case WITHDRAW:
                 withdraw(event.getRecord());
                 break;
             case ROLE:
                 user.setRole(UserRole.of(data));
-                userManager.sendAll(PermissionEnum.ROLE, user);
+                userMap.sendAll(PermissionEnum.ROLE, user);
                 break;
             case SHIELD:
-                userManager.sendAll(PermissionEnum.SHIELD, user);
+                userMap.sendAll(PermissionEnum.SHIELD, user);
                 break;
             case ALIAS:
-                userManager.sendAll(data, PermissionEnum.ALIAS, user);
+                userMap.sendAll(data, PermissionEnum.ALIAS, user);
                 break;
             case MUTE:
-                userManager.sendAll(data, PermissionEnum.MUTE, user);
+                userMap.sendAll(data, PermissionEnum.MUTE, user);
                 break;
             case LOCK:
-                userManager.exit(user, Callback.LOGIN_LIMIT.format(Long.parseLong(data)));
-                userManager.sendAll(data, PermissionEnum.LOCK, user);
+                userMap.exit(user, Callback.LOGIN_LIMIT.format(Long.parseLong(data)));
+                userMap.sendAll(data, PermissionEnum.LOCK, user);
                 break;
             case FOREVER:
-                userManager.exit(user, "您已被管理员永久限制登陆");
-                userManager.remove(user.getUid());
+                userMap.exit(user, "您已被管理员永久限制登陆");
+                userMap.remove(user.getUid());
                 break;
             default:
                 // ignore
@@ -238,7 +241,7 @@ public class PermissionManager implements PermissionListener {
      * 撤回消息后续处理
      */
     private void withdraw(ChatRecord record) {
-        WsUser self = userManager.getUser(record.getUid());
+        WsUser self = userMap.getUser(record.getUid());
         // 构建消息
         String target = record.getTarget();
         String mid = record.getMid();
@@ -247,13 +250,13 @@ public class PermissionManager implements PermissionListener {
         wsmsg.setTarget(target);
         // 目标是群组 通知群组撤回此消息
         if (Wss.isGroup(target)) {
-            wsmsg.setData(groupManager.getGroup(target));
-            groupManager.sendGroup(wsmsg);
+            wsmsg.setData(groupMap.getGroup(target));
+            groupMap.sendGroup(wsmsg);
             return;
         }
         // 通知双方撤回此消息
         wsmsg.setData(self);
-        userManager.getUser(target).send(wsmsg);
+        userMap.getUser(target).send(wsmsg);
         self.send(wsmsg);
     }
 }

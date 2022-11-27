@@ -10,8 +10,7 @@ import com.socket.client.model.enums.Callback;
 import com.socket.client.util.Assert;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.RedisManager;
-import com.socket.webchat.custom.listener.UserChangeListener;
-import com.socket.webchat.custom.listener.event.UserChangeEvent;
+import com.socket.webchat.custom.event.UserChangeEvent;
 import com.socket.webchat.mapper.SysUserMapper;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
@@ -25,10 +24,11 @@ import com.socket.webchat.service.SysUserLogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.subject.Subject;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.event.EventListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
 import java.util.List;
@@ -43,7 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class UserManager extends ConcurrentHashMap<String, WsUser> implements InitializingBean, UserChangeListener {
+public class WsUserMap extends ConcurrentHashMap<String, WsUser> {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final XiaoBingAPIRequest xiaoBingAPIRequest;
     private final SysUserLogService logService;
@@ -203,16 +203,19 @@ public class UserManager extends ConcurrentHashMap<String, WsUser> implements In
     }
 
     /**
-     * 初始化数据
+     * 初始化用户数据
      */
-    @Override
-    public void afterPropertiesSet() {
+    @PostConstruct
+    public void initUserCache() {
         // 缓存用户
         List<SysUser> userList = userMapper.selectList(Wrappers.emptyWrapper());
         userList.stream().map(WsUser::new).forEach(e -> this.put(e.getUid(), e));
     }
 
-    @Override
+    /**
+     * 用户事件监视器
+     */
+    @EventListener(UserChangeEvent.class)
     public void onUserChange(UserChangeEvent event) {
         String uid = event.getUid();
         WsUser user = this.getUser(uid);

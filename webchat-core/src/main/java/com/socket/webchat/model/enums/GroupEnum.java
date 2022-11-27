@@ -1,6 +1,4 @@
-package com.socket.webchat.custom.listener.command;
-
-import com.socket.webchat.model.enums.Command;
+package com.socket.webchat.model.enums;
 
 /**
  * 群组信息变动枚举

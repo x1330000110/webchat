@@ -1,8 +1,8 @@
-package com.socket.webchat.custom.listener.event;
+package com.socket.webchat.custom.event;
 
-import com.socket.webchat.custom.listener.command.GroupEnum;
 import com.socket.webchat.model.SysGroup;
 import com.socket.webchat.model.SysGroupUser;
+import com.socket.webchat.model.enums.GroupEnum;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 

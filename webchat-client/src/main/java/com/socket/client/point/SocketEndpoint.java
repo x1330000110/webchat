@@ -1,9 +1,9 @@
 package com.socket.client.point;
 
 import com.socket.client.config.SocketConfig;
-import com.socket.client.manager.GroupManager;
 import com.socket.client.manager.PermissionManager;
-import com.socket.client.manager.UserManager;
+import com.socket.client.manager.WsGroupMap;
+import com.socket.client.manager.WsUserMap;
 import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
@@ -34,8 +34,8 @@ import java.util.Optional;
 public class SocketEndpoint implements ApplicationContextAware {
     private static PermissionManager permissionManager;
     private static SettingSupport settingSupport;
-    private static GroupManager groupManager;
-    private static UserManager userManager;
+    private static WsGroupMap groupManager;
+    private static WsUserMap userManager;
     private WsUser self;
 
     @OnOpen
@@ -184,7 +184,7 @@ public class SocketEndpoint implements ApplicationContextAware {
     public void setApplicationContext(ApplicationContext context) throws BeansException {
         permissionManager = context.getBean(PermissionManager.class);
         settingSupport = context.getBean(SettingSupport.class);
-        groupManager = context.getBean(GroupManager.class);
-        userManager = context.getBean(UserManager.class);
+        groupManager = context.getBean(WsGroupMap.class);
+        userManager = context.getBean(WsUserMap.class);
     }
 }

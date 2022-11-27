@@ -5,21 +5,21 @@ import com.socket.client.exception.SocketException;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
 import com.socket.client.model.enums.Callback;
-import com.socket.webchat.custom.listener.GroupChangeLinstener;
-import com.socket.webchat.custom.listener.command.GroupEnum;
-import com.socket.webchat.custom.listener.event.GroupChangeEvent;
+import com.socket.webchat.custom.event.GroupChangeEvent;
 import com.socket.webchat.mapper.SysGroupMapper;
 import com.socket.webchat.mapper.SysGroupUserMapper;
 import com.socket.webchat.model.SysGroup;
 import com.socket.webchat.model.SysGroupUser;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.enums.Command;
+import com.socket.webchat.model.enums.GroupEnum;
 import com.socket.webchat.model.enums.MessageType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,10 +31,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class GroupManager extends ConcurrentHashMap<SysGroup, List<WsUser>> implements InitializingBean, GroupChangeLinstener {
+public class WsGroupMap extends ConcurrentHashMap<SysGroup, List<WsUser>> {
     private final SysGroupUserMapper sysGroupUserMapper;
     private final SysGroupMapper sysGroupMapper;
-    private final UserManager userManager;
+    private final WsUserMap userManager;
 
     /**
      * 向群组发送消息<br>
@@ -88,7 +88,10 @@ public class GroupManager extends ConcurrentHashMap<SysGroup, List<WsUser>> impl
         return this.get(getGroup(groupId));
     }
 
-    @Override
+    /**
+     * 群组事件监视器
+     */
+    @EventListener(GroupChangeEvent.class)
     public void onGroupChange(GroupChangeEvent event) {
         SysGroupUser guser = event.getUser();
         SysGroup group = event.getGroup();
@@ -104,7 +107,6 @@ public class GroupManager extends ConcurrentHashMap<SysGroup, List<WsUser>> impl
                 break;
             case JOIN:
                 String uid = guser.getUid(), gid = guser.getGroupId();
-                SysGroup sysGroup = getGroup(gid);
                 WsUser user = userManager.getUser(uid);
                 getGroupUsers(gid).add(user);
                 // 发送通知
@@ -120,8 +122,11 @@ public class GroupManager extends ConcurrentHashMap<SysGroup, List<WsUser>> impl
         }
     }
 
-    @Override
-    public void afterPropertiesSet() {
+    /**
+     * 初始化群组数据
+     */
+    @PostConstruct
+    public void initGroupCache() {
         // 缓存群组
         List<SysGroup> sysGroups = sysGroupMapper.selectList(Wrappers.emptyWrapper());
         List<SysGroupUser> groupthis = sysGroupUserMapper.selectList(Wrappers.emptyWrapper());

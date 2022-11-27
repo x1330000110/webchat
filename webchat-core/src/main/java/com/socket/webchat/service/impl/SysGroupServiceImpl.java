@@ -9,13 +9,13 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
 import com.socket.secure.util.Assert;
 import com.socket.webchat.constant.Constants;
-import com.socket.webchat.custom.listener.command.GroupEnum;
-import com.socket.webchat.custom.listener.event.GroupChangeEvent;
+import com.socket.webchat.custom.event.GroupChangeEvent;
 import com.socket.webchat.mapper.SysGroupMapper;
 import com.socket.webchat.mapper.SysGroupUserMapper;
 import com.socket.webchat.model.BaseModel;
 import com.socket.webchat.model.SysGroup;
 import com.socket.webchat.model.SysGroupUser;
+import com.socket.webchat.model.enums.GroupEnum;
 import com.socket.webchat.service.SysGroupService;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
@@ -36,9 +36,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         if (sysGroupUserMapper.selectOne(wrapper) != null) {
             return false;
         }
-        SysGroupUser user = new SysGroupUser();
-        user.setGroupId(groupId);
-        user.setUid(uid);
+        SysGroupUser user = new SysGroupUser(groupId, uid);
         // 推送事件
         if (SqlHelper.retBool(sysGroupUserMapper.insert(user))) {
             GroupChangeEvent event = new GroupChangeEvent(publisher, user, GroupEnum.JOIN);
@@ -73,6 +71,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         // 必要的组名检查
         Assert.isFalse(StrUtil.isEmpty(groupName), "空的群组名称", IllegalStateException::new);
         Assert.isTrue(StrUtil.length(groupName) <= 8, "无效的群组名称", IllegalStateException::new);
+        String userId = Wss.getUserId();
         LambdaQueryWrapper<SysGroup> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(SysGroup::getName, groupName);
         Assert.isNull(getFirst(wrapper), "群组名称已存在", IllegalStateException::new);
@@ -81,11 +80,13 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         String groupId = Constants.GROUP + RandomUtil.randomNumbers(6);
         group.setGroupId(groupId);
         group.setName(groupName);
-        group.setOwner(Wss.getUserId());
+        group.setOwner(userId);
         if (super.save(group)) {
             // 推送事件
             GroupChangeEvent event = new GroupChangeEvent(publisher, group, GroupEnum.CREATE);
             publisher.publishEvent(event);
+            // 加入新建的群组里
+            joinGroup(groupId, userId);
             return groupId;
         }
         return null;
