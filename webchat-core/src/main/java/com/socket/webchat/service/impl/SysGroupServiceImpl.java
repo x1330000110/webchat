@@ -69,10 +69,15 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
     }
 
     public String createGroup(String groupName) {
+        String userId = Wss.getUserId();
+        // 创建检查
+        LambdaQueryWrapper<SysGroup> check = Wrappers.lambdaQuery();
+        check.eq(SysGroup::getOwner, userId);
+        int count = count(check);
+        Assert.isTrue(count <= Constants.MAX_CREATE_GROUP_NUM, "群组创建已达上限", IllegalStateException::new);
         // 必要的组名检查
         Assert.isFalse(StrUtil.isEmpty(groupName), "空的群组名称", IllegalStateException::new);
         Assert.isTrue(StrUtil.length(groupName) <= 8, "无效的群组名称", IllegalStateException::new);
-        String userId = Wss.getUserId();
         LambdaQueryWrapper<SysGroup> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(SysGroup::getName, groupName);
         Assert.isNull(getFirst(wrapper), "群组名称已存在", IllegalStateException::new);

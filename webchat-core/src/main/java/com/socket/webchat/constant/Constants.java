@@ -84,4 +84,8 @@ public interface Constants {
      * 缓存屏蔽列表的时间（单位：小时）
      */
     long SHIELD_CACHE_TIME = 24;
+    /**
+     * 最大群组创建数
+     */
+    int MAX_CREATE_GROUP_NUM = 3;
 }
