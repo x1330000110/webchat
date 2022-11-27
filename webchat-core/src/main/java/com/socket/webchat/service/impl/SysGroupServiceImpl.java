@@ -32,6 +32,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
 
     public boolean joinGroup(String groupId, String uid) {
         LambdaQueryWrapper<SysGroupUser> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(SysGroupUser::getGroupId, groupId);
         wrapper.eq(SysGroupUser::getUid, uid);
         if (sysGroupUserMapper.selectOne(wrapper) != null) {
             return false;
