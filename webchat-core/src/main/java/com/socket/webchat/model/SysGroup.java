@@ -22,4 +22,8 @@ public class SysGroup extends BaseModel {
      * 群所有者uid
      */
     private String owner;
+    /**
+     * 群头像
+     */
+    private String headimgurl;
 }

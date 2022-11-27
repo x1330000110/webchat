@@ -30,6 +30,37 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
     private final SysGroupUserMapper sysGroupUserMapper;
     private final ApplicationEventPublisher publisher;
 
+    public String createGroup(String groupName, String img) {
+        String userId = Wss.getUserId();
+        // 创建检查
+        LambdaQueryWrapper<SysGroup> check = Wrappers.lambdaQuery();
+        check.eq(SysGroup::getOwner, userId);
+        int count = count(check);
+        Assert.isTrue(count <= Constants.MAX_CREATE_GROUP_NUM, "群组创建已达上限", IllegalStateException::new);
+        // 必要的组名检查
+        Assert.isFalse(StrUtil.isEmpty(groupName), "空的群组名称", IllegalStateException::new);
+        Assert.isTrue(StrUtil.length(groupName) <= 8, "无效的群组名称", IllegalStateException::new);
+        LambdaQueryWrapper<SysGroup> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(SysGroup::getName, groupName);
+        Assert.isNull(getFirst(wrapper), "群组名称已存在", IllegalStateException::new);
+        // 写入数据库
+        SysGroup group = new SysGroup();
+        String groupId = Constants.GROUP + RandomUtil.randomNumbers(6);
+        group.setGroupId(groupId);
+        group.setName(groupName);
+        group.setOwner(userId);
+        group.setHeadimgurl(img);
+        if (super.save(group)) {
+            // 推送事件
+            GroupChangeEvent event = new GroupChangeEvent(publisher, group, GroupEnum.CREATE);
+            publisher.publishEvent(event);
+            // 加入新建的群组里
+            joinGroup(groupId, userId);
+            return groupId;
+        }
+        return null;
+    }
+
     public boolean joinGroup(String groupId, String uid) {
         LambdaQueryWrapper<SysGroupUser> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(SysGroupUser::getGroupId, groupId);
@@ -66,36 +97,6 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
             return true;
         }
         return false;
-    }
-
-    public String createGroup(String groupName) {
-        String userId = Wss.getUserId();
-        // 创建检查
-        LambdaQueryWrapper<SysGroup> check = Wrappers.lambdaQuery();
-        check.eq(SysGroup::getOwner, userId);
-        int count = count(check);
-        Assert.isTrue(count <= Constants.MAX_CREATE_GROUP_NUM, "群组创建已达上限", IllegalStateException::new);
-        // 必要的组名检查
-        Assert.isFalse(StrUtil.isEmpty(groupName), "空的群组名称", IllegalStateException::new);
-        Assert.isTrue(StrUtil.length(groupName) <= 8, "无效的群组名称", IllegalStateException::new);
-        LambdaQueryWrapper<SysGroup> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(SysGroup::getName, groupName);
-        Assert.isNull(getFirst(wrapper), "群组名称已存在", IllegalStateException::new);
-        // 写入数据库
-        SysGroup group = new SysGroup();
-        String groupId = Constants.GROUP + RandomUtil.randomNumbers(6);
-        group.setGroupId(groupId);
-        group.setName(groupName);
-        group.setOwner(userId);
-        if (super.save(group)) {
-            // 推送事件
-            GroupChangeEvent event = new GroupChangeEvent(publisher, group, GroupEnum.CREATE);
-            publisher.publishEvent(event);
-            // 加入新建的群组里
-            joinGroup(groupId, userId);
-            return groupId;
-        }
-        return null;
     }
 
     public boolean dissolveGroup(String groupId) {

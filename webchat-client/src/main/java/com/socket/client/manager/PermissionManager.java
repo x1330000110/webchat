@@ -94,6 +94,7 @@ public class PermissionManager {
                 preview.setName(group.getName());
                 preview.setOwner(group.getOwner());
                 preview.setOnline(OnlineState.ONLINE);
+                preview.setHeadimgurl(group.getHeadimgurl());
                 previews.add(preview);
             }
         });
