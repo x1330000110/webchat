@@ -10,7 +10,7 @@
 
 ```
 
---------------                             |----> PermissionManager -----| ---> RedisManager
+--------------                             |----> PermissionManager -------> RedisManager
 webchat-client -------> SocketEndpoint ----|
 --------------                             |----> SettingSupport
 
