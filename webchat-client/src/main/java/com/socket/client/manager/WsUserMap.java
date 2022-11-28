@@ -61,7 +61,6 @@ public class WsUserMap extends ConcurrentHashMap<String, WsUser> {
     public WsUser join(Session session, Map<String, Object> properties) {
         // 查找用户
         Subject subject = (Subject) properties.get(Constants.SUBJECT);
-        HttpSession hs = (HttpSession) properties.get(Constants.HTTP_SESSION);
         SysUser principal = (SysUser) subject.getPrincipal();
         WsUser user = getUser(principal.getUid());
         // 检查重复登录
@@ -70,7 +69,7 @@ public class WsUserMap extends ConcurrentHashMap<String, WsUser> {
             return null;
         }
         // 写入聊天室
-        user.login(session, hs);
+        user.login(session, (HttpSession) properties.get(Constants.HTTP_SESSION));
         // 检查登录限制（会话缓存检查）
         long time = redisManager.getLockTime(user.getUid());
         if (time > 0) {

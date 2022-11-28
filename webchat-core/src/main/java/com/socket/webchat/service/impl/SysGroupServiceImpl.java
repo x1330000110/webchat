@@ -52,8 +52,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         group.setHeadimgurl(img);
         if (super.save(group)) {
             // 推送事件
-            GroupChangeEvent event = new GroupChangeEvent(publisher, group, GroupEnum.CREATE);
-            publisher.publishEvent(event);
+            publisher.publishEvent(new GroupChangeEvent(publisher, group, GroupEnum.CREATE));
             // 加入新建的群组里
             joinGroup(groupId, userId);
             return groupId;
@@ -71,8 +70,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         SysGroupUser user = new SysGroupUser(groupId, uid);
         // 推送事件
         if (SqlHelper.retBool(sysGroupUserMapper.insert(user))) {
-            GroupChangeEvent event = new GroupChangeEvent(publisher, user, GroupEnum.JOIN);
-            publisher.publishEvent(event);
+            publisher.publishEvent(new GroupChangeEvent(publisher, user, GroupEnum.JOIN));
             return true;
         }
         return false;
@@ -92,8 +90,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         // 推送事件
         if (SqlHelper.retBool(sysGroupUserMapper.update(null, wrapper2))) {
             SysGroupUser sysGroupUser = new SysGroupUser(groupId, uid);
-            GroupChangeEvent event = new GroupChangeEvent(publisher, sysGroupUser, GroupEnum.DELETE);
-            publisher.publishEvent(event);
+            publisher.publishEvent(new GroupChangeEvent(publisher, sysGroupUser, GroupEnum.DELETE));
             return true;
         }
         return false;
@@ -110,8 +107,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
             SysGroup group = new SysGroup();
             group.setGroupId(groupId);
             group.setOwner(userId);
-            GroupChangeEvent event = new GroupChangeEvent(publisher, group, GroupEnum.DISSOLVE);
-            publisher.publishEvent(event);
+            publisher.publishEvent(new GroupChangeEvent(publisher, group, GroupEnum.DISSOLVE));
             return true;
         }
         return false;
@@ -127,8 +123,8 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         int ok = sysGroupUserMapper.update(null, wrapper);
         if (SqlHelper.retBool(ok)) {
             // 推送事件
-            GroupChangeEvent event = new GroupChangeEvent(publisher, new SysGroupUser(groupId, userId), GroupEnum.EXIT);
-            publisher.publishEvent(event);
+            SysGroupUser user = new SysGroupUser(groupId, userId);
+            publisher.publishEvent(new GroupChangeEvent(publisher, user, GroupEnum.EXIT));
             return true;
         }
         return false;
