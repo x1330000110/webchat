@@ -16,8 +16,4 @@ public class GroupCondition {
      * 群组名称
      */
     private String groupName;
-    /**
-     * 群头像
-     */
-    private String groupImg;
 }

@@ -30,7 +30,7 @@ public class GroupController {
 
     @PostMapping("/create")
     public HttpStatus createGroup(@RequestBody GroupCondition condition) {
-        String gid = sysGroupService.createGroup(condition.getGroupName(), condition.getGroupImg());
+        String gid = sysGroupService.createGroup(condition.getGroupName());
         return HttpStatus.SUCCESS.body("创建成功", gid);
     }
 

@@ -30,7 +30,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
     private final SysGroupUserMapper sysGroupUserMapper;
     private final ApplicationEventPublisher publisher;
 
-    public String createGroup(String groupName, String img) {
+    public String createGroup(String groupName) {
         String userId = Wss.getUserId();
         // 创建检查
         LambdaQueryWrapper<SysGroup> check = Wrappers.lambdaQuery();
@@ -49,7 +49,6 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         group.setGroupId(groupId);
         group.setName(groupName);
         group.setOwner(userId);
-        group.setHeadimgurl(img);
         if (super.save(group)) {
             // 推送事件
             publisher.publishEvent(new GroupChangeEvent(publisher, group, GroupEnum.CREATE));
