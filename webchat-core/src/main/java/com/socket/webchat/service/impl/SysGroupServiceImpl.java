@@ -104,6 +104,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         LambdaUpdateWrapper<SysGroup> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(SysGroup::getGroupId, groupId);
         wrapper.eq(SysGroup::getOwner, userId);
+        wrapper.set(BaseModel::isDeleted, 1);
         if (super.update(wrapper)) {
             // 推送事件
             SysGroup group = new SysGroup();
