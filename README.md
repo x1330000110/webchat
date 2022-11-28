@@ -9,11 +9,10 @@
 #### 层级结构
 
 ```
-                                                                         | ---> UserManager -------> UserChangeLinstener
-                                                                         |
---------------                             |----> PermissionManager -----| ---> GroupManager ------> GroupChangeLinstener
-webchat-client -------> SocketEndpoint ----|                             |
---------------                             |----> SettingSupport         | ---> RedisManager
+
+--------------                             |----> PermissionManager -----| ---> RedisManager
+webchat-client -------> SocketEndpoint ----|
+--------------                             |----> SettingSupport
 
                        |---> message
                        |                      | ------> BaiduSpeech
