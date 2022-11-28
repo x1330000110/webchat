@@ -58,6 +58,11 @@ public class SecureProperties {
      * This configuration is only valid for {@link MappedRepeatValidator}
      */
     private int maximumConcurrencyPerSecond = 1000;
+    /**
+     * Always verify the IP address uniqueness of the request
+     * (turning off this configuration may be at risk of man-in-the-middle attack)
+     */
+    private boolean verifyRequestRemote = true;
 
     public int getDisguiseFilesCount() {
         return disguiseFilesCount;
@@ -104,5 +109,13 @@ public class SecureProperties {
 
     public void setMaximumConcurrencyPerSecond(int scond) {
         this.maximumConcurrencyPerSecond = scond;
+    }
+
+    public boolean isVerifyRequestRemote() {
+        return verifyRequestRemote;
+    }
+
+    public void setVerifyRequestRemote(boolean verifyRequestRemote) {
+        this.verifyRequestRemote = verifyRequestRemote;
     }
 }

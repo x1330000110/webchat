@@ -64,8 +64,10 @@ public final class SecureRequestFilter implements Filter {
         // Decrypt request
         if (anno != null) {
             // check hash ip
-            boolean checkHash = IPHash.checkHash(_request.getSession(), ServletUtil.getClientIP(_request));
-            Assert.isTrue(checkHash, RequsetTemplate.IP_ADDRESS_MISMATCH, InvalidRequestException::new);
+            if (properties.isVerifyRequestRemote()) {
+                boolean checkHash = IPHash.checkHash(_request.getSession(), ServletUtil.getClientIP(_request));
+                Assert.isTrue(checkHash, RequsetTemplate.IP_ADDRESS_MISMATCH, InvalidRequestException::new);
+            }
             try {
                 SecureRequestWrapper wrapper = new SecureRequestWrapper(_request);
                 // Decryption request
