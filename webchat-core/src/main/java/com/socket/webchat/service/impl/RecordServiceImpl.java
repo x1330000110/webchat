@@ -192,7 +192,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         wrapper.eq(ChatRecord::getUid, target);
         wrapper.eq(ChatRecord::getMid, mid);
         wrapper.eq(ChatRecord::getTarget, Wss.getUserId());
-        wrapper.set(ChatRecord::isUnread, false);
+        wrapper.set(ChatRecord::isUnread, 0);
         super.update(wrapper);
     }
 
@@ -205,7 +205,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         wrapper.eq(ChatRecord::getTarget, uid);
         // 语音消息已读设置
         wrapper.ne(!audio, ChatRecord::getType, MessageType.AUDIO.getName());
-        wrapper.set(ChatRecord::isUnread, false);
+        wrapper.set(ChatRecord::isUnread, 0);
         super.update(wrapper);
         // 清空redis计数器
         redisManager.setUnreadCount(uid, target, 0);

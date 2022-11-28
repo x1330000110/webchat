@@ -1,5 +1,6 @@
 package com.socket.client.manager;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.lang.Opt;
 import cn.hutool.core.util.StrUtil;
 import com.socket.client.model.UserPreview;
@@ -87,14 +88,11 @@ public class PermissionManager {
             List<String> uids = value.stream().map(SysUser::getUid).collect(Collectors.toList());
             // 需要在群里
             if (uids.contains(suid)) {
-                UserPreview preview = new UserPreview();
+                UserPreview preview = BeanUtil.copyProperties(group, UserPreview.class);
                 preview.setIsgroup(true);
                 preview.setMembers(uids);
                 preview.setUid(group.getGroupId());
-                preview.setName(group.getName());
-                preview.setOwner(group.getOwner());
                 preview.setOnline(OnlineState.ONLINE);
-                preview.setHeadimgurl(group.getHeadimgurl());
                 previews.add(preview);
             }
         });

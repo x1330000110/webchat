@@ -10,7 +10,6 @@ import com.socket.webchat.mapper.SysGroupMapper;
 import com.socket.webchat.mapper.SysGroupUserMapper;
 import com.socket.webchat.model.SysGroup;
 import com.socket.webchat.model.SysGroupUser;
-import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.enums.Command;
 import com.socket.webchat.model.enums.GroupEnum;
 import com.socket.webchat.model.enums.MessageType;
@@ -50,7 +49,7 @@ public class WsGroupMap extends ConcurrentHashMap<SysGroup, List<WsUser>> {
     /**
      * @see #sendGroup(String, String, Command, Object)
      */
-    public <T extends SysUser> void sendGroup(String groupId, String content, Command<?> type) {
+    public void sendGroup(String groupId, String content, Command<?> type) {
         sendGroup(groupId, content, type, null);
     }
 
