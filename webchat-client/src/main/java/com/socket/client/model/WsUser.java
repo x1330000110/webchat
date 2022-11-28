@@ -140,12 +140,14 @@ public class WsUser extends SysUser {
     /**
      * 设置登录数据
      *
-     * @param ws ws session
-     * @param hs http session
+     * @param ws      ws session
+     * @param hs      http session
+     * @param subject shiro
      */
-    public void login(Session ws, HttpSession hs) {
+    public void login(Session ws, HttpSession hs, Subject subject) {
         this.ws = ws;
         this.hs = hs;
+        this.subject = subject;
         this.platform = (String) hs.getAttribute(Constants.PLATFORM);
         this.ip = (String) hs.getAttribute(Constants.IP);
         this.online = OnlineState.ONLINE;
@@ -170,6 +172,7 @@ public class WsUser extends SysUser {
         if (reason != null && subject != null) {
             subject.logout();
             this.subject = null;
+            this.hs = null;
         }
         this.online = null;
     }

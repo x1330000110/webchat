@@ -65,11 +65,11 @@ public class WsUserMap extends ConcurrentHashMap<String, WsUser> {
         WsUser user = getUser(principal.getUid());
         // 检查重复登录
         if (user.isOnline()) {
-            this.exit(user, "您的账号已在别处登录");
-            return null;
+            user.logout("您的账号已在别处登录");
         }
         // 写入聊天室
-        user.login(session, (HttpSession) properties.get(Constants.HTTP_SESSION));
+        HttpSession hs = (HttpSession) properties.get(Constants.HTTP_SESSION);
+        user.login(session, hs, subject);
         // 检查登录限制（会话缓存检查）
         long time = redisManager.getLockTime(user.getUid());
         if (time > 0) {
