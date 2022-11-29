@@ -195,5 +195,14 @@ public class WsUser extends SysUser {
     public boolean isOnline() {
         return online != null;
     }
-}
 
+    /**
+     * 判断HTTP Session是否与现存的不同（用于网络断开重连）
+     *
+     * @param session http session
+     * @return 是否不同
+     */
+    public boolean differentSession(HttpSession session) {
+        return hs == null || !Objects.equals(hs.getId(), session.getId());
+    }
+}

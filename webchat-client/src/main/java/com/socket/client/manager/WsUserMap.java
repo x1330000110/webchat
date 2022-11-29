@@ -63,12 +63,12 @@ public class WsUserMap extends ConcurrentHashMap<String, WsUser> {
         Subject subject = (Subject) properties.get(Constants.SUBJECT);
         SysUser principal = (SysUser) subject.getPrincipal();
         WsUser user = getUser(principal.getUid());
+        HttpSession hs = (HttpSession) properties.get(Constants.HTTP_SESSION);
         // 检查重复登录
-        if (user.isOnline()) {
+        if (user.isOnline() && user.differentSession(hs)) {
             user.logout("您的账号已在别处登录");
         }
         // 写入聊天室
-        HttpSession hs = (HttpSession) properties.get(Constants.HTTP_SESSION);
         user.login(session, hs, subject);
         // 检查登录限制（会话缓存检查）
         long time = redisManager.getLockTime(user.getUid());
