@@ -74,7 +74,7 @@ public class WsGroupMap extends ConcurrentHashMap<SysGroup, List<WsUser>> {
         return this.keySet().stream()
                 .filter(e -> e.getGroupId().equals(groupId))
                 .findFirst()
-                .orElseThrow(() -> new SocketException(Callback.USER_NOT_FOUND.format(groupId), MessageType.DANGER));
+                .orElseThrow(() -> new SocketException(Callback.GROUP_NOT_FOUND.format(groupId), MessageType.DANGER));
     }
 
     /**

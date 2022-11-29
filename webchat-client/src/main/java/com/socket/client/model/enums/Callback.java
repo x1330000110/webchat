@@ -9,6 +9,7 @@ import com.socket.webchat.util.Wss;
  */
 public enum Callback {
     USER_NOT_FOUND("找不到相关用户（可能已注销）: {}"),
+    GROUP_NOT_FOUND("找不到相关群组（可能已解散）: {}"),
     BRUSH_SCREEN("检查到存在刷屏行为，您已被禁言{}"),
     LOGIN_LIMIT("您已被管理员限制登陆{}"),
     GROUP_DISSOLVE("群 {} 已被创建者解散");
