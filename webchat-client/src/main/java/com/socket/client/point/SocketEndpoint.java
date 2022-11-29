@@ -34,19 +34,19 @@ import java.util.Optional;
 public class SocketEndpoint implements ApplicationContextAware {
     private static PermissionManager permissionManager;
     private static SettingSupport settingSupport;
-    private static WsGroupMap groupManager;
-    private static WsUserMap userManager;
+    private static WsGroupMap groupMap;
+    private static WsUserMap userMap;
     private WsUser self;
 
     @OnOpen
     public void onOpen(Session session, EndpointConfig config) {
         // 加入聊天室
-        Optional.ofNullable(userManager.join(session, config.getUserProperties())).ifPresent(user -> {
+        Optional.ofNullable(userMap.join(session, config.getUserProperties())).ifPresent(user -> {
             // 推送所有用户数据
             Collection<UserPreview> userList = permissionManager.getUserPreviews(user);
             user.send("Initialize user", MessageType.INIT, userList);
             // 向其他人发送加入通知
-            userManager.sendAll(MessageType.JOIN, user);
+            userMap.sendAll(MessageType.JOIN, user);
             // 检查禁言
             permissionManager.checkMute(user);
             this.self = user;
@@ -56,9 +56,9 @@ public class SocketEndpoint implements ApplicationContextAware {
     @OnClose
     public void onClose() {
         Optional.ofNullable(self).ifPresent(user -> {
-            userManager.exit(user, null);
+            userMap.exit(user, null);
             // 退出通知
-            userManager.sendAll(MessageType.EXIT, user);
+            userMap.sendAll(MessageType.EXIT, user);
         });
     }
 
@@ -97,8 +97,8 @@ public class SocketEndpoint implements ApplicationContextAware {
         permissionManager.operateMark(self);
         // 群组消息
         if (wsmsg.isGroup()) {
-            groupManager.sendGroup(wsmsg);
-            userManager.cacheRecord(wsmsg, true);
+            groupMap.sendGroup(wsmsg);
+            userMap.cacheRecord(wsmsg, true);
             return;
         }
         // 你屏蔽了目标
@@ -118,7 +118,7 @@ public class SocketEndpoint implements ApplicationContextAware {
             }
         } finally {
             // 已读条件：消息未送达，目标是群组，目标正在选择你
-            userManager.cacheRecord(wsmsg, wsmsg.isReject() || wsmsg.isGroup() || target.chooseTarget(self));
+            userMap.cacheRecord(wsmsg, wsmsg.isReject() || wsmsg.isGroup() || target.chooseTarget(self));
         }
     }
 
@@ -129,8 +129,8 @@ public class SocketEndpoint implements ApplicationContextAware {
         boolean sysuid = Constants.SYSTEM_UID.equals(wsmsg.getTarget());
         boolean text = Objects.equals(wsmsg.getType(), MessageType.TEXT.toString());
         // 判断AI消息
-        if (sysuid && text && !userManager.getUser(Constants.SYSTEM_UID).isOnline()) {
-            userManager.sendAIMessage(self, wsmsg);
+        if (sysuid && text && !userMap.getUser(Constants.SYSTEM_UID).isOnline()) {
+            userMap.sendAIMessage(self, wsmsg);
         }
     }
 
@@ -140,7 +140,7 @@ public class SocketEndpoint implements ApplicationContextAware {
             case CHANGE:
                 String content = wsmsg.getContent();
                 self.setOnline(OnlineState.of(content));
-                userManager.sendAll(content, MessageType.CHANGE, self);
+                userMap.sendAll(content, MessageType.CHANGE, self);
                 break;
             case CHOOSE:
                 this.choose(target, wsmsg);
@@ -175,8 +175,8 @@ public class SocketEndpoint implements ApplicationContextAware {
      */
     private void choose(WsUser target, WsMsg wsmsg) {
         self.setChoose(wsmsg.getTarget());
-        if (!wsmsg.isGroup() && userManager.getUnreadCount(self, target) > 0) {
-            userManager.readAllMessage(self, target, false);
+        if (!wsmsg.isGroup() && userMap.getUnreadCount(self, target) > 0) {
+            userMap.readAllMessage(self, target, false);
         }
     }
 
@@ -184,7 +184,7 @@ public class SocketEndpoint implements ApplicationContextAware {
     public void setApplicationContext(ApplicationContext context) throws BeansException {
         permissionManager = context.getBean(PermissionManager.class);
         settingSupport = context.getBean(SettingSupport.class);
-        groupManager = context.getBean(WsGroupMap.class);
-        userManager = context.getBean(WsUserMap.class);
+        groupMap = context.getBean(WsGroupMap.class);
+        userMap = context.getBean(WsUserMap.class);
     }
 }
