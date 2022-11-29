@@ -1,6 +1,7 @@
 package com.socket.client.point;
 
 import com.socket.client.config.SocketConfig;
+import com.socket.client.exception.SocketException;
 import com.socket.client.manager.PermissionManager;
 import com.socket.client.manager.WsGroupMap;
 import com.socket.client.manager.WsUserMap;
@@ -9,6 +10,7 @@ import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
 import com.socket.client.model.enums.OnlineState;
 import com.socket.client.util.Assert;
+import com.socket.secure.exception.InvalidRequestException;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.support.SettingSupport;
 import com.socket.webchat.model.enums.MessageType;
@@ -64,7 +66,15 @@ public class SocketEndpoint implements ApplicationContextAware {
 
     @OnError
     public void onError(Throwable e) {
-        log.error("", e);
+        if (e instanceof InvalidRequestException) {
+            log.warn("安全验证失败：{}", e.getMessage());
+            return;
+        }
+        if (e instanceof SocketException) {
+            log.warn("非法操作拦截：{}", e.getMessage());
+            return;
+        }
+        log.error("Ws内部处理错误: ", e);
     }
 
     @OnMessage
