@@ -56,7 +56,7 @@ public class MessageController {
         return HttpStatus.state(state, "操作");
     }
 
-    @GetMapping
+    @GetMapping("")
     public HttpStatus records(String mid, String target, HttpSession session) {
         List<ChatRecord> list = recordService.getRecords(mid, target);
         // 加密消息
