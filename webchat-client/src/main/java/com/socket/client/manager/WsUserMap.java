@@ -138,7 +138,7 @@ public class WsUserMap extends ConcurrentHashMap<String, WsUser> {
     public void cacheRecord(WsMsg wsmsg, boolean isread) {
         ChatRecord record = BeanUtil.copyProperties(wsmsg, ChatRecord.class);
         // 群组以外的语音消息始终未读
-        boolean audio = !wsmsg.isGroup() && Objects.equals(wsmsg.getType(), MessageType.AUDIO.toString());
+        boolean audio = !wsmsg.isGroup() && Objects.equals(wsmsg.getType(), MessageType.AUDIO.getName());
         record.setUnread(audio || !isread);
         kafkaTemplate.send(Constants.KAFKA_RECORD, JSONUtil.toJsonStr(record));
         // 目标列表添加发起者uid

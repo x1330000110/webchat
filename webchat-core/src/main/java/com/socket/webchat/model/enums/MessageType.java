@@ -63,19 +63,17 @@ public enum MessageType implements Command<MessageType> {
     CANDIDATE,
     LEAVE;
 
-    private final String name;
     private String preview;
 
     MessageType() {
-        this.name = name().toLowerCase();
     }
 
     MessageType(String preview) {
-        this();
         this.preview = preview;
     }
 
+    @Override
     public String getName() {
-        return name;
+        return name().toLowerCase();
     }
 }
