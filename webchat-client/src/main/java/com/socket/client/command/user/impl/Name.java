@@ -4,6 +4,9 @@ import com.socket.client.command.user.UserHandler;
 import com.socket.client.model.WsUser;
 import org.springframework.stereotype.Component;
 
+/**
+ * 昵称变更
+ */
 @Component
 public class Name extends UserHandler {
     @Override

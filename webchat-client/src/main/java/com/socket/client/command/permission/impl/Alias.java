@@ -5,6 +5,9 @@ import com.socket.client.model.WsUser;
 import com.socket.webchat.model.command.impl.PermissionEnum;
 import org.springframework.stereotype.Component;
 
+/**
+ * 设置头衔
+ */
 @Component
 public class Alias extends PermissionHandler {
     @Override

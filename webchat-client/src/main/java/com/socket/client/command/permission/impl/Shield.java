@@ -5,6 +5,9 @@ import com.socket.client.model.WsUser;
 import com.socket.webchat.model.command.impl.PermissionEnum;
 import org.springframework.stereotype.Component;
 
+/**
+ * 屏蔽
+ */
 @Component
 public class Shield extends PermissionHandler {
     @Override

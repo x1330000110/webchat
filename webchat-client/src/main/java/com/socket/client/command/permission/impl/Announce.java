@@ -5,6 +5,9 @@ import com.socket.client.model.WsUser;
 import com.socket.webchat.model.command.impl.PermissionEnum;
 import org.springframework.stereotype.Component;
 
+/**
+ * 发布公告
+ */
 @Component
 public class Announce extends PermissionHandler {
     @Override

@@ -7,6 +7,9 @@ import com.socket.webchat.model.SysGroupUser;
 import com.socket.webchat.model.command.impl.GroupEnum;
 import org.springframework.stereotype.Component;
 
+/**
+ * 移除群组用户
+ */
 @Component
 public class Delete extends GroupHandler {
     @Override

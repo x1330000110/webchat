@@ -7,6 +7,9 @@ import com.socket.webchat.model.SysGroupUser;
 import com.socket.webchat.model.command.impl.GroupEnum;
 import org.springframework.stereotype.Component;
 
+/**
+ * 解散群组
+ */
 @Component
 public class Dissolve extends GroupHandler {
     @Override

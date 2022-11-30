@@ -8,6 +8,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * 退出群组
+ */
 @Component
 public class Exit extends GroupHandler {
     @Override

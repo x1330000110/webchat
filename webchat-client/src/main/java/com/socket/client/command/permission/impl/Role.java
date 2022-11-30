@@ -6,6 +6,9 @@ import com.socket.webchat.model.command.impl.PermissionEnum;
 import com.socket.webchat.model.enums.UserRole;
 import org.springframework.stereotype.Component;
 
+/**
+ * 设置管理员
+ */
 @Component
 public class Role extends PermissionHandler {
     @Override

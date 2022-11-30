@@ -8,6 +8,9 @@ import com.socket.webchat.model.command.impl.PermissionEnum;
 import com.socket.webchat.util.Wss;
 import org.springframework.stereotype.Component;
 
+/**
+ * 撤回消息
+ */
 @Component
 public class Withdraw extends PermissionHandler {
     @Override

@@ -6,6 +6,9 @@ import com.socket.client.model.enums.Callback;
 import com.socket.webchat.model.command.impl.PermissionEnum;
 import org.springframework.stereotype.Component;
 
+/**
+ * 限制登陆
+ */
 @Component
 public class Lock extends PermissionHandler {
     @Override

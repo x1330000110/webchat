@@ -4,6 +4,9 @@ import com.socket.client.command.permission.PermissionHandler;
 import com.socket.client.model.WsUser;
 import org.springframework.stereotype.Component;
 
+/**
+ * 永久限制登陆
+ */
 @Component
 public class Forever extends PermissionHandler {
     @Override

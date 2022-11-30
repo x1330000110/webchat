@@ -7,6 +7,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 
+/**
+ * 创建群组
+ */
 @Component
 public class Create extends GroupHandler {
 

@@ -7,6 +7,9 @@ import com.socket.webchat.model.SysGroupUser;
 import com.socket.webchat.model.command.impl.GroupEnum;
 import org.springframework.stereotype.Component;
 
+/**
+ * 加入群组
+ */
 @Component
 public class Join extends GroupHandler {
     @Override
