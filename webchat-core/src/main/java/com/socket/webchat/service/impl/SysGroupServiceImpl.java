@@ -9,7 +9,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
 import com.socket.secure.util.Assert;
 import com.socket.webchat.constant.Constants;
-import com.socket.webchat.custom.event.GroupChangeEvent;
 import com.socket.webchat.mapper.SysGroupMapper;
 import com.socket.webchat.mapper.SysGroupUserMapper;
 import com.socket.webchat.model.BaseModel;
@@ -17,10 +16,10 @@ import com.socket.webchat.model.SysGroup;
 import com.socket.webchat.model.SysGroupUser;
 import com.socket.webchat.model.command.impl.GroupEnum;
 import com.socket.webchat.service.SysGroupService;
+import com.socket.webchat.util.Publisher;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -28,7 +27,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> implements SysGroupService {
     private final SysGroupUserMapper sysGroupUserMapper;
-    private final ApplicationEventPublisher publisher;
+    private final Publisher publisher;
 
     public String createGroup(String groupName) {
         String userId = Wss.getUserId();
@@ -51,7 +50,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         group.setOwner(userId);
         if (super.save(group)) {
             // 推送事件
-            publisher.publishEvent(new GroupChangeEvent(publisher, group, GroupEnum.CREATE));
+            publisher.pushGroupEvent(group, GroupEnum.CREATE);
             // 加入新建的群组里
             joinGroup(groupId, userId);
             return groupId;
@@ -69,7 +68,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         SysGroupUser user = new SysGroupUser(groupId, uid);
         // 推送事件
         if (SqlHelper.retBool(sysGroupUserMapper.insert(user))) {
-            publisher.publishEvent(new GroupChangeEvent(publisher, user, GroupEnum.JOIN));
+            publisher.pushGroupEvent(user, GroupEnum.JOIN);
             return true;
         }
         return false;
@@ -88,8 +87,8 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         wrapper2.set(BaseModel::isDeleted, 1);
         // 推送事件
         if (SqlHelper.retBool(sysGroupUserMapper.update(null, wrapper2))) {
-            SysGroupUser sysGroupUser = new SysGroupUser(groupId, uid);
-            publisher.publishEvent(new GroupChangeEvent(publisher, sysGroupUser, GroupEnum.DELETE));
+            SysGroupUser groupUser = new SysGroupUser(groupId, uid);
+            publisher.pushGroupEvent(groupUser, GroupEnum.DELETE);
             return true;
         }
         return false;
@@ -106,7 +105,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
             SysGroup group = new SysGroup();
             group.setGroupId(groupId);
             group.setOwner(userId);
-            publisher.publishEvent(new GroupChangeEvent(publisher, group, GroupEnum.DISSOLVE));
+            publisher.pushGroupEvent(group, GroupEnum.DISSOLVE);
             return true;
         }
         return false;
@@ -123,7 +122,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         if (SqlHelper.retBool(ok)) {
             // 推送事件
             SysGroupUser user = new SysGroupUser(groupId, userId);
-            publisher.publishEvent(new GroupChangeEvent(publisher, user, GroupEnum.EXIT));
+            publisher.pushGroupEvent(user, GroupEnum.EXIT);
             return true;
         }
         return false;

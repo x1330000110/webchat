@@ -7,7 +7,6 @@ import com.socket.secure.exception.InvalidRequestException;
 import com.socket.secure.filter.anno.Encrypted;
 import com.socket.secure.util.Assert;
 import com.socket.webchat.custom.RedisManager;
-import com.socket.webchat.custom.event.PermissionEvent;
 import com.socket.webchat.custom.support.SettingSupport;
 import com.socket.webchat.model.Announce;
 import com.socket.webchat.model.ChatRecord;
@@ -21,9 +20,9 @@ import com.socket.webchat.model.enums.Setting;
 import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.service.RecordService;
 import com.socket.webchat.service.SysUserService;
+import com.socket.webchat.util.Publisher;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -33,11 +32,11 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/owner")
 public class OwnerController {
-    private final ApplicationEventPublisher publisher;
     private final SettingSupport settingSupport;
     private final SysUserService sysUserService;
     private final RecordService recordService;
     private final RedisManager redisManager;
+    private final Publisher publisher;
 
     @ModelAttribute
     public void checkPermission() {
@@ -49,7 +48,7 @@ public class OwnerController {
         String uid = condition.getUid();
         String content = condition.getContent();
         sysUserService.updateAlias(uid, content);
-        publisher.publishEvent(new PermissionEvent(publisher, uid, content, PermissionEnum.ALIAS));
+        publisher.pushPermissionEvent(uid, content, PermissionEnum.ALIAS);
     }
 
     @PostMapping("/role")
@@ -57,7 +56,7 @@ public class OwnerController {
         String uid = condition.getUid();
         UserRole role = sysUserService.switchRole(uid);
         Wss.getUser().setRole(role);
-        publisher.publishEvent(new PermissionEvent(publisher, uid, role.getRole(), PermissionEnum.ROLE));
+        publisher.pushPermissionEvent(uid, role.getRole(), PermissionEnum.ROLE);
     }
 
     @PostMapping("/announce")
@@ -65,7 +64,7 @@ public class OwnerController {
         String content = announce.getContent();
         redisManager.pushNotice(content);
         if (StrUtil.isNotEmpty(content)) {
-            publisher.publishEvent(new PermissionEvent(publisher, content, PermissionEnum.ANNOUNCE));
+            publisher.pushPermissionEvent(content, PermissionEnum.ANNOUNCE);
         }
     }
 
@@ -78,7 +77,7 @@ public class OwnerController {
         wrapper.set(SysUser::isDeleted, 1);
         boolean update = sysUserService.update(wrapper);
         if (update) {
-            publisher.publishEvent(new PermissionEvent(publisher, uid, PermissionEnum.FOREVER));
+            publisher.pushPermissionEvent(uid, PermissionEnum.FOREVER);
         }
         return HttpStatus.of(update, "操作成功", "找不到此用户");
     }

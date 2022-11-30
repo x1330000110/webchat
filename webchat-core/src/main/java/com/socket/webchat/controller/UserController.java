@@ -3,7 +3,6 @@ package com.socket.webchat.controller;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.http.HttpRequest;
 import com.socket.secure.filter.anno.Encrypted;
-import com.socket.webchat.custom.event.PermissionEvent;
 import com.socket.webchat.model.Announce;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.command.impl.PermissionEnum;
@@ -13,10 +12,10 @@ import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.service.ShieldUserService;
 import com.socket.webchat.service.SysUserService;
+import com.socket.webchat.util.Publisher;
 import com.socket.webchat.util.RedisClient;
 import lombok.RequiredArgsConstructor;
 import org.apache.shiro.SecurityUtils;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.support.collections.RedisMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,10 +27,10 @@ import java.util.Objects;
 @RequestMapping("/user")
 @RequiredArgsConstructor
 public class UserController {
-    private final ApplicationEventPublisher publisher;
     private final ShieldUserService shieldUserService;
     private final SysUserService sysUserService;
     private final RedisClient<String> redis;
+    private final Publisher publisher;
 
     @Encrypted
     @PostMapping(value = "/material")
@@ -86,7 +85,7 @@ public class UserController {
     public HttpStatus shield(@RequestBody UserCondition condition) {
         String uid = condition.getUid();
         boolean b = shieldUserService.shieldTarget(uid);
-        publisher.publishEvent(new PermissionEvent(publisher, uid, null, PermissionEnum.SHIELD));
+        publisher.pushPermissionEvent(uid, null, PermissionEnum.SHIELD);
         return HttpStatus.of(b, "屏蔽成功", "取消屏蔽");
     }
 }

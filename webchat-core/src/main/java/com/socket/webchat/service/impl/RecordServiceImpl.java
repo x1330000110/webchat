@@ -12,7 +12,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.secure.util.Assert;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.RedisManager;
-import com.socket.webchat.custom.event.PermissionEvent;
 import com.socket.webchat.mapper.ChatRecordDeletedMapper;
 import com.socket.webchat.mapper.ChatRecordMapper;
 import com.socket.webchat.mapper.ChatRecordOffsetMapper;
@@ -23,11 +22,11 @@ import com.socket.webchat.model.ChatRecordOffset;
 import com.socket.webchat.model.command.impl.MessageType;
 import com.socket.webchat.model.command.impl.PermissionEnum;
 import com.socket.webchat.service.RecordService;
+import com.socket.webchat.util.Publisher;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -38,10 +37,10 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord> implements RecordService {
-    private final ApplicationEventPublisher publisher;
     private final ChatRecordDeletedMapper deletedMapper;
     private final ChatRecordOffsetMapper offsetMapper;
     private final RedisManager redisManager;
+    private final Publisher publisher;
 
     @KafkaListener(topics = Constants.KAFKA_RECORD)
     public void saveRecord(ConsumerRecord<String, String> data) {
@@ -119,7 +118,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
             }
             // 通知成员撤回
             if (!record.isReject()) {
-                publisher.publishEvent(new PermissionEvent(publisher, record, PermissionEnum.WITHDRAW));
+                publisher.pushPermissionEvent(record, PermissionEnum.WITHDRAW);
             }
             return true;
         }

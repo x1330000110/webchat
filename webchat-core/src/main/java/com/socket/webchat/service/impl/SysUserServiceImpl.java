@@ -14,7 +14,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.secure.util.Assert;
 import com.socket.webchat.constant.Constants;
-import com.socket.webchat.custom.event.UserChangeEvent;
 import com.socket.webchat.exception.AccountException;
 import com.socket.webchat.exception.UploadException;
 import com.socket.webchat.mapper.SysUserMapper;
@@ -40,7 +39,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.authc.UsernamePasswordToken;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.awt.*;
@@ -54,13 +52,12 @@ import java.util.concurrent.TimeUnit;
 @Service
 @RequiredArgsConstructor
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
-    private final ApplicationEventPublisher publisher;
     private final SysGroupService sysGroupService;
     private final UploadService uploadService;
-
     private final QQAccountRequest qqAccountRequest;
     private final LanzouCloudRequest lanzouRequest;
     private final RedisClient<Object> redis;
+    private final Publisher publisher;
     private final Email sender;
 
     @Override
@@ -181,7 +178,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         wrapper.eq(SysUser::getUid, Wss.getUserId());
         Assert.isTrue(super.update(user, wrapper), "修改失败", IllegalStateException::new);
         // 推送变动事件
-        publisher.publishEvent(new UserChangeEvent(publisher, UserEnum.NAME, user.getName()));
+        publisher.pushUserEvent(user.getName(), UserEnum.NAME);
     }
 
     @Override
@@ -214,7 +211,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 保存文件映射
         uploadService.save(new ChatRecordFile(null, FileType.IMAGE.getKey(), url, hash, (long) bytes.length));
         // 推送变动事件
-        publisher.publishEvent(new UserChangeEvent(publisher, UserEnum.HEADIMG, mapping));
+        publisher.pushUserEvent(mapping, UserEnum.HEADIMG);
         return mapping;
     }
 
