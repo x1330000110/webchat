@@ -1,4 +1,4 @@
-package com.socket.client.command.user;
+package com.socket.client.command.userchange;
 
 import com.socket.client.command.CommandHandler;
 import com.socket.client.manager.WsUserMap;

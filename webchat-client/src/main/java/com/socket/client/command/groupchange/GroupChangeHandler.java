@@ -1,4 +1,4 @@
-package com.socket.client.command.group;
+package com.socket.client.command.groupchange;
 
 import com.socket.client.command.CommandHandler;
 import com.socket.client.manager.WsGroupMap;

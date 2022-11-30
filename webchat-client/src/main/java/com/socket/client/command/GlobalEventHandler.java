@@ -1,9 +1,9 @@
 package com.socket.client.command;
 
 import cn.hutool.core.util.StrUtil;
-import com.socket.client.command.group.GroupChangeHandler;
+import com.socket.client.command.groupchange.GroupChangeHandler;
 import com.socket.client.command.permission.PermissionHandler;
-import com.socket.client.command.user.UserChangeHandler;
+import com.socket.client.command.userchange.UserChangeHandler;
 import com.socket.webchat.custom.event.GroupChangeEvent;
 import com.socket.webchat.custom.event.PermissionEvent;
 import com.socket.webchat.custom.event.UserChangeEvent;
