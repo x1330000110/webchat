@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * 全局命令处理
+ * 全局命令事件处理
  */
 @Component
 @RequiredArgsConstructor
