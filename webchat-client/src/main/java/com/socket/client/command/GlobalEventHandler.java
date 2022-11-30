@@ -3,7 +3,7 @@ package com.socket.client.command;
 import com.socket.client.command.group.GroupHandler;
 import com.socket.client.command.permission.PermissionHandler;
 import com.socket.client.command.user.UserHandler;
-import com.socket.client.exception.InvalidCommandException;
+import com.socket.client.exception.CommandHandlerNotFoundException;
 import com.socket.webchat.custom.event.GroupChangeEvent;
 import com.socket.webchat.custom.event.PermissionEvent;
 import com.socket.webchat.custom.event.UserChangeEvent;
@@ -60,12 +60,12 @@ public class GlobalEventHandler {
      * @param handlers 执行器集合
      * @param command  命令
      * @return 执行器
-     * @throws InvalidCommandException 找不到执行器
+     * @throws CommandHandlerNotFoundException 找不到执行器
      */
     private <T extends CommandHandler<?>, C extends Enum<?> & Command<?>> T getHandler(List<T> handlers, C command) {
         return handlers.stream()
                 .filter(e -> e.getClass().getSimpleName().equalsIgnoreCase(command.name()))
                 .findFirst()
-                .orElseThrow(() -> new InvalidCommandException(command));
+                .orElseThrow(() -> new CommandHandlerNotFoundException(command));
     }
 }
