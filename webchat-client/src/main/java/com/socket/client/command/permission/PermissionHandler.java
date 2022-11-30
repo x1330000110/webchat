@@ -21,7 +21,7 @@ public abstract class PermissionHandler implements CommandHandler<PermissionEven
 
     public void execute(PermissionEvent event) {
         ChatRecord record = event.getRecord();
-        // 消息不为空则实现撤回功能
+        // 消息不为空则实现对消息的处理
         if (record != null) {
             execute(record);
             return;
