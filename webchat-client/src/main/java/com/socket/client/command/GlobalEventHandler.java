@@ -1,9 +1,9 @@
 package com.socket.client.command;
 
+import cn.hutool.core.util.StrUtil;
 import com.socket.client.command.group.GroupHandler;
 import com.socket.client.command.permission.PermissionHandler;
 import com.socket.client.command.user.UserHandler;
-import com.socket.client.exception.CommandHandlerNotFoundException;
 import com.socket.webchat.custom.event.GroupChangeEvent;
 import com.socket.webchat.custom.event.PermissionEvent;
 import com.socket.webchat.custom.event.UserChangeEvent;
@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * 全局命令事件处理
@@ -23,9 +23,9 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class GlobalEventHandler {
-    private final List<PermissionHandler> permissionHandlers;
-    private final List<GroupHandler> groupHandlers;
-    private final List<UserHandler> userHandlers;
+    private final Map<String, PermissionHandler> permissionHandlers;
+    private final Map<String, GroupHandler> groupHandlers;
+    private final Map<String, UserHandler> userHandlers;
 
     /**
      * 群组事件
@@ -33,7 +33,7 @@ public class GlobalEventHandler {
     @EventListener(GroupChangeEvent.class)
     public void onGroupChange(GroupChangeEvent event) {
         GroupEnum command = event.getOperation();
-        getHandler(groupHandlers, command).execute(event);
+        groupHandlers.get(key(command)).execute(event);
     }
 
     /**
@@ -42,7 +42,7 @@ public class GlobalEventHandler {
     @EventListener(UserChangeEvent.class)
     public void onUserChange(UserChangeEvent event) {
         UserEnum command = event.getOperation();
-        getHandler(userHandlers, command).execute(event);
+        userHandlers.get(key(command)).execute(event);
     }
 
     /**
@@ -51,21 +51,10 @@ public class GlobalEventHandler {
     @EventListener(PermissionEvent.class)
     public void onPermission(PermissionEvent event) {
         PermissionEnum command = event.getOperation();
-        getHandler(permissionHandlers, command).execute(event);
+        permissionHandlers.get(key(command)).execute(event);
     }
 
-    /**
-     * 获取命令执行器
-     *
-     * @param handlers 执行器集合
-     * @param command  命令
-     * @return 执行器
-     * @throws CommandHandlerNotFoundException 找不到执行器
-     */
-    private <T extends CommandHandler<?>, C extends Enum<?> & Command<?>> T getHandler(List<T> handlers, C command) {
-        return handlers.stream()
-                .filter(e -> e.getClass().getSimpleName().equalsIgnoreCase(command.name()))
-                .findFirst()
-                .orElseThrow(() -> new CommandHandlerNotFoundException(command));
+    private <E extends Enum<E> & Command<?>> String key(E command) {
+        return StrUtil.toCamelCase(command.name().toLowerCase());
     }
 }
