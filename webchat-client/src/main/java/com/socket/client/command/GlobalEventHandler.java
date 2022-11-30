@@ -22,7 +22,7 @@ import java.util.List;
  */
 @Component
 @RequiredArgsConstructor
-public class GlobalCommandHandler {
+public class GlobalEventHandler {
     private final List<PermissionHandler> permissionHandlers;
     private final List<GroupHandler> groupHandlers;
     private final List<UserHandler> userHandlers;
