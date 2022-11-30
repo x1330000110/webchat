@@ -25,9 +25,7 @@ public class WsGroupMap extends ConcurrentHashMap<SysGroup, List<WsUser>> {
      * @param wsmsg 消息
      */
     public void sendGroup(WsMsg wsmsg) {
-        for (WsUser target : getGroupUsers(wsmsg.getTarget())) {
-            target.send(wsmsg);
-        }
+        getGroupUsers(wsmsg.getTarget()).forEach(target -> target.send(wsmsg));
     }
 
     /**
@@ -46,9 +44,7 @@ public class WsGroupMap extends ConcurrentHashMap<SysGroup, List<WsUser>> {
      * @param data    额外数据
      */
     public void sendGroup(String groupId, String content, Command<?> type, Object data) {
-        for (WsUser wsuser : getGroupUsers(groupId)) {
-            wsuser.send(content, type, data);
-        }
+        getGroupUsers(groupId).forEach(wsuser -> wsuser.send(content, type, data));
     }
 
     /**
