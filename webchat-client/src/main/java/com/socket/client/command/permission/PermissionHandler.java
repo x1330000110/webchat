@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Optional;
 
+/**
+ * 权限命令处理基础类
+ */
 public abstract class PermissionHandler implements CommandHandler<PermissionEvent> {
     @Autowired
     protected WsGroupMap groupMap;
