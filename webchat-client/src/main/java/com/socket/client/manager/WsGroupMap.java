@@ -1,40 +1,24 @@
 package com.socket.client.manager;
 
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.client.exception.SocketException;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
 import com.socket.client.model.enums.Callback;
-import com.socket.webchat.custom.event.GroupChangeEvent;
-import com.socket.webchat.mapper.SysGroupMapper;
-import com.socket.webchat.mapper.SysGroupUserMapper;
 import com.socket.webchat.model.SysGroup;
-import com.socket.webchat.model.SysGroupUser;
 import com.socket.webchat.model.command.Command;
-import com.socket.webchat.model.command.impl.GroupEnum;
 import com.socket.webchat.model.command.impl.MessageType;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * ws群组管理器
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class WsGroupMap extends ConcurrentHashMap<SysGroup, List<WsUser>> {
-    private final SysGroupUserMapper sysGroupUserMapper;
-    private final SysGroupMapper sysGroupMapper;
-    private final WsUserMap userManager;
-
     /**
      * 向群组发送消息<br>
      *
@@ -85,57 +69,5 @@ public class WsGroupMap extends ConcurrentHashMap<SysGroup, List<WsUser>> {
      */
     public List<WsUser> getGroupUsers(String groupId) {
         return this.get(getGroup(groupId));
-    }
-
-    /**
-     * 群组事件监视器
-     */
-    @EventListener(GroupChangeEvent.class)
-    public void onGroupChange(GroupChangeEvent event) {
-        SysGroupUser guser = event.getUser();
-        SysGroup group = event.getGroup();
-        switch (event.getOperation()) {
-            case CREATE:
-                this.put(group, new ArrayList<>());
-                break;
-            case DISSOLVE:
-                SysGroup find = getGroup(group.getGroupId());
-                String tips = Callback.GROUP_DISSOLVE.format(find.getName());
-                sendGroup(group.getGroupId(), tips, GroupEnum.DISSOLVE);
-                this.remove(find);
-                break;
-            case JOIN:
-                String uid = guser.getUid(), gid = guser.getGroupId();
-                WsUser user = userManager.getUser(uid);
-                getGroupUsers(gid).add(user);
-                // 发送通知
-                sendGroup(gid, gid, GroupEnum.JOIN, user);
-                break;
-            case DELETE:
-                userManager.getUser(guser.getUid()).send("您已被管理员移除群聊", GroupEnum.DELETE);
-            case EXIT:
-                getGroupUsers(guser.getGroupId()).remove(userManager.getUser(guser.getUid()));
-                break;
-            default:
-                // ignore
-        }
-    }
-
-    /**
-     * 初始化群组数据
-     */
-    @PostConstruct
-    public void initGroupCache() {
-        // 缓存群组
-        List<SysGroup> sysGroups = sysGroupMapper.selectList(Wrappers.emptyWrapper());
-        List<SysGroupUser> groupthis = sysGroupUserMapper.selectList(Wrappers.emptyWrapper());
-        for (SysGroup group : sysGroups) {
-            List<WsUser> collect = groupthis.stream()
-                    .filter(e -> e.getGroupId().equals(group.getGroupId()))
-                    .map(SysGroupUser::getUid)
-                    .map(userManager::getUser)
-                    .collect(Collectors.toList());
-            this.put(group, collect);
-        }
     }
 }

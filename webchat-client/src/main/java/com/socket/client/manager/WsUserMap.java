@@ -10,7 +10,6 @@ import com.socket.client.model.enums.Callback;
 import com.socket.client.util.Assert;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.RedisManager;
-import com.socket.webchat.custom.event.UserChangeEvent;
 import com.socket.webchat.mapper.SysUserMapper;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
@@ -24,14 +23,11 @@ import com.socket.webchat.service.SysUserLogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.subject.Subject;
-import org.springframework.context.event.EventListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -199,35 +195,5 @@ public class WsUserMap extends ConcurrentHashMap<String, WsUser> {
     public void exit(WsUser user, String reason) {
         logService.saveLog(BeanUtil.copyProperties(user, SysUserLog.class), LogType.LOGOUT);
         user.logout(reason);
-    }
-
-    /**
-     * 初始化用户数据
-     */
-    @PostConstruct
-    public void initUserCache() {
-        // 缓存用户
-        List<SysUser> userList = userMapper.selectList(Wrappers.emptyWrapper());
-        userList.stream().map(WsUser::new).forEach(e -> this.put(e.getUid(), e));
-    }
-
-    /**
-     * 用户事件监视器
-     */
-    @EventListener(UserChangeEvent.class)
-    public void onUserChange(UserChangeEvent event) {
-        String uid = event.getUid();
-        WsUser user = this.getUser(uid);
-        Assert.isFalse(user == null, Callback.USER_NOT_FOUND.format(uid));
-        switch (event.getOperation()) {
-            case NAME:
-                user.setName(event.getData());
-                break;
-            case HEADIMG:
-                user.setHeadimgurl(event.getData());
-                break;
-            default:
-                // ignore
-        }
     }
 }

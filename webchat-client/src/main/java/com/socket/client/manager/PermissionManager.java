@@ -1,8 +1,8 @@
 package com.socket.client.manager;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.lang.Opt;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
@@ -11,19 +11,16 @@ import com.socket.client.model.enums.OnlineState;
 import com.socket.client.support.KeywordSupport;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.RedisManager;
-import com.socket.webchat.custom.event.PermissionEvent;
-import com.socket.webchat.model.ChatRecord;
-import com.socket.webchat.model.SysGroup;
-import com.socket.webchat.model.SysUser;
-import com.socket.webchat.model.SysUserLog;
+import com.socket.webchat.mapper.SysGroupMapper;
+import com.socket.webchat.mapper.SysGroupUserMapper;
+import com.socket.webchat.mapper.SysUserMapper;
+import com.socket.webchat.model.*;
 import com.socket.webchat.model.command.impl.PermissionEnum;
-import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.service.RecordService;
 import com.socket.webchat.service.SysUserLogService;
-import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -36,11 +33,14 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class PermissionManager {
+public class PermissionManager implements InitializingBean {
     private final KeywordSupport keywordSupport;
 
-    private final SysUserLogService logService;
+    private final SysGroupUserMapper sysGroupUserMapper;
+    private final SysUserLogService sysUserLogService;
+    private final SysGroupMapper sysGroupMapper;
     private final RecordService recordService;
+    private final SysUserMapper sysUserMapper;
 
     private final RedisManager redisManager;
     private final WsGroupMap groupMap;
@@ -58,7 +58,7 @@ public class PermissionManager {
         // 与此用户关联的最新未读消息
         Map<String, ChatRecord> unreadMessages = recordService.getLatestUnreadMessages(suid);
         // 登录记录
-        Map<String, SysUserLog> logs = logService.getUserLogs();
+        Map<String, SysUserLog> logs = sysUserLogService.getUserLogs();
         // 链接数据
         List<UserPreview> previews = new ArrayList<>();
         userMap.values().stream().map(UserPreview::new)
@@ -195,67 +195,21 @@ public class PermissionManager {
         return userMap.getUser(target);
     }
 
-    /**
-     * 权限事件监视器
-     */
-    @EventListener(PermissionEvent.class)
-    public void onPermission(PermissionEvent event) {
-        WsUser user = Opt.ofNullable(event.getTarget()).map(userMap::getUser).get();
-        String data = event.getData();
-        // 解析命令
-        switch (event.getOperation()) {
-            case ANNOUNCE:
-                userMap.sendAll(data, PermissionEnum.ANNOUNCE);
-                break;
-            case WITHDRAW:
-                withdraw(event.getRecord());
-                break;
-            case ROLE:
-                user.setRole(UserRole.of(data));
-                userMap.sendAll(PermissionEnum.ROLE, user);
-                break;
-            case SHIELD:
-                userMap.sendAll(PermissionEnum.SHIELD, user);
-                break;
-            case ALIAS:
-                userMap.sendAll(data, PermissionEnum.ALIAS, user);
-                break;
-            case MUTE:
-                userMap.sendAll(data, PermissionEnum.MUTE, user);
-                break;
-            case LOCK:
-                userMap.exit(user, Callback.LOGIN_LIMIT.format(Long.parseLong(data)));
-                userMap.sendAll(data, PermissionEnum.LOCK, user);
-                break;
-            case FOREVER:
-                userMap.exit(user, "您已被管理员永久限制登陆");
-                userMap.remove(user.getUid());
-                break;
-            default:
-                // ignore
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        // 缓存用户
+        List<SysUser> userList = sysUserMapper.selectList(Wrappers.emptyWrapper());
+        userList.stream().map(WsUser::new).forEach(e -> userMap.put(e.getUid(), e));
+        // 缓存群组
+        List<SysGroup> sysGroups = sysGroupMapper.selectList(Wrappers.emptyWrapper());
+        List<SysGroupUser> groupthis = sysGroupUserMapper.selectList(Wrappers.emptyWrapper());
+        for (SysGroup group : sysGroups) {
+            List<WsUser> collect = groupthis.stream()
+                    .filter(e -> e.getGroupId().equals(group.getGroupId()))
+                    .map(SysGroupUser::getUid)
+                    .map(userMap::getUser)
+                    .collect(Collectors.toList());
+            groupMap.put(group, collect);
         }
-    }
-
-    /**
-     * 撤回消息后续处理
-     */
-    private void withdraw(ChatRecord record) {
-        WsUser self = userMap.getUser(record.getUid());
-        // 构建消息
-        String target = record.getTarget();
-        String mid = record.getMid();
-        WsMsg wsmsg = new WsMsg(mid, PermissionEnum.WITHDRAW);
-        wsmsg.setUid(self.getUid());
-        wsmsg.setTarget(target);
-        // 目标是群组 通知群组撤回此消息
-        if (Wss.isGroup(target)) {
-            wsmsg.setData(groupMap.getGroup(target));
-            groupMap.sendGroup(wsmsg);
-            return;
-        }
-        // 通知双方撤回此消息
-        wsmsg.setData(self);
-        userMap.getUser(target).send(wsmsg);
-        self.send(wsmsg);
     }
 }

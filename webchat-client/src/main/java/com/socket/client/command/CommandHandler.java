@@ -1,15 +1,15 @@
 package com.socket.client.command;
 
-import com.socket.webchat.model.command.Command;
+import org.springframework.context.ApplicationEvent;
 
 /**
- * 命令执行器
+ * 命令处理接口
  */
-public interface CommandHandler<T extends Command<?>> {
+public interface CommandHandler<E extends ApplicationEvent> {
     /**
      * 执行命令
      *
-     * @param command 命令
+     * @param command 事件
      */
-    void execute(T command);
+    void execute(E command);
 }
