@@ -1,6 +1,6 @@
 package com.socket.client.command.group.impl;
 
-import com.socket.client.command.group.GroupHandler;
+import com.socket.client.command.group.GroupChangeHandler;
 import com.socket.client.model.enums.Callback;
 import com.socket.webchat.model.SysGroup;
 import com.socket.webchat.model.SysGroupUser;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * 解散群组
  */
 @Component
-public class Dissolve extends GroupHandler {
+public class Dissolve extends GroupChangeHandler {
     @Override
     public void execute(SysGroupUser user, SysGroup group) {
         SysGroup find = groupMap.getGroup(group.getGroupId());

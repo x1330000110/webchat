@@ -1,9 +1,9 @@
 package com.socket.client.command;
 
 import cn.hutool.core.util.StrUtil;
-import com.socket.client.command.group.GroupHandler;
+import com.socket.client.command.group.GroupChangeHandler;
 import com.socket.client.command.permission.PermissionHandler;
-import com.socket.client.command.user.UserHandler;
+import com.socket.client.command.user.UserChangeHandler;
 import com.socket.webchat.custom.event.GroupChangeEvent;
 import com.socket.webchat.custom.event.PermissionEvent;
 import com.socket.webchat.custom.event.UserChangeEvent;
@@ -24,8 +24,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class GlobalEventHandler {
     private final Map<String, PermissionHandler> permissionHandlers;
-    private final Map<String, GroupHandler> groupHandlers;
-    private final Map<String, UserHandler> userHandlers;
+    private final Map<String, GroupChangeHandler> groupHandlers;
+    private final Map<String, UserChangeHandler> userHandlers;
 
     /**
      * 群组事件

@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * 用户信息处理基础类
  */
-public abstract class UserHandler implements CommandHandler<UserChangeEvent> {
+public abstract class UserChangeHandler implements CommandHandler<UserChangeEvent> {
     @Autowired
     protected WsUserMap userMap;
 

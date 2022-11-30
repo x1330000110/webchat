@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * 群组命令处理基础类
  */
-public abstract class GroupHandler implements CommandHandler<GroupChangeEvent> {
+public abstract class GroupChangeHandler implements CommandHandler<GroupChangeEvent> {
     @Autowired
     protected WsGroupMap groupMap;
     @Autowired

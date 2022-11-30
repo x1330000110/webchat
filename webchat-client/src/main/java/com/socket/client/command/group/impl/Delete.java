@@ -1,6 +1,6 @@
 package com.socket.client.command.group.impl;
 
-import com.socket.client.command.group.GroupHandler;
+import com.socket.client.command.group.GroupChangeHandler;
 import com.socket.client.model.WsUser;
 import com.socket.webchat.model.SysGroup;
 import com.socket.webchat.model.SysGroupUser;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * 移除群组用户
  */
 @Component
-public class Delete extends GroupHandler {
+public class Delete extends GroupChangeHandler {
     @Override
     public void execute(SysGroupUser user, SysGroup group) {
         WsUser find = userMap.getUser(user.getUid());
