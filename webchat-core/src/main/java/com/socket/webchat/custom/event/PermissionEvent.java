@@ -1,7 +1,7 @@
 package com.socket.webchat.custom.event;
 
 import com.socket.webchat.model.ChatRecord;
-import com.socket.webchat.model.enums.PermissionEnum;
+import com.socket.webchat.model.command.impl.PermissionEnum;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 

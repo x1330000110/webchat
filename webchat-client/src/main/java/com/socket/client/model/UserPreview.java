@@ -4,7 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.socket.client.model.enums.OnlineState;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
-import com.socket.webchat.model.enums.MessageType;
+import com.socket.webchat.model.command.impl.MessageType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;

@@ -16,7 +16,7 @@ import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysGroup;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.SysUserLog;
-import com.socket.webchat.model.enums.PermissionEnum;
+import com.socket.webchat.model.command.impl.PermissionEnum;
 import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.service.RecordService;
 import com.socket.webchat.service.SysUserLogService;

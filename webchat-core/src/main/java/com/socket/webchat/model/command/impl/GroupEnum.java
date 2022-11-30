@@ -1,4 +1,6 @@
-package com.socket.webchat.model.enums;
+package com.socket.webchat.model.command.impl;
+
+import com.socket.webchat.model.command.Command;
 
 /**
  * 群组信息变动枚举

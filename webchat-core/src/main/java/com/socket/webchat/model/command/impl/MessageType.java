@@ -1,5 +1,6 @@
-package com.socket.webchat.model.enums;
+package com.socket.webchat.model.command.impl;
 
+import com.socket.webchat.model.command.Command;
 import lombok.Getter;
 
 /**

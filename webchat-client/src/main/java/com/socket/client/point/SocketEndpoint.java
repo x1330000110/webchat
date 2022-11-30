@@ -13,7 +13,7 @@ import com.socket.client.util.Assert;
 import com.socket.secure.exception.InvalidRequestException;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.support.SettingSupport;
-import com.socket.webchat.model.enums.MessageType;
+import com.socket.webchat.model.command.impl.MessageType;
 import com.socket.webchat.model.enums.Setting;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;

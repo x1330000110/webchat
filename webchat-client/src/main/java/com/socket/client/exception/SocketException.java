@@ -1,6 +1,6 @@
 package com.socket.client.exception;
 
-import com.socket.webchat.model.enums.MessageType;
+import com.socket.webchat.model.command.impl.MessageType;
 import lombok.Getter;
 
 @Getter

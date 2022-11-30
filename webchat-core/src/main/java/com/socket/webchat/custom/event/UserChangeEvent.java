@@ -1,6 +1,6 @@
 package com.socket.webchat.custom.event;
 
-import com.socket.webchat.model.enums.UserEnum;
+import com.socket.webchat.model.command.impl.UserEnum;
 import com.socket.webchat.util.Wss;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;

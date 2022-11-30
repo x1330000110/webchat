@@ -15,7 +15,7 @@ import com.socket.webchat.mapper.SysGroupUserMapper;
 import com.socket.webchat.model.BaseModel;
 import com.socket.webchat.model.SysGroup;
 import com.socket.webchat.model.SysGroupUser;
-import com.socket.webchat.model.enums.GroupEnum;
+import com.socket.webchat.model.command.impl.GroupEnum;
 import com.socket.webchat.service.SysGroupService;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;

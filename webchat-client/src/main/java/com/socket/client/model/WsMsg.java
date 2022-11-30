@@ -1,7 +1,7 @@
 package com.socket.client.model;
 
 import cn.hutool.crypto.digest.MD5;
-import com.socket.webchat.model.enums.Command;
+import com.socket.webchat.model.command.Command;
 import com.socket.webchat.util.Wss;
 import lombok.Data;
 import lombok.NoArgsConstructor;

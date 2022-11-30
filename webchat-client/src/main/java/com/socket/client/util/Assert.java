@@ -2,7 +2,7 @@ package com.socket.client.util;
 
 import com.socket.client.exception.SocketException;
 import com.socket.client.model.WsUser;
-import com.socket.webchat.model.enums.MessageType;
+import com.socket.webchat.model.command.impl.MessageType;
 
 public class Assert {
     public static void isAdmin(WsUser t1, WsUser t2, String msg) {

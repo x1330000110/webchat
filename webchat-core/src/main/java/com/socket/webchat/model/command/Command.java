@@ -1,4 +1,4 @@
-package com.socket.webchat.model.enums;
+package com.socket.webchat.model.command;
 
 /**
  * 命令枚举
