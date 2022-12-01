@@ -19,21 +19,21 @@ public abstract class PermissionHandler implements CommandHandler<PermissionEven
     @Autowired
     protected WsUserMap userMap;
 
-    public void execute(PermissionEvent event) {
+    public void invoke(PermissionEvent event) {
         ChatRecord record = event.getRecord();
         // 消息不为空则实现对消息的处理
         if (record != null) {
-            execute(record);
+            invoke(record);
             return;
         }
         // 执行常规命令
         WsUser user = Optional.ofNullable(event.getTarget()).map(userMap::getUser).orElse(null);
-        execute(user, event.getData());
+        invoke(user, event.getData());
     }
 
-    public void execute(WsUser user, String data) {
+    public void invoke(WsUser user, String data) {
     }
 
-    public void execute(ChatRecord record) {
+    public void invoke(ChatRecord record) {
     }
 }

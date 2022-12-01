@@ -17,9 +17,9 @@ public abstract class GroupChangeHandler implements CommandHandler<GroupChangeEv
     @Autowired
     protected WsUserMap userMap;
 
-    public void execute(GroupChangeEvent event) {
-        execute(event.getUser(), event.getGroup());
+    public void invoke(GroupChangeEvent event) {
+        invoke(event.getUser(), event.getGroup());
     }
 
-    public abstract void execute(SysGroupUser user, SysGroup group);
+    public abstract void invoke(SysGroupUser user, SysGroup group);
 }

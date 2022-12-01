@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class Join extends GroupChangeHandler {
     @Override
-    public void execute(SysGroupUser user, SysGroup group) {
+    public void invoke(SysGroupUser user, SysGroup group) {
         String uid = user.getUid(), gid = user.getGroupId();
         WsUser wsuser = userMap.getUser(uid);
         groupMap.getGroupUsers(gid).add(wsuser);

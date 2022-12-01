@@ -13,9 +13,9 @@ public abstract class UserChangeHandler implements CommandHandler<UserChangeEven
     @Autowired
     protected WsUserMap userMap;
 
-    public void execute(UserChangeEvent event) {
-        execute(userMap.getUser(event.getUid()), event.getData());
+    public void invoke(UserChangeEvent event) {
+        invoke(userMap.getUser(event.getUid()), event.getData());
     }
 
-    public abstract void execute(WsUser user, String data);
+    public abstract void invoke(WsUser user, String data);
 }

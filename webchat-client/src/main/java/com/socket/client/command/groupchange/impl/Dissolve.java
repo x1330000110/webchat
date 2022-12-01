@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class Dissolve extends GroupChangeHandler {
     @Override
-    public void execute(SysGroupUser user, SysGroup group) {
+    public void invoke(SysGroupUser user, SysGroup group) {
         SysGroup find = groupMap.getGroup(group.getGroupId());
         String tips = Callback.GROUP_DISSOLVE.format(find.getName());
         groupMap.sendGroup(group.getGroupId(), tips, GroupEnum.DISSOLVE);

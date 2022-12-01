@@ -33,7 +33,7 @@ public class GlobalEventHandler {
     @EventListener(GroupChangeEvent.class)
     public void onGroupChange(GroupChangeEvent event) {
         GroupEnum command = event.getOperation();
-        groupHandlers.get(key(command)).execute(event);
+        groupHandlers.get(key(command)).invoke(event);
     }
 
     /**
@@ -42,7 +42,7 @@ public class GlobalEventHandler {
     @EventListener(UserChangeEvent.class)
     public void onUserChange(UserChangeEvent event) {
         UserEnum command = event.getOperation();
-        userHandlers.get(key(command)).execute(event);
+        userHandlers.get(key(command)).invoke(event);
     }
 
     /**
@@ -51,7 +51,7 @@ public class GlobalEventHandler {
     @EventListener(PermissionEvent.class)
     public void onPermission(PermissionEvent event) {
         PermissionEnum command = event.getOperation();
-        permissionHandlers.get(key(command)).execute(event);
+        permissionHandlers.get(key(command)).invoke(event);
     }
 
     private <E extends Enum<E> & Command<?>> String key(E command) {

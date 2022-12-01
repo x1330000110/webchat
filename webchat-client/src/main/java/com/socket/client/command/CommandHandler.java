@@ -11,5 +11,5 @@ public interface CommandHandler<E extends ApplicationEvent> {
      *
      * @param command 事件
      */
-    void execute(E command);
+    void invoke(E command);
 }

@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class Create extends GroupChangeHandler {
 
     @Override
-    public void execute(SysGroupUser user, SysGroup group) {
+    public void invoke(SysGroupUser user, SysGroup group) {
         groupMap.put(group, new ArrayList<>());
     }
 }

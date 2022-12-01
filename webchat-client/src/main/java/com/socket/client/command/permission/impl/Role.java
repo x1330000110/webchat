@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class Role extends PermissionHandler {
     @Override
-    public void execute(WsUser user, String data) {
+    public void invoke(WsUser user, String data) {
         user.setRole(UserRole.of(data));
         userMap.sendAll(PermissionEnum.ROLE, user);
     }

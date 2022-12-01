@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class Withdraw extends PermissionHandler {
     @Override
-    public void execute(ChatRecord record) {
+    public void invoke(ChatRecord record) {
         WsUser self = userMap.getUser(record.getUid());
         // 构建消息
         String target = record.getTarget();
