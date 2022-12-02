@@ -3,6 +3,7 @@ package com.socket.webchat.controller;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.socket.secure.filter.anno.Encrypted;
 import com.socket.secure.util.Assert;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.SysGroup;
@@ -21,6 +22,7 @@ import java.util.List;
 public class GroupController {
     private final SysGroupService sysGroupService;
 
+    @Encrypted
     @PostMapping("/join")
     public HttpStatus joinGroup(@RequestBody GroupCondition condition) {
         String password = condition.getPassword();
@@ -36,6 +38,7 @@ public class GroupController {
         return HttpStatus.of(b, "退出成功", "找不到相关信息");
     }
 
+    @Encrypted
     @PostMapping("/create")
     public HttpStatus createGroup(@RequestBody GroupCondition condition) {
         String gid = sysGroupService.createGroup(condition.getGroupName(), condition.getPassword());
