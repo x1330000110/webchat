@@ -38,6 +38,8 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
     public String createGroup(String groupName, String password) {
         String userId = Wss.getUserId();
         // 创建检查
+        boolean expression = StrUtil.isEmpty(password) || password.length() <= Constants.MAX_GROUP_PASSWORD;
+        Assert.isTrue(expression, "密码长度不合法", IllegalStateException::new);
         LambdaQueryWrapper<SysGroup> check = Wrappers.lambdaQuery();
         check.eq(SysGroup::getOwner, userId);
         int count = count(check);

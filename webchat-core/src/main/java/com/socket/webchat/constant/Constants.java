@@ -88,4 +88,8 @@ public interface Constants {
      * 最大群组创建数
      */
     int MAX_CREATE_GROUP_NUM = 3;
+    /**
+     * 最大可设置的入群密码长度
+     */
+    int MAX_GROUP_PASSWORD = 16;
 }
