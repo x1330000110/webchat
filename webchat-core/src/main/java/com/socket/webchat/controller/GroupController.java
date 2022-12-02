@@ -22,8 +22,11 @@ public class GroupController {
 
     @PostMapping("/join")
     public HttpStatus joinGroup(@RequestBody GroupCondition condition) {
-        boolean b = sysGroupService.joinGroup(condition.getGid(), Wss.getUserId());
-        return HttpStatus.of(b, "加入成功", "您已经是该群组成员");
+        List<String> uids = sysGroupService.joinGroup(condition.getGid(), Wss.getUserId());
+        if (uids == null) {
+            return HttpStatus.FAILURE.message("您已经是该群组成员");
+        }
+        return HttpStatus.SUCCESS.body("加入成功", uids);
     }
 
     @PostMapping("/exit")

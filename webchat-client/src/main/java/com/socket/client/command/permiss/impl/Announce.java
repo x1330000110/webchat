@@ -1,9 +1,9 @@
-package com.socket.client.command.permission.impl;
+package com.socket.client.command.permiss.impl;
 
-import com.socket.client.command.permission.PermissionHandler;
+import com.socket.client.command.permiss.PermissionHandler;
 import com.socket.client.model.WsUser;
 import com.socket.webchat.model.BaseUser;
-import com.socket.webchat.model.command.impl.PermissionEnum;
+import com.socket.webchat.model.command.impl.PermissEnum;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,6 +13,6 @@ import org.springframework.stereotype.Component;
 public class Announce extends PermissionHandler {
     @Override
     public <T> void invoke(WsUser self, BaseUser target, T param) {
-        userMap.sendAll(param, PermissionEnum.ANNOUNCE);
+        userMap.sendAll(param, PermissEnum.ANNOUNCE);
     }
 }

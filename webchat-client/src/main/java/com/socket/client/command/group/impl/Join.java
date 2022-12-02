@@ -1,6 +1,6 @@
-package com.socket.client.command.groupchange.impl;
+package com.socket.client.command.group.impl;
 
-import com.socket.client.command.groupchange.GroupChangeHandler;
+import com.socket.client.command.group.GroupChangeHandler;
 import com.socket.client.model.WsUser;
 import com.socket.webchat.model.SysGroup;
 import com.socket.webchat.model.SysGroupUser;

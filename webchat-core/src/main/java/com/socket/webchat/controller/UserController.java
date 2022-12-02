@@ -5,7 +5,7 @@ import cn.hutool.http.HttpRequest;
 import com.socket.secure.filter.anno.Encrypted;
 import com.socket.webchat.model.Announce;
 import com.socket.webchat.model.SysUser;
-import com.socket.webchat.model.command.impl.PermissionEnum;
+import com.socket.webchat.model.command.impl.PermissEnum;
 import com.socket.webchat.model.condition.EmailCondition;
 import com.socket.webchat.model.condition.UserCondition;
 import com.socket.webchat.model.enums.HttpStatus;
@@ -85,7 +85,7 @@ public class UserController {
     public HttpStatus shield(@RequestBody UserCondition condition) {
         String guid = condition.getGuid();
         boolean b = shieldUserService.shieldTarget(guid);
-        publisher.pushPermissionEvent(guid, null, PermissionEnum.SHIELD);
+        publisher.pushPermissionEvent(guid, null, PermissEnum.SHIELD);
         return HttpStatus.of(b, "屏蔽成功", "取消屏蔽");
     }
 }

@@ -5,7 +5,7 @@ import com.socket.webchat.model.command.Command;
 /**
  * 权限变动枚举
  */
-public enum PermissionEnum implements Command<PermissionEnum> {
+public enum PermissEnum implements Command<PermissEnum> {
     /**
      * 屏蔽
      */

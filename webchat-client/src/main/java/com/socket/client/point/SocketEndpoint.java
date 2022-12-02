@@ -13,7 +13,7 @@ import com.socket.client.util.Assert;
 import com.socket.secure.exception.InvalidRequestException;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.support.SettingSupport;
-import com.socket.webchat.model.command.impl.MessageType;
+import com.socket.webchat.model.command.impl.MessageEnum;
 import com.socket.webchat.model.enums.Setting;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
@@ -46,9 +46,9 @@ public class SocketEndpoint implements ApplicationContextAware {
         Optional.ofNullable(userMap.join(session, config.getUserProperties())).ifPresent(user -> {
             // 推送所有用户数据
             Collection<UserPreview> userList = permissionManager.getUserPreviews(user);
-            user.send("Initialize user", MessageType.INIT, userList);
+            user.send("Initialize user", MessageEnum.INIT, userList);
             // 向其他人发送加入通知
-            userMap.sendAll(MessageType.JOIN, user);
+            userMap.sendAll(MessageEnum.JOIN, user);
             // 检查禁言
             permissionManager.checkMute(user);
             this.self = user;
@@ -60,7 +60,7 @@ public class SocketEndpoint implements ApplicationContextAware {
         Optional.ofNullable(self).ifPresent(user -> {
             userMap.exit(user, null);
             // 退出通知
-            userMap.sendAll(MessageType.EXIT, user);
+            userMap.sendAll(MessageEnum.EXIT, user);
         });
     }
 
@@ -137,7 +137,7 @@ public class SocketEndpoint implements ApplicationContextAware {
      */
     private void parseAiMessage(WsMsg wsmsg) {
         boolean sysuid = Constants.SYSTEM_UID.equals(wsmsg.getTarget());
-        boolean text = Objects.equals(wsmsg.getType(), MessageType.TEXT.toString());
+        boolean text = Objects.equals(wsmsg.getType(), MessageEnum.TEXT.toString());
         // 判断AI消息
         if (sysuid && text && !userMap.getUser(Constants.SYSTEM_UID).isOnline()) {
             userMap.sendAIMessage(self, wsmsg);
@@ -146,11 +146,11 @@ public class SocketEndpoint implements ApplicationContextAware {
 
     public void parseSysMsg(WsMsg wsmsg, WsUser target) {
         String type = wsmsg.getType().toUpperCase();
-        switch (MessageType.valueOf(type)) {
+        switch (MessageEnum.valueOf(type)) {
             case CHANGE:
                 String content = wsmsg.getContent();
                 self.setOnline(OnlineState.of(content));
-                userMap.sendAll(content, MessageType.CHANGE, self);
+                userMap.sendAll(content, MessageEnum.CHANGE, self);
                 break;
             case CHOOSE:
                 this.choose(target, wsmsg);
@@ -175,7 +175,7 @@ public class SocketEndpoint implements ApplicationContextAware {
         // 屏蔽检查
         Assert.isFalse(permissionManager.shield(self, target), "屏蔽目标时无法发起通话请求");
         if (permissionManager.shield(target, self)) {
-            self.send("对方屏蔽了你", MessageType.ERROR);
+            self.send("对方屏蔽了你", MessageEnum.ERROR);
         }
         target.send(wsmsg);
     }

@@ -15,7 +15,7 @@ import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.SysUserLog;
 import com.socket.webchat.model.command.Command;
-import com.socket.webchat.model.command.impl.MessageType;
+import com.socket.webchat.model.command.impl.MessageEnum;
 import com.socket.webchat.model.enums.LogType;
 import com.socket.webchat.request.XiaoBingAPIRequest;
 import com.socket.webchat.service.RecordService;
@@ -133,7 +133,7 @@ public class WsUserMap extends ConcurrentHashMap<String, WsUser> {
     public void cacheRecord(WsMsg wsmsg, boolean isread) {
         ChatRecord record = BeanUtil.copyProperties(wsmsg, ChatRecord.class);
         // 群组以外的语音消息始终未读
-        boolean audio = !wsmsg.isGroup() && Objects.equals(wsmsg.getType(), MessageType.AUDIO.getName());
+        boolean audio = !wsmsg.isGroup() && Objects.equals(wsmsg.getType(), MessageEnum.AUDIO.getName());
         record.setUnread(audio || !isread);
         kafkaTemplate.send(Constants.KAFKA_RECORD, JSONUtil.toJsonStr(record));
         // 目标列表添加发起者uid
@@ -178,7 +178,7 @@ public class WsUserMap extends ConcurrentHashMap<String, WsUser> {
         xiaoBingAPIRequest.dialogue(wsmsg.getContent()).addCallback(result -> {
             if (result != null) {
                 // AI消息
-                WsMsg aimsg = new WsMsg(Constants.SYSTEM_UID, wsmsg.getGuid(), result, MessageType.TEXT);
+                WsMsg aimsg = new WsMsg(Constants.SYSTEM_UID, wsmsg.getGuid(), result, MessageEnum.TEXT);
                 target.send(aimsg);
                 cacheRecord(aimsg, true);
             }

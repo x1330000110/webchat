@@ -1,6 +1,6 @@
-package com.socket.client.command.permission.impl;
+package com.socket.client.command.permiss.impl;
 
-import com.socket.client.command.permission.PermissionHandler;
+import com.socket.client.command.permiss.PermissionHandler;
 import com.socket.client.model.WsUser;
 import com.socket.webchat.model.BaseUser;
 import org.springframework.stereotype.Component;

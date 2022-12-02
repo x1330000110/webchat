@@ -1,22 +1,20 @@
-package com.socket.client.command.groupchange.impl;
+package com.socket.client.command.group.impl;
 
-import com.socket.client.command.groupchange.GroupChangeHandler;
+import com.socket.client.command.group.GroupChangeHandler;
 import com.socket.client.model.WsUser;
 import com.socket.webchat.model.SysGroup;
 import com.socket.webchat.model.SysGroupUser;
+import com.socket.webchat.model.command.impl.GroupEnum;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 /**
- * 退出群组
+ * 移除群组用户
  */
 @Component
-public class Exit extends GroupChangeHandler {
+public class Delete extends GroupChangeHandler {
     @Override
     public void invoke(SysGroupUser user, SysGroup group) {
         WsUser find = userMap.getUser(user.getUid());
-        List<WsUser> groupUsers = groupMap.getGroupUsers(user.getGid());
-        groupUsers.remove(find);
+        find.send("您已被管理员移除群聊", GroupEnum.DELETE);
     }
 }

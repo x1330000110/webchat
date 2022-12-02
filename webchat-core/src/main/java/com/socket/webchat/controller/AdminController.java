@@ -3,7 +3,7 @@ package com.socket.webchat.controller;
 import com.socket.secure.exception.InvalidRequestException;
 import com.socket.secure.util.Assert;
 import com.socket.webchat.custom.RedisManager;
-import com.socket.webchat.model.command.impl.PermissionEnum;
+import com.socket.webchat.model.command.impl.PermissEnum;
 import com.socket.webchat.model.condition.LimitCondition;
 import com.socket.webchat.util.Publisher;
 import com.socket.webchat.util.Wss;
@@ -27,7 +27,7 @@ public class AdminController {
         String guid = condition.getGuid();
         Long time = condition.getTime();
         redisManager.setMute(guid, time);
-        publisher.pushPermissionEvent(guid, time, PermissionEnum.MUTE);
+        publisher.pushPermissionEvent(guid, time, PermissEnum.MUTE);
     }
 
     @PostMapping("/lock")
@@ -35,6 +35,6 @@ public class AdminController {
         String guid = condition.getGuid();
         Long time = condition.getTime();
         redisManager.setLock(guid, time);
-        publisher.pushPermissionEvent(guid, time, PermissionEnum.LOCK);
+        publisher.pushPermissionEvent(guid, time, PermissEnum.LOCK);
     }
 }

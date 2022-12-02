@@ -4,7 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.socket.client.model.enums.OnlineState;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
-import com.socket.webchat.model.command.impl.MessageType;
+import com.socket.webchat.model.command.impl.MessageEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -59,14 +59,14 @@ public class UserPreview extends SysUser {
     /**
      * 群组成员
      */
-    private List<String> members;
+    private List<String> guids;
 
     public UserPreview(SysUser sysUser) {
         BeanUtil.copyProperties(sysUser, this);
     }
 
     public void setPreview(ChatRecord unread) {
-        MessageType type = MessageType.valueOf(unread.getType().toUpperCase());
-        this.preview = type == MessageType.TEXT ? unread.getContent() : '[' + type.getPreview() + ']';
+        MessageEnum type = MessageEnum.valueOf(unread.getType().toUpperCase());
+        this.preview = type == MessageEnum.TEXT ? unread.getContent() : '[' + type.getPreview() + ']';
     }
 }

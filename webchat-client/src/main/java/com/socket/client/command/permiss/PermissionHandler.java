@@ -1,4 +1,4 @@
-package com.socket.client.command.permission;
+package com.socket.client.command.permiss;
 
 import cn.hutool.core.util.StrUtil;
 import com.socket.client.command.CommandHandler;

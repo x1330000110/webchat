@@ -2,7 +2,6 @@ package com.socket.client.manager;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
@@ -15,7 +14,7 @@ import com.socket.webchat.mapper.SysGroupMapper;
 import com.socket.webchat.mapper.SysGroupUserMapper;
 import com.socket.webchat.mapper.SysUserMapper;
 import com.socket.webchat.model.*;
-import com.socket.webchat.model.command.impl.PermissionEnum;
+import com.socket.webchat.model.command.impl.PermissEnum;
 import com.socket.webchat.service.RecordService;
 import com.socket.webchat.service.SysUserLogService;
 import lombok.RequiredArgsConstructor;
@@ -90,8 +89,7 @@ public class PermissionManager implements InitializingBean {
             if (uids.contains(suid)) {
                 UserPreview preview = BeanUtil.copyProperties(group, UserPreview.class);
                 preview.setIsgroup(true);
-                preview.setMembers(uids);
-                preview.setGuid(group.getGuid());
+                preview.setGuids(uids);
                 preview.setOnline(OnlineState.ONLINE);
                 previews.add(preview);
             }
@@ -105,7 +103,7 @@ public class PermissionManager implements InitializingBean {
     public void checkMute(WsUser user) {
         long time = redisManager.getMuteTime(user.getGuid());
         if (time > 0) {
-            user.send(null, PermissionEnum.MUTE, time);
+            user.send(null, PermissEnum.MUTE, time);
         }
     }
 
@@ -162,7 +160,7 @@ public class PermissionManager implements InitializingBean {
             long time = TimeUnit.HOURS.toSeconds(Constants.FREQUENT_SPEECHES_MUTE_TIME);
             if (redisManager.incrSpeak(user.getGuid()) > Constants.FREQUENT_SPEECH_THRESHOLD) {
                 redisManager.setMute(user.getGuid(), time);
-                user.send(Callback.BRUSH_SCREEN.format(time), PermissionEnum.MUTE, time);
+                user.send(Callback.BRUSH_SCREEN.format(time), PermissEnum.MUTE, time);
             }
         }
     }
@@ -198,11 +196,11 @@ public class PermissionManager implements InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
         // 缓存用户
-        List<SysUser> userList = sysUserMapper.selectList(Wrappers.emptyWrapper());
+        List<SysUser> userList = sysUserMapper.selectList(null);
         userList.stream().map(WsUser::new).forEach(e -> userMap.put(e.getGuid(), e));
         // 缓存群组
-        List<SysGroup> sysGroups = sysGroupMapper.selectList(Wrappers.emptyWrapper());
-        List<SysGroupUser> groupthis = sysGroupUserMapper.selectList(Wrappers.emptyWrapper());
+        List<SysGroup> sysGroups = sysGroupMapper.selectList(null);
+        List<SysGroupUser> groupthis = sysGroupUserMapper.selectList(null);
         for (SysGroup group : sysGroups) {
             List<WsUser> collect = groupthis.stream()
                     .filter(e -> e.getGid().equals(group.getGuid()))

@@ -1,15 +1,15 @@
 package com.socket.client.command;
 
 import cn.hutool.core.util.StrUtil;
-import com.socket.client.command.groupchange.GroupChangeHandler;
-import com.socket.client.command.permission.PermissionHandler;
-import com.socket.client.command.userchange.UserChangeHandler;
+import com.socket.client.command.group.GroupChangeHandler;
+import com.socket.client.command.permiss.PermissionHandler;
+import com.socket.client.command.user.UserChangeHandler;
 import com.socket.webchat.custom.event.GroupChangeEvent;
 import com.socket.webchat.custom.event.PermissionEvent;
 import com.socket.webchat.custom.event.UserChangeEvent;
 import com.socket.webchat.model.command.Command;
 import com.socket.webchat.model.command.impl.GroupEnum;
-import com.socket.webchat.model.command.impl.PermissionEnum;
+import com.socket.webchat.model.command.impl.PermissEnum;
 import com.socket.webchat.model.command.impl.UserEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
@@ -50,7 +50,7 @@ public class GlobalEventHandler {
      */
     @EventListener(PermissionEvent.class)
     public void onPermission(PermissionEvent event) {
-        PermissionEnum command = event.getOperation();
+        PermissEnum command = event.getOperation();
         permissionHandlers.get(key(command)).invoke(event);
     }
 

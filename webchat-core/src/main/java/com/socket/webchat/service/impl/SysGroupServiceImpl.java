@@ -22,6 +22,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -58,20 +61,23 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         return null;
     }
 
-    public boolean joinGroup(String gid, String uid) {
+    public List<String> joinGroup(String gid, String uid) {
         LambdaQueryWrapper<SysGroupUser> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(SysGroupUser::getGid, gid);
-        wrapper.eq(SysGroupUser::getUid, uid);
-        if (sysGroupUserMapper.selectOne(wrapper) != null) {
-            return false;
+        List<String> guids = sysGroupUserMapper.selectList(wrapper)
+                .stream()
+                .map(SysGroupUser::getUid)
+                .collect(Collectors.toList());
+        if (guids.contains(uid)) {
+            return null;
         }
         SysGroupUser user = new SysGroupUser(gid, uid);
         // 推送事件
         if (SqlHelper.retBool(sysGroupUserMapper.insert(user))) {
             publisher.pushGroupEvent(user, GroupEnum.JOIN);
-            return true;
+            return guids;
         }
-        return false;
+        return null;
     }
 
     public boolean removeUser(String stater, String gid, String uid) {

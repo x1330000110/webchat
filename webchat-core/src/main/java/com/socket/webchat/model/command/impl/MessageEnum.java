@@ -7,7 +7,7 @@ import lombok.Getter;
  * ws命令操作枚举
  */
 @Getter
-public enum MessageType implements Command<MessageType> {
+public enum MessageEnum implements Command<MessageEnum> {
     /**
      * 加载聊天室所有用户
      */
@@ -66,10 +66,10 @@ public enum MessageType implements Command<MessageType> {
 
     private String preview;
 
-    MessageType() {
+    MessageEnum() {
     }
 
-    MessageType(String preview) {
+    MessageEnum(String preview) {
         this.preview = preview;
     }
 

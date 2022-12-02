@@ -1,6 +1,6 @@
-package com.socket.client.command.userchange.impl;
+package com.socket.client.command.user.impl;
 
-import com.socket.client.command.userchange.UserChangeHandler;
+import com.socket.client.command.user.UserChangeHandler;
 import com.socket.client.model.WsUser;
 import org.springframework.stereotype.Component;
 

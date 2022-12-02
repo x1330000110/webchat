@@ -2,6 +2,8 @@ package com.socket.webchat.service;
 
 import com.socket.webchat.model.SysGroup;
 
+import java.util.List;
+
 public interface SysGroupService extends BaseService<SysGroup> {
     /**
      * 创建群组
@@ -26,9 +28,9 @@ public interface SysGroupService extends BaseService<SysGroup> {
      *
      * @param gid 群组id
      * @param uid 用户uid
-     * @return 是否成功
+     * @return 群组成员uid
      */
-    boolean joinGroup(String gid, String uid);
+    List<String> joinGroup(String gid, String uid);
 
     /**
      * 解散群组

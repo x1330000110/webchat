@@ -6,7 +6,7 @@ import com.socket.client.model.WsUser;
 import com.socket.client.model.enums.Callback;
 import com.socket.webchat.model.SysGroup;
 import com.socket.webchat.model.command.Command;
-import com.socket.webchat.model.command.impl.MessageType;
+import com.socket.webchat.model.command.impl.MessageEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -54,7 +54,7 @@ public class WsGroupMap extends ConcurrentHashMap<SysGroup, List<WsUser>> {
         return this.keySet().stream()
                 .filter(e -> e.getGuid().equals(gid))
                 .findFirst()
-                .orElseThrow(() -> new SocketException(Callback.GROUP_NOT_FOUND.format(gid), MessageType.DANGER));
+                .orElseThrow(() -> new SocketException(Callback.GROUP_NOT_FOUND.format(gid), MessageEnum.DANGER));
     }
 
     /**
