@@ -9,19 +9,29 @@ public interface SysGroupService extends BaseService<SysGroup> {
      * 创建群组
      *
      * @param groupName 群名
+     * @param password  密码
      * @return 群组Id
      */
-    String createGroup(String groupName);
+    String createGroup(String groupName, String password);
 
     /**
      * 移除群组内用户
      *
-     * @param stater 发起者
-     * @param gid    群组ID
-     * @param uid    用户ID
+     * @param gid 群组ID
+     * @param uid 用户ID
      * @return 是否成功
      */
-    boolean removeUser(String stater, String gid, String uid);
+    boolean removeUser(String gid, String uid);
+
+    /**
+     * 加入密码群组（若群组未设置密码直接加入成功）
+     *
+     * @param gid      群组id
+     * @param uid      用户uid
+     * @param password 密码
+     * @return 群组成员uid
+     */
+    List<String> joinGroup(String gid, String uid, String password);
 
     /**
      * 加入群组

@@ -12,10 +12,12 @@ import com.socket.webchat.constant.Constants;
 import com.socket.webchat.mapper.SysGroupMapper;
 import com.socket.webchat.mapper.SysGroupUserMapper;
 import com.socket.webchat.model.BaseModel;
+import com.socket.webchat.model.BaseUser;
 import com.socket.webchat.model.SysGroup;
 import com.socket.webchat.model.SysGroupUser;
 import com.socket.webchat.model.command.impl.GroupEnum;
 import com.socket.webchat.service.SysGroupService;
+import com.socket.webchat.util.Bcrypt;
 import com.socket.webchat.util.Publisher;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -32,7 +35,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
     private final SysGroupUserMapper sysGroupUserMapper;
     private final Publisher publisher;
 
-    public String createGroup(String groupName) {
+    public String createGroup(String groupName, String password) {
         String userId = Wss.getUserId();
         // 创建检查
         LambdaQueryWrapper<SysGroup> check = Wrappers.lambdaQuery();
@@ -51,6 +54,10 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         group.setGuid(gid);
         group.setName(groupName);
         group.setOwner(userId);
+        // 散列密码
+        Optional.ofNullable(password)
+                .filter(StrUtil::isNotEmpty)
+                .ifPresent(e -> group.setPassword(Bcrypt.digest(e)));
         if (super.save(group)) {
             // 推送事件
             publisher.pushGroupEvent(group, GroupEnum.CREATE);
@@ -61,6 +68,19 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         return null;
     }
 
+    @Override
+    public List<String> joinGroup(String gid, String uid, String password) {
+        LambdaQueryWrapper<SysGroup> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(BaseUser::getGuid, gid);
+        SysGroup group = getFirst(wrapper);
+        Assert.notNull(group, "找不到群组", IllegalStateException::new);
+        String hash = group.getPassword();
+        if (StrUtil.isNotEmpty(hash)) {
+            Assert.isTrue(Bcrypt.verify(password, hash), "入群密码不正确", IllegalStateException::new);
+        }
+        return joinGroup(gid, uid);
+    }
+
     public List<String> joinGroup(String gid, String uid) {
         LambdaQueryWrapper<SysGroupUser> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(SysGroupUser::getGid, gid);
@@ -68,9 +88,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
                 .stream()
                 .map(SysGroupUser::getUid)
                 .collect(Collectors.toList());
-        if (guids.contains(uid)) {
-            return null;
-        }
+        Assert.isFalse(guids.contains(uid), "您已经是该群组成员", IllegalStateException::new);
         SysGroupUser user = new SysGroupUser(gid, uid);
         // 推送事件
         if (SqlHelper.retBool(sysGroupUserMapper.insert(user))) {
@@ -80,14 +98,13 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         return null;
     }
 
-    public boolean removeUser(String stater, String gid, String uid) {
+    public boolean removeUser(String gid, String uid) {
+        String stater = Wss.getUserId();
         LambdaQueryWrapper<SysGroup> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(SysGroup::getGuid, gid);
         SysGroup group = getFirst(wrapper);
         // 权限检查
-        if (!group.getOwner().equals(stater)) {
-            return false;
-        }
+        Assert.isTrue(group.getOwner().equals(stater), "你不是此群的创建者", IllegalStateException::new);
         LambdaUpdateWrapper<SysGroupUser> wrapper2 = Wrappers.lambdaUpdate();
         wrapper2.eq(SysGroupUser::getUid, uid);
         wrapper2.set(BaseModel::isDeleted, 1);
