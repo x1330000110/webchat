@@ -12,7 +12,7 @@ public class ShieldUser extends BaseModel {
     /**
      * 用户id
      */
-    private String uid;
+    private String guid;
     /**
      * 屏蔽用户id
      */

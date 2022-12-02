@@ -31,7 +31,7 @@ public class WsMsg {
     /**
      * 用户uid
      */
-    private String uid;
+    private String guid;
     /**
      * 目标uid
      */
@@ -72,13 +72,13 @@ public class WsMsg {
     /**
      * 用户消息
      *
-     * @param uid     发起者
+     * @param guid    发起者
      * @param target  目标
      * @param content 内容
      * @param type    消息类型
      */
-    public WsMsg(String uid, String target, String content, Command<?> type) {
-        this.uid = uid;
+    public WsMsg(String guid, String target, String content, Command<?> type) {
+        this.guid = guid;
         this.target = target;
         this.content = content;
         this.type = type.getName();
@@ -89,7 +89,7 @@ public class WsMsg {
      * 生成消息MID
      */
     private String generateMid() {
-        return MD5.create().digestHex(uid + content + type + target + System.currentTimeMillis());
+        return MD5.create().digestHex(guid + content + type + target + System.currentTimeMillis());
     }
 
     /**

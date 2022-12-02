@@ -53,7 +53,7 @@ public class CustomRealm extends AuthorizingRealm {
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
         SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
         LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(SysUser::getUid, principals.getPrimaryPrincipal());
+        wrapper.eq(SysUser::getGuid, principals.getPrimaryPrincipal());
         Optional.of(sysUserMapper.selectOne(wrapper)).ifPresent(e -> info.addRole(e.getRole().toString()));
         return info;
     }
@@ -63,9 +63,9 @@ public class CustomRealm extends AuthorizingRealm {
      */
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
-        String uid = (String) token.getPrincipal();
+        String guid = (String) token.getPrincipal();
         LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(uid.contains("@") ? SysUser::getEmail : SysUser::getUid, uid);
+        wrapper.eq(guid.contains("@") ? SysUser::getEmail : SysUser::getGuid, guid);
         SysUser user = sysUserMapper.selectOne(wrapper);
         // 无效账号
         if (user == null) {
@@ -87,12 +87,12 @@ public class CustomRealm extends AuthorizingRealm {
                 String input = new String((char[]) token.getCredentials());
                 // 微信默认密码登录
                 if (StrUtil.equals(input, Constants.WX_DEFAULT_PASSWORD)) {
-                    checkLimit(user.getUid());
+                    checkLimit(user.getGuid());
                     return true;
                 }
                 // 验证密码
                 if (Bcrypt.verify(input, (String) info.getCredentials())) {
-                    checkLimit(user.getUid());
+                    checkLimit(user.getGuid());
                     checkOffsite(user);
                     return true;
                 }
@@ -111,7 +111,7 @@ public class CustomRealm extends AuthorizingRealm {
         }
         // 查询登录记录
         LambdaQueryWrapper<SysUserLog> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(SysUserLog::getUid, user.getUid());
+        wrapper.eq(SysUserLog::getGuid, user.getGuid());
         wrapper.orderByDesc(BaseModel::getCreateTime);
         wrapper.last("LIMIT 1");
         SysUserLog log = sysUserLogMapper.selectOne(wrapper);
@@ -135,8 +135,8 @@ public class CustomRealm extends AuthorizingRealm {
     /**
      * 验证登录限制
      */
-    private void checkLimit(String uid) {
-        long time = redis.getExpired(RedisTree.LOCK.concat(uid));
+    private void checkLimit(String guid) {
+        long time = redis.getExpired(RedisTree.LOCK.concat(guid));
         if (time > 0) {
             throw new AccountException("您已被限制登录，预计剩余" + Wss.universal(time));
         }

@@ -7,27 +7,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.socket.webchat.model.enums.UserRole;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.experimental.Accessors;
 
-import java.io.Serializable;
 import java.time.LocalDate;
 
 /**
  * 用户信息
  */
 @Data
-@Accessors(chain = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
-public class SysUser extends BaseModel implements Serializable {
-    /**
-     * 昵称
-     */
-    private String name;
-    /**
-     * 账号/用户ID
-     */
-    @EqualsAndHashCode.Include
-    private String uid;
+public class SysUser extends BaseUser {
     /**
      * 散列密码
      */
@@ -65,10 +53,6 @@ public class SysUser extends BaseModel implements Serializable {
      */
     private Integer age;
     /**
-     * 头像地址
-     */
-    private String headimgurl;
-    /**
      * 头衔
      */
     private String alias;
@@ -77,7 +61,10 @@ public class SysUser extends BaseModel implements Serializable {
      * 创建用户
      */
     public static SysUser buildNewUser() {
-        return new SysUser().setRole(UserRole.USER).setUid(RandomUtil.randomNumbers(6));
+        SysUser user = new SysUser();
+        user.setRole(UserRole.USER);
+        user.setGuid(RandomUtil.randomNumbers(6));
+        return user;
     }
 
     /**

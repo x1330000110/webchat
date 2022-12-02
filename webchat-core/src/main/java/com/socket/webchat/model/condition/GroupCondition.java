@@ -7,7 +7,7 @@ public class GroupCondition {
     /**
      * 群组ID
      */
-    private String groupId;
+    private String gid;
     /**
      * 成员ID
      */

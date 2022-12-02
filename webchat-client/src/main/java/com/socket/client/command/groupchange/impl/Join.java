@@ -14,8 +14,8 @@ import org.springframework.stereotype.Component;
 public class Join extends GroupChangeHandler {
     @Override
     public void invoke(SysGroupUser user, SysGroup group) {
-        String uid = user.getUid(), gid = user.getGroupId();
-        WsUser wsuser = userMap.getUser(uid);
+        String guid = user.getUid(), gid = user.getGid();
+        WsUser wsuser = userMap.getUser(guid);
         groupMap.getGroupUsers(gid).add(wsuser);
         // 发送通知
         groupMap.sendGroup(gid, gid, GroupEnum.JOIN, user);

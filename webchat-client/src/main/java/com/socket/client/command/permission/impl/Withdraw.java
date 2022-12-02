@@ -3,6 +3,7 @@ package com.socket.client.command.permission.impl;
 import com.socket.client.command.permission.PermissionHandler;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
+import com.socket.webchat.model.BaseUser;
 import com.socket.webchat.model.command.impl.PermissionEnum;
 import com.socket.webchat.util.Wss;
 import org.springframework.stereotype.Component;
@@ -13,11 +14,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class Withdraw extends PermissionHandler {
     @Override
-    public <T> void invoke(WsUser self, WsUser target, T param) {
-        String suid = self.getUid(), tuid = target.getUid();
+    public <T> void invoke(WsUser self, BaseUser target, T param) {
+        String suid = self.getGuid(), tuid = target.getGuid();
         // 构建消息
         WsMsg wsmsg = new WsMsg((String) param, PermissionEnum.WITHDRAW);
-        wsmsg.setUid(suid);
+        wsmsg.setGuid(suid);
         wsmsg.setTarget(tuid);
         // 目标是群组 通知群组撤回此消息
         if (Wss.isGroup(tuid)) {

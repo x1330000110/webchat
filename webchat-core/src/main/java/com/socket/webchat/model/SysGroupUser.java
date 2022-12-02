@@ -14,14 +14,14 @@ public class SysGroupUser extends BaseModel {
     /**
      * 群组id
      */
-    private String groupId;
+    private String gid;
     /**
      * 群员id
      */
     private String uid;
 
-    public SysGroupUser(String groupId, String uid) {
-        this.groupId = groupId;
+    public SysGroupUser(String gid, String uid) {
+        this.gid = gid;
         this.uid = uid;
     }
 }

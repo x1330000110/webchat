@@ -11,7 +11,7 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-public class BaseModel {
+public abstract class BaseModel {
     /**
      * 主键id
      */

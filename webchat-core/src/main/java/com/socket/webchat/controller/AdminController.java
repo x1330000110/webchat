@@ -24,17 +24,17 @@ public class AdminController {
 
     @PostMapping("/mute")
     public void mute(@RequestBody LimitCondition condition) {
-        String uid = condition.getUid();
+        String guid = condition.getGuid();
         Long time = condition.getTime();
-        redisManager.setMute(uid, time);
-        publisher.pushPermissionEvent(uid, time, PermissionEnum.MUTE);
+        redisManager.setMute(guid, time);
+        publisher.pushPermissionEvent(guid, time, PermissionEnum.MUTE);
     }
 
     @PostMapping("/lock")
     public void lock(@RequestBody LimitCondition condition) {
-        String uid = condition.getUid();
+        String guid = condition.getGuid();
         Long time = condition.getTime();
-        redisManager.setLock(uid, time);
-        publisher.pushPermissionEvent(uid, time, PermissionEnum.LOCK);
+        redisManager.setLock(guid, time);
+        publisher.pushPermissionEvent(guid, time, PermissionEnum.LOCK);
     }
 }

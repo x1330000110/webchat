@@ -31,39 +31,39 @@ public class WsGroupMap extends ConcurrentHashMap<SysGroup, List<WsUser>> {
     /**
      * @see #sendGroup(String, String, Command, Object)
      */
-    public void sendGroup(String groupId, String content, Command<?> type) {
-        sendGroup(groupId, content, type, null);
+    public void sendGroup(String gid, String content, Command<?> type) {
+        sendGroup(gid, content, type, null);
     }
 
     /**
      * 向群组发送系统消息<br>
      *
-     * @param groupId 群id
+     * @param gid     群id
      * @param content 消息内容
      * @param type    消息类型
      * @param data    额外数据
      */
-    public void sendGroup(String groupId, String content, Command<?> type, Object data) {
-        getGroupUsers(groupId).forEach(wsuser -> wsuser.send(content, type, data));
+    public void sendGroup(String gid, String content, Command<?> type, Object data) {
+        getGroupUsers(gid).forEach(wsuser -> wsuser.send(content, type, data));
     }
 
     /**
      * 获取群组对象
      */
-    public SysGroup getGroup(String groupId) {
+    public SysGroup getGroup(String gid) {
         return this.keySet().stream()
-                .filter(e -> e.getGroupId().equals(groupId))
+                .filter(e -> e.getGuid().equals(gid))
                 .findFirst()
-                .orElseThrow(() -> new SocketException(Callback.GROUP_NOT_FOUND.format(groupId), MessageType.DANGER));
+                .orElseThrow(() -> new SocketException(Callback.GROUP_NOT_FOUND.format(gid), MessageType.DANGER));
     }
 
     /**
      * 获取指定群组ID成员列表
      *
-     * @param groupId 群组id
+     * @param gid 群组id
      * @return 成员
      */
-    public List<WsUser> getGroupUsers(String groupId) {
-        return this.get(getGroup(groupId));
+    public List<WsUser> getGroupUsers(String gid) {
+        return this.get(getGroup(gid));
     }
 }

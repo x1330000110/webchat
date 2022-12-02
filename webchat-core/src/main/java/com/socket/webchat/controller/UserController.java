@@ -59,9 +59,9 @@ public class UserController {
         return HttpStatus.SUCCESS.body();
     }
 
-    @GetMapping("/{uid}")
-    public HttpStatus userInfo(@PathVariable String uid) {
-        SysUser user = sysUserService.getUserInfo(uid);
+    @GetMapping("/{guid}")
+    public HttpStatus userInfo(@PathVariable String guid) {
+        SysUser user = sysUserService.getUserInfo(guid);
         return HttpStatus.SUCCESS.body(user);
     }
 
@@ -83,9 +83,9 @@ public class UserController {
 
     @PostMapping("/shield")
     public HttpStatus shield(@RequestBody UserCondition condition) {
-        String uid = condition.getUid();
-        boolean b = shieldUserService.shieldTarget(uid);
-        publisher.pushPermissionEvent(uid, null, PermissionEnum.SHIELD);
+        String guid = condition.getGuid();
+        boolean b = shieldUserService.shieldTarget(guid);
+        publisher.pushPermissionEvent(guid, null, PermissionEnum.SHIELD);
         return HttpStatus.of(b, "屏蔽成功", "取消屏蔽");
     }
 }

@@ -41,6 +41,10 @@ public class Publisher {
     }
 
     public void pushUserEvent(String data, UserEnum command) {
-        publisher.publishEvent(new UserChangeEvent(publisher, command, data));
+        publisher.publishEvent(new UserChangeEvent(publisher, data, command));
+    }
+
+    public void pushUserEvent(String target, String data, UserEnum command) {
+        publisher.publishEvent(new UserChangeEvent(publisher, target, data, command));
     }
 }

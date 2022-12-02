@@ -12,6 +12,7 @@ import com.socket.webchat.model.Announce;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.command.impl.PermissionEnum;
+import com.socket.webchat.model.command.impl.UserEnum;
 import com.socket.webchat.model.condition.MessageCondition;
 import com.socket.webchat.model.condition.SettingCondition;
 import com.socket.webchat.model.condition.UserCondition;
@@ -45,18 +46,18 @@ public class OwnerController {
 
     @PostMapping("/alias")
     public void alias(@RequestBody UserCondition condition) {
-        String uid = condition.getUid();
+        String guid = condition.getGuid();
         String content = condition.getContent();
-        sysUserService.updateAlias(uid, content);
-        publisher.pushPermissionEvent(uid, content, PermissionEnum.ALIAS);
+        sysUserService.updateAlias(guid, content);
+        publisher.pushUserEvent(guid, content, UserEnum.ALIAS);
     }
 
     @PostMapping("/role")
     public void role(@RequestBody UserCondition condition) {
-        String uid = condition.getUid();
-        UserRole role = sysUserService.switchRole(uid);
+        String guid = condition.getGuid();
+        UserRole role = sysUserService.switchRole(guid);
         Wss.getUser().setRole(role);
-        publisher.pushPermissionEvent(uid, role.getRole(), PermissionEnum.ROLE);
+        publisher.pushUserEvent(guid, role.getRole(), UserEnum.ROLE);
     }
 
     @PostMapping("/announce")
@@ -72,12 +73,12 @@ public class OwnerController {
     @PostMapping("/deleteUser")
     public HttpStatus deleteUser(@RequestBody UserCondition condition) {
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
-        String uid = condition.getUid();
-        wrapper.eq(SysUser::getUid, uid);
+        String guid = condition.getGuid();
+        wrapper.eq(SysUser::getGuid, guid);
         wrapper.set(SysUser::isDeleted, 1);
         boolean update = sysUserService.update(wrapper);
         if (update) {
-            publisher.pushPermissionEvent(uid, PermissionEnum.FOREVER);
+            publisher.pushPermissionEvent(guid, PermissionEnum.FOREVER);
         }
         return HttpStatus.of(update, "操作成功", "找不到此用户");
     }

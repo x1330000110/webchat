@@ -47,11 +47,11 @@ public class SysUserLogServiceImpl extends ServiceImpl<SysUserLogMapper, SysUser
     @Override
     public Map<String, SysUserLog> getUserLogs() {
         QueryWrapper<SysUserLog> wrapper = Wrappers.query();
-        wrapper.select(Wss.columnToString(SysUserLog::getUid),
+        wrapper.select(Wss.columnToString(SysUserLog::getGuid),
                 Wss.selectMax(BaseModel::getCreateTime),
                 Wss.columnToString(SysUserLog::getRemoteProvince));
-        wrapper.lambda().groupBy(SysUserLog::getUid);
+        wrapper.lambda().groupBy(SysUserLog::getGuid);
         List<SysUserLog> userLogs = list(wrapper);
-        return userLogs.stream().collect(Collectors.toMap(SysUserLog::getUid, Function.identity()));
+        return userLogs.stream().collect(Collectors.toMap(SysUserLog::getGuid, Function.identity()));
     }
 }

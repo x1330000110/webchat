@@ -58,7 +58,7 @@ public class WsUserMap extends ConcurrentHashMap<String, WsUser> {
         // 查找用户
         Subject subject = (Subject) properties.get(Constants.SUBJECT);
         SysUser principal = (SysUser) subject.getPrincipal();
-        WsUser user = getUser(principal.getUid());
+        WsUser user = getUser(principal.getGuid());
         HttpSession hs = (HttpSession) properties.get(Constants.HTTP_SESSION);
         // 检查重复登录
         if (user.isOnline() && user.differentSession(hs)) {
@@ -67,7 +67,7 @@ public class WsUserMap extends ConcurrentHashMap<String, WsUser> {
         // 写入聊天室
         user.login(session, hs, subject);
         // 检查登录限制（会话缓存检查）
-        long time = redisManager.getLockTime(user.getUid());
+        long time = redisManager.getLockTime(user.getGuid());
         if (time > 0) {
             this.exit(user, Callback.LOGIN_LIMIT.format(time));
             return null;
@@ -84,43 +84,43 @@ public class WsUserMap extends ConcurrentHashMap<String, WsUser> {
      * @param type    消息类型
      * @param data    附加用户信息
      */
-    public void sendAll(Object content, Command<?> type, SysUser data) {
+    public void sendAll(Object content, Command<?> type, Object data) {
         String constr = content == null ? null : content.toString();
         this.values().forEach(wsuser -> wsuser.send(constr, type, data));
     }
 
     /**
-     * @see #sendAll(Object, Command, SysUser)
+     * @see #sendAll(Object, Command, Object)
      */
     public void sendAll(Object content, Command<?> type) {
         this.sendAll(content, type, null);
     }
 
     /**
-     * @see #sendAll(Object, Command, SysUser)
+     * @see #sendAll(Object, Command, Object)
      */
-    public void sendAll(Command<?> type, SysUser data) {
+    public void sendAll(Command<?> type, Object data) {
         this.sendAll(null, type, data);
     }
 
     /**
      * 通过uid获取用户（不存在时通过缓存获取）
      *
-     * @param uid 用户uid
+     * @param guid 用户uid
      * @return {@link WsUser}
      */
-    public WsUser getUser(String uid) {
-        WsUser user = Optional.ofNullable(this.get(uid)).orElseGet(() -> {
+    public WsUser getUser(String guid) {
+        WsUser user = Optional.ofNullable(this.get(guid)).orElseGet(() -> {
             // 从数据库查询
             LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
-            wrapper.eq(SysUser::getUid, uid);
+            wrapper.eq(SysUser::getGuid, guid);
             SysUser find = userMapper.selectOne(wrapper);
             WsUser wsuser = Optional.ofNullable(find).map(WsUser::new).orElse(null);
             // 写入缓存
-            Optional.ofNullable(wsuser).ifPresent(e -> this.put(uid, e));
+            Optional.ofNullable(wsuser).ifPresent(e -> this.put(guid, e));
             return wsuser;
         });
-        Assert.notNull(user, Callback.USER_NOT_FOUND.format(uid));
+        Assert.notNull(user, Callback.USER_NOT_FOUND.format(guid));
         return user;
     }
 
@@ -138,7 +138,7 @@ public class WsUserMap extends ConcurrentHashMap<String, WsUser> {
         kafkaTemplate.send(Constants.KAFKA_RECORD, JSONUtil.toJsonStr(record));
         // 目标列表添加发起者uid
         if (!isread) {
-            redisManager.setUnreadCount(wsmsg.getTarget(), wsmsg.getUid(), 1);
+            redisManager.setUnreadCount(wsmsg.getTarget(), wsmsg.getGuid(), 1);
         }
     }
 
@@ -151,7 +151,7 @@ public class WsUserMap extends ConcurrentHashMap<String, WsUser> {
      * @param audio  是否包括语音消息
      */
     public void readAllMessage(WsUser sender, WsUser target, boolean audio) {
-        String suid = sender.getUid(), tuid = target.getUid();
+        String suid = sender.getGuid(), tuid = target.getGuid();
         recordService.readAllMessage(suid, tuid, audio);
         redisManager.setUnreadCount(suid, tuid, 0);
     }
@@ -165,7 +165,7 @@ public class WsUserMap extends ConcurrentHashMap<String, WsUser> {
      * @return 未读消息数
      */
     public int getUnreadCount(WsUser sender, WsUser target) {
-        return redisManager.getUnreadCount(sender.getUid(), target.getUid());
+        return redisManager.getUnreadCount(sender.getGuid(), target.getGuid());
     }
 
     /**
@@ -178,7 +178,7 @@ public class WsUserMap extends ConcurrentHashMap<String, WsUser> {
         xiaoBingAPIRequest.dialogue(wsmsg.getContent()).addCallback(result -> {
             if (result != null) {
                 // AI消息
-                WsMsg aimsg = new WsMsg(Constants.SYSTEM_UID, wsmsg.getUid(), result, MessageType.TEXT);
+                WsMsg aimsg = new WsMsg(Constants.SYSTEM_UID, wsmsg.getGuid(), result, MessageType.TEXT);
                 target.send(aimsg);
                 cacheRecord(aimsg, true);
             }

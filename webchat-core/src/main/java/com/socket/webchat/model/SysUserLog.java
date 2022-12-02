@@ -13,9 +13,9 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class SysUserLog extends BaseModel {
     /**
-     * 账号/用户ID
+     * 用户ID
      */
-    private String uid;
+    private String guid;
     /**
      * 最近登录ip地址
      */

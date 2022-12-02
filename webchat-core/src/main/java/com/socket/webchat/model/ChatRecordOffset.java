@@ -14,7 +14,7 @@ public class ChatRecordOffset extends BaseModel {
     /**
      * 发信人uid
      */
-    private String uid;
+    private String guid;
     /**
      * 收信人uid
      */

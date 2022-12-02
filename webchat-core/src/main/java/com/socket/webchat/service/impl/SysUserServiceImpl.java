@@ -62,13 +62,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public void login(LoginCondition condition) {
-        String code = condition.getCode(), uid = condition.getUser();
+        String code = condition.getCode(), guid = condition.getUser();
         // 优先验证邮箱验证码
         if (StrUtil.isNotEmpty(code)) {
-            String email = uid;
+            String email = guid;
             if (!email.contains("@")) {
                 LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery(SysUser.class);
-                wrapper.eq(SysUser::getUid, uid);
+                wrapper.eq(SysUser::getGuid, guid);
                 email = Opt.ofNullable(getFirst(wrapper)).map(SysUser::getEmail).get();
                 Assert.notNull(email, "找不到指定账号", UnknownAccountException::new);
             }
@@ -79,7 +79,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             redis.remove(key);
         }
         // shiro登录
-        SecurityUtils.getSubject().login(new UsernamePasswordToken(uid, condition.getPass(), condition.isAuto()));
+        SecurityUtils.getSubject().login(new UsernamePasswordToken(guid, condition.getPass(), condition.isAuto()));
     }
 
     @Override
@@ -91,7 +91,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 注册
         SysUser user = SysUser.buildNewUser();
         String email = condition.getEmail();
-        user.setName("用户" + user.getUid());
+        user.setName("用户" + user.getGuid());
         user.setEmail(email);
         user.setHash(Bcrypt.digest(condition.getPass()));
         // 如果是QQ邮箱 同步昵称和头像
@@ -109,7 +109,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
         super.save(user);
         // 加入默认群组
-        sysGroupService.joinGroup(Constants.GROUP, user.getUid());
+        sysGroupService.joinGroup(Constants.GROUP, user.getGuid());
         // 通过邮箱登录
         this.login(new LoginCondition(condition.getEmail(), condition.getPass()));
     }
@@ -118,9 +118,9 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     public String sendEmail(String email) {
         // 检查邮箱与UID
         if (!Validator.isEmail(email)) {
-            final String uid = email;
+            final String guid = email;
             LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
-            wrapper.eq(SysUser::getUid, uid);
+            wrapper.eq(SysUser::getGuid, guid);
             SysUser user = getFirst(wrapper);
             Assert.notNull(user, "找不到相关账号信息", IllegalStateException::new);
             Assert.isFalse(user.isDeleted(), "该账号已被永久限制登录", IllegalStateException::new);
@@ -166,7 +166,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     public void updateMaterial(SysUser user) {
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
         // 清空无法修改的字段
-        user.setUid(null);
+        user.setGuid(null);
         user.setHeadimgurl(null);
         user.setEmail(null);
         // 若生日不为空 优先使用基于生日的年龄
@@ -175,7 +175,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             long between = LocalDateTimeUtil.between(time, LocalDateTime.now(), ChronoUnit.YEARS);
             user.setAge(Math.toIntExact(between));
         }
-        wrapper.eq(SysUser::getUid, Wss.getUserId());
+        wrapper.eq(SysUser::getGuid, Wss.getUserId());
         Assert.isTrue(super.update(user, wrapper), "修改失败", IllegalStateException::new);
         // 推送变动事件
         publisher.pushUserEvent(user.getName(), UserEnum.NAME);
@@ -205,7 +205,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         String mapping = uploadService.getMapping(FileType.IMAGE, hash);
         // 保存头像
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
-        wrapper.eq(SysUser::getUid, Wss.getUserId());
+        wrapper.eq(SysUser::getGuid, Wss.getUserId());
         wrapper.set(SysUser::getHeadimgurl, mapping);
         Assert.isTrue(super.update(wrapper), "修改失败", IllegalStateException::new);
         // 保存文件映射
@@ -234,16 +234,16 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         Assert.equals(newcode, condition.getNewcode(), "新邮箱验证码不正确", IllegalStateException::new);
         // 更新邮箱
         wrapper.clear();
-        wrapper.eq(SysUser::getUid, user.getUid());
+        wrapper.eq(SysUser::getGuid, user.getGuid());
         wrapper.set(SysUser::getEmail, newemail);
         Assert.isTrue(super.update(wrapper), "修改失败", IllegalStateException::new);
         Wss.getUser().setEmail(newemail);
     }
 
     @Override
-    public SysUser getUserInfo(String uid) {
+    public SysUser getUserInfo(String guid) {
         LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(SysUser::getUid, uid);
+        wrapper.eq(SysUser::getGuid, guid);
         SysUser user = this.getFirst(wrapper);
         Assert.notNull(user, "找不到此用户信息", AccountException::new);
         return user;
@@ -252,7 +252,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     public UserRole switchRole(String target) {
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
-        wrapper.eq(SysUser::getUid, target);
+        wrapper.eq(SysUser::getGuid, target);
         SysUser first = getFirst(wrapper);
         UserRole role = first.getRole() == UserRole.ADMIN ? UserRole.USER : UserRole.ADMIN;
         wrapper.set(SysUser::getRole, role);
@@ -263,7 +263,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     public void updateAlias(String target, String alias) {
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
-        wrapper.eq(SysUser::getUid, target);
+        wrapper.eq(SysUser::getGuid, target);
         wrapper.set(SysUser::getAlias, alias);
         update(wrapper);
         // TODO

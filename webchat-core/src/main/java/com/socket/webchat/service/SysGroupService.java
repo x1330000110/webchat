@@ -14,35 +14,35 @@ public interface SysGroupService extends BaseService<SysGroup> {
     /**
      * 移除群组内用户
      *
-     * @param stater  发起者
-     * @param groupId 群组ID
-     * @param uid     用户ID
+     * @param stater 发起者
+     * @param gid    群组ID
+     * @param uid    用户ID
      * @return 是否成功
      */
-    boolean removeUser(String stater, String groupId, String uid);
+    boolean removeUser(String stater, String gid, String uid);
 
     /**
      * 加入群组
      *
-     * @param groupId 群组id
-     * @param uid     用户uid
+     * @param gid 群组id
+     * @param uid 用户uid
      * @return 是否成功
      */
-    boolean joinGroup(String groupId, String uid);
+    boolean joinGroup(String gid, String uid);
 
     /**
      * 解散群组
      *
-     * @param groupId 群组id
+     * @param gid 群组id
      * @return 是否成功
      */
-    boolean dissolveGroup(String groupId);
+    boolean dissolveGroup(String gid);
 
     /**
      * 退出群组
      *
-     * @param groupId 群组id
+     * @param gid 群组id
      * @return 是否成功
      */
-    boolean exitGroup(String groupId);
+    boolean exitGroup(String gid);
 }

@@ -19,10 +19,10 @@ public class ShieldUserServiceImpl extends ServiceImpl<ShieldUserMapper, ShieldU
     private final RedisManager redisManager;
 
     public boolean shieldTarget(String target) {
-        String uid = Wss.getUserId();
-        List<String> shields = redisManager.getShield(uid);
+        String guid = Wss.getUserId();
+        List<String> shields = redisManager.getShield(guid);
         LambdaUpdateWrapper<ShieldUser> wrapper = Wrappers.lambdaUpdate();
-        wrapper.eq(ShieldUser::getUid, uid);
+        wrapper.eq(ShieldUser::getGuid, guid);
         wrapper.eq(ShieldUser::getTarget, target);
         // 包含此目标uid，取消屏蔽
         if (shields.contains(target)) {
@@ -36,7 +36,7 @@ public class ShieldUserServiceImpl extends ServiceImpl<ShieldUserMapper, ShieldU
         // 更新失败则添加
         if (update(wrapper)) {
             ShieldUser suser = new ShieldUser();
-            suser.setUid(uid);
+            suser.setGuid(guid);
             suser.setTarget(target);
             save(suser);
         }

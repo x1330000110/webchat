@@ -7,7 +7,7 @@ public class LimitCondition {
     /**
      * 用户id
      */
-    private String uid;
+    private String guid;
     /**
      * 限制时间（单位：秒）
      */

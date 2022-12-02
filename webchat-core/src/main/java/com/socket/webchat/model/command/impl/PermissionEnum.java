@@ -29,13 +29,5 @@ public enum PermissionEnum implements Command<PermissionEnum> {
     /**
      * 推送公告
      */
-    ANNOUNCE,
-    /**
-     * 设置头衔
-     */
-    ALIAS,
-    /**
-     * 设置管理员
-     */
-    ROLE;
+    ANNOUNCE;
 }

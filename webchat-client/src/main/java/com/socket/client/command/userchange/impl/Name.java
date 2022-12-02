@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class Name extends UserChangeHandler {
     @Override
-    public void invoke(WsUser user, String data) {
-        user.setName(data);
+    public void invoke(WsUser target, String param) {
+        target.setName(param);
     }
 }

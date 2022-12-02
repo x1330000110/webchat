@@ -44,28 +44,28 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         Assert.isNull(getFirst(wrapper), "群组名称已存在", IllegalStateException::new);
         // 写入数据库
         SysGroup group = new SysGroup();
-        String groupId = Constants.GROUP + RandomUtil.randomNumbers(6);
-        group.setGroupId(groupId);
+        String gid = Constants.GROUP + RandomUtil.randomNumbers(6);
+        group.setGuid(gid);
         group.setName(groupName);
         group.setOwner(userId);
         if (super.save(group)) {
             // 推送事件
             publisher.pushGroupEvent(group, GroupEnum.CREATE);
             // 加入新建的群组里
-            joinGroup(groupId, userId);
-            return groupId;
+            joinGroup(gid, userId);
+            return gid;
         }
         return null;
     }
 
-    public boolean joinGroup(String groupId, String uid) {
+    public boolean joinGroup(String gid, String uid) {
         LambdaQueryWrapper<SysGroupUser> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(SysGroupUser::getGroupId, groupId);
+        wrapper.eq(SysGroupUser::getGid, gid);
         wrapper.eq(SysGroupUser::getUid, uid);
         if (sysGroupUserMapper.selectOne(wrapper) != null) {
             return false;
         }
-        SysGroupUser user = new SysGroupUser(groupId, uid);
+        SysGroupUser user = new SysGroupUser(gid, uid);
         // 推送事件
         if (SqlHelper.retBool(sysGroupUserMapper.insert(user))) {
             publisher.pushGroupEvent(user, GroupEnum.JOIN);
@@ -74,9 +74,9 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         return false;
     }
 
-    public boolean removeUser(String stater, String groupId, String uid) {
+    public boolean removeUser(String stater, String gid, String uid) {
         LambdaQueryWrapper<SysGroup> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(SysGroup::getGroupId, groupId);
+        wrapper.eq(SysGroup::getGuid, gid);
         SysGroup group = getFirst(wrapper);
         // 权限检查
         if (!group.getOwner().equals(stater)) {
@@ -87,23 +87,23 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         wrapper2.set(BaseModel::isDeleted, 1);
         // 推送事件
         if (SqlHelper.retBool(sysGroupUserMapper.update(null, wrapper2))) {
-            SysGroupUser groupUser = new SysGroupUser(groupId, uid);
+            SysGroupUser groupUser = new SysGroupUser(gid, uid);
             publisher.pushGroupEvent(groupUser, GroupEnum.DELETE);
             return true;
         }
         return false;
     }
 
-    public boolean dissolveGroup(String groupId) {
+    public boolean dissolveGroup(String gid) {
         String userId = Wss.getUserId();
         LambdaUpdateWrapper<SysGroup> wrapper = Wrappers.lambdaUpdate();
-        wrapper.eq(SysGroup::getGroupId, groupId);
+        wrapper.eq(SysGroup::getGuid, gid);
         wrapper.eq(SysGroup::getOwner, userId);
         wrapper.set(BaseModel::isDeleted, 1);
         if (super.update(wrapper)) {
             // 推送事件
             SysGroup group = new SysGroup();
-            group.setGroupId(groupId);
+            group.setGuid(gid);
             group.setOwner(userId);
             publisher.pushGroupEvent(group, GroupEnum.DISSOLVE);
             return true;
@@ -112,16 +112,16 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
     }
 
     @Override
-    public boolean exitGroup(String groupId) {
+    public boolean exitGroup(String gid) {
         String userId = Wss.getUserId();
         LambdaUpdateWrapper<SysGroupUser> wrapper = Wrappers.lambdaUpdate();
-        wrapper.eq(SysGroupUser::getGroupId, groupId);
+        wrapper.eq(SysGroupUser::getGid, gid);
         wrapper.eq(SysGroupUser::getUid, userId);
         wrapper.set(BaseModel::isDeleted, 1);
         int ok = sysGroupUserMapper.update(null, wrapper);
         if (SqlHelper.retBool(ok)) {
             // 推送事件
-            SysGroupUser user = new SysGroupUser(groupId, userId);
+            SysGroupUser user = new SysGroupUser(gid, userId);
             publisher.pushGroupEvent(user, GroupEnum.EXIT);
             return true;
         }

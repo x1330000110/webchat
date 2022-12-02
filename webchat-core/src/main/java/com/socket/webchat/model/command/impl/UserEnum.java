@@ -13,5 +13,13 @@ public enum UserEnum implements Command<UserEnum> {
     /**
      * 头像变动
      */
-    HEADIMG
+    HEADIMG,
+    /**
+     * 设置头衔
+     */
+    ALIAS,
+    /**
+     * 设置管理员
+     */
+    ROLE
 }

@@ -81,7 +81,7 @@ public class WsUser extends SysUser {
      * @return 选择返回true
      */
     public boolean chooseTarget(WsUser target) {
-        return Objects.equals(target.getUid(), choose);
+        return Objects.equals(target.getGuid(), choose);
     }
 
     /**
@@ -89,7 +89,7 @@ public class WsUser extends SysUser {
      */
     public WsMsg decrypt(String message) {
         WsMsg wsmsg = JSONUtil.toBean(AES.decrypt(message, hs), WsMsg.class);
-        wsmsg.setUid(getUid());
+        wsmsg.setGuid(getGuid());
         return wsmsg;
     }
 

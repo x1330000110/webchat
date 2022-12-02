@@ -24,7 +24,7 @@ public class ChatRecord extends BaseModel implements Comparable<ChatRecord> {
     /**
      * 发信人uid
      */
-    private String uid;
+    private String guid;
     /**
      * 消息唯一标识
      */

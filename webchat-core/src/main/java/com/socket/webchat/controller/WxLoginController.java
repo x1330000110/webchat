@@ -54,7 +54,7 @@ public class WxLoginController {
         // 永久限制登录
         RedirectUtil.redirectIf(user.isDeleted(), response, domain + "/status/failed.html?key=lock");
         // 临时限制登录
-        long time = redis.getExpired(RedisTree.LOCK.concat(user.getUid()));
+        long time = redis.getExpired(RedisTree.LOCK.concat(user.getGuid()));
         RedirectUtil.redirectIf(time > 0, response, domain + "/status/failed.html?key=lock&time=" + time);
         // 手机扫码登录处理
         RedirectUtil.redirectIf(!wxMobile, response, domain + "/status/success.html");

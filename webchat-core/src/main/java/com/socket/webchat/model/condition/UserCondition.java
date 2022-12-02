@@ -10,7 +10,7 @@ public class UserCondition {
     /**
      * 用户UID
      */
-    private String uid;
+    private String guid;
     /**
      * 要变更的数据
      */

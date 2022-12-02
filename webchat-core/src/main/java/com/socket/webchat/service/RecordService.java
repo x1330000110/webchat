@@ -49,17 +49,17 @@ public interface RecordService extends BaseService<ChatRecord> {
     /**
      * 同步指定用户所有消息为已读
      *
-     * @param uid    发起人
+     * @param guid   发起人
      * @param target 变更已读的uid
      * @param audio  是否包括语音消息
      */
-    void readAllMessage(String uid, String target, boolean audio);
+    void readAllMessage(String guid, String target, boolean audio);
 
     /**
      * 获取发送到此用户的所有人的最新消息，返回的ChatRecord#uid都不相同
      *
-     * @param uid 用户uid
+     * @param guid 用户uid
      * @return 关联未读消息表
      */
-    Map<String, ChatRecord> getLatestUnreadMessages(String uid);
+    Map<String, ChatRecord> getLatestUnreadMessages(String guid);
 }

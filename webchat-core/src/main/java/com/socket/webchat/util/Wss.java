@@ -36,7 +36,7 @@ public class Wss {
      * 获取当前用户登录的UID
      */
     public static String getUserId() {
-        return Opt.ofNullable(getUser()).map(SysUser::getUid).get();
+        return Opt.ofNullable(getUser()).map(SysUser::getGuid).get();
     }
 
     /**
@@ -82,7 +82,7 @@ public class Wss {
         if (userId == null) {
             return false;
         }
-        return Wss.isGroup(record.getTarget()) || userId.equals(record.getUid()) || userId.equals(record.getTarget());
+        return Wss.isGroup(record.getTarget()) || userId.equals(record.getGuid()) || userId.equals(record.getTarget());
     }
 
 
@@ -105,8 +105,8 @@ public class Wss {
     /**
      * 检查目标是否为群组
      */
-    public static boolean isGroup(String target) {
-        return target != null && target.startsWith(Constants.GROUP);
+    public static boolean isGroup(String guid) {
+        return guid != null && guid.startsWith(Constants.GROUP);
     }
 
     /**

@@ -58,10 +58,10 @@ public class WxloginServiceImpl implements WxloginService {
                 user.setHash(Bcrypt.digest(Constants.WX_DEFAULT_PASSWORD));
                 sysUserService.save(user);
                 // 加入默认群组
-                sysGroupService.joinGroup(Constants.GROUP, user.getUid());
+                sysGroupService.joinGroup(Constants.GROUP, user.getGuid());
             }
             // 设置用户UID到Redis
-            return redis.setIfPresent(key, user.getUid(), Constants.QR_CODE_EXPIRATION_TIME) ? user : null;
+            return redis.setIfPresent(key, user.getGuid(), Constants.QR_CODE_EXPIRATION_TIME) ? user : null;
         }
         return null;
     }
@@ -69,14 +69,14 @@ public class WxloginServiceImpl implements WxloginService {
     @Override
     public boolean login(String uuid) {
         String key = RedisTree.WXUUID.concat(uuid);
-        String uid = redis.get(key);
+        String guid = redis.get(key);
         // key不存在（已过期）
-        Assert.notNull(uid, "二维码已过期", AccountException::new);
-        // 检查value是否被赋值[uid]
-        if (StrUtil.isEmpty(uid)) {
+        Assert.notNull(guid, "二维码已过期", AccountException::new);
+        // 检查value是否被赋值[guid]
+        if (StrUtil.isEmpty(guid)) {
             return false;
         }
-        sysUserService.login(new LoginCondition(uid, Constants.WX_DEFAULT_PASSWORD));
+        sysUserService.login(new LoginCondition(guid, Constants.WX_DEFAULT_PASSWORD));
         return redis.remove(key);
     }
 

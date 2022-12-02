@@ -25,7 +25,7 @@ public interface SysUserService extends BaseService<SysUser> {
     /**
      * 发送邮箱验证码通用接口
      *
-     * @param email uid/邮箱
+     * @param email guid/邮箱
      * @return 邮箱信息
      */
     String sendEmail(String email);
@@ -63,10 +63,10 @@ public interface SysUserService extends BaseService<SysUser> {
     /**
      * 用户个人信息
      *
-     * @param uid 用户id
+     * @param guid 用户id
      * @return {@link SysUser}
      */
-    SysUser getUserInfo(String uid);
+    SysUser getUserInfo(String guid);
 
     /**
      * 切换目标用户管理员身份

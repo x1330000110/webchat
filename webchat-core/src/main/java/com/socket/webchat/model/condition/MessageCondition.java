@@ -10,7 +10,7 @@ public class MessageCondition {
     /**
      * 发起者uid
      */
-    private String uid;
+    private String guid;
     /**
      * 目标uid
      */

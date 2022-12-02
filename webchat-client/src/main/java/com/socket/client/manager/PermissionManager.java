@@ -54,7 +54,7 @@ public class PermissionManager implements InitializingBean {
      */
     public Collection<UserPreview> getUserPreviews(WsUser self) {
         // 消息发起者
-        String suid = self.getUid();
+        String suid = self.getGuid();
         // 与此用户关联的最新未读消息
         Map<String, ChatRecord> unreadMessages = recordService.getLatestUnreadMessages(suid);
         // 登录记录
@@ -62,12 +62,12 @@ public class PermissionManager implements InitializingBean {
         // 链接数据
         List<UserPreview> previews = new ArrayList<>();
         userMap.values().stream().map(UserPreview::new)
-                .peek(preview -> Optional.ofNullable(logs.get(preview.getUid())).ifPresent(log -> {
+                .peek(preview -> Optional.ofNullable(logs.get(preview.getGuid())).ifPresent(log -> {
                     // 关联日志
                     preview.setLastTime(log.getCreateTime().getTime());
                     preview.setRemoteProvince(log.getRemoteProvince());
                 })).forEach(preview -> {
-                    String target = preview.getUid();
+                    String target = preview.getGuid();
                     // 检查未读消息
                     int count = redisManager.getUnreadCount(suid, target);
                     if (count > 0) {
@@ -78,20 +78,20 @@ public class PermissionManager implements InitializingBean {
                         });
                     }
                     // 为自己赋值屏蔽列表
-                    if (preview.getUid().equals(suid)) {
+                    if (preview.getGuid().equals(suid)) {
                         preview.setShields(getShield(self));
                     }
                     previews.add(preview);
                 });
         // 添加群组到列表
         groupMap.forEach((group, value) -> {
-            List<String> uids = value.stream().map(SysUser::getUid).collect(Collectors.toList());
+            List<String> uids = value.stream().map(SysUser::getGuid).collect(Collectors.toList());
             // 需要在群里
             if (uids.contains(suid)) {
                 UserPreview preview = BeanUtil.copyProperties(group, UserPreview.class);
                 preview.setIsgroup(true);
                 preview.setMembers(uids);
-                preview.setUid(group.getGroupId());
+                preview.setGuid(group.getGuid());
                 preview.setOnline(OnlineState.ONLINE);
                 previews.add(preview);
             }
@@ -103,7 +103,7 @@ public class PermissionManager implements InitializingBean {
      * 检查指定用户禁言情况，若用户被禁言将发送一条系统通知
      */
     public void checkMute(WsUser user) {
-        long time = redisManager.getMuteTime(user.getUid());
+        long time = redisManager.getMuteTime(user.getGuid());
         if (time > 0) {
             user.send(null, PermissionEnum.MUTE, time);
         }
@@ -139,7 +139,7 @@ public class PermissionManager implements InitializingBean {
      * 检查指定用户是否被目标屏蔽（优先通过缓存加载）
      */
     public boolean shield(WsUser secure, WsUser target) {
-        return getShield(secure).contains(target.getUid());
+        return getShield(secure).contains(target.getGuid());
     }
 
     /**
@@ -149,7 +149,7 @@ public class PermissionManager implements InitializingBean {
      * @return 屏蔽列表
      */
     public List<String> getShield(WsUser wsuser) {
-        return redisManager.getShield(wsuser.getUid());
+        return redisManager.getShield(wsuser.getGuid());
     }
 
 
@@ -160,8 +160,8 @@ public class PermissionManager implements InitializingBean {
     public void operateMark(WsUser user) {
         if (!user.isOwner()) {
             long time = TimeUnit.HOURS.toSeconds(Constants.FREQUENT_SPEECHES_MUTE_TIME);
-            if (redisManager.incrSpeak(user.getUid()) > Constants.FREQUENT_SPEECH_THRESHOLD) {
-                redisManager.setMute(user.getUid(), time);
+            if (redisManager.incrSpeak(user.getGuid()) > Constants.FREQUENT_SPEECH_THRESHOLD) {
+                redisManager.setMute(user.getGuid(), time);
                 user.send(Callback.BRUSH_SCREEN.format(time), PermissionEnum.MUTE, time);
             }
         }
@@ -174,7 +174,7 @@ public class PermissionManager implements InitializingBean {
      * @return true被禁言
      */
     public boolean isMute(WsUser user) {
-        return redisManager.getMuteTime(user.getUid()) > 0;
+        return redisManager.getMuteTime(user.getGuid()) > 0;
     }
 
     /**
@@ -188,7 +188,7 @@ public class PermissionManager implements InitializingBean {
         if (wsmsg.isGroup()) {
             WsUser user = new WsUser();
             SysGroup group = groupMap.getGroup(target);
-            user.setUid(group.getGroupId());
+            user.setGuid(group.getGuid());
             user.setName(group.getName());
             return user;
         }
@@ -199,13 +199,13 @@ public class PermissionManager implements InitializingBean {
     public void afterPropertiesSet() throws Exception {
         // 缓存用户
         List<SysUser> userList = sysUserMapper.selectList(Wrappers.emptyWrapper());
-        userList.stream().map(WsUser::new).forEach(e -> userMap.put(e.getUid(), e));
+        userList.stream().map(WsUser::new).forEach(e -> userMap.put(e.getGuid(), e));
         // 缓存群组
         List<SysGroup> sysGroups = sysGroupMapper.selectList(Wrappers.emptyWrapper());
         List<SysGroupUser> groupthis = sysGroupUserMapper.selectList(Wrappers.emptyWrapper());
         for (SysGroup group : sysGroups) {
             List<WsUser> collect = groupthis.stream()
-                    .filter(e -> e.getGroupId().equals(group.getGroupId()))
+                    .filter(e -> e.getGid().equals(group.getGuid()))
                     .map(SysGroupUser::getUid)
                     .map(userMap::getUser)
                     .collect(Collectors.toList());

@@ -74,7 +74,7 @@ public class SocketEndpoint implements ApplicationContextAware {
             log.warn("非法操作拦截：{}", e.getMessage());
             return;
         }
-        log.error("Ws内部处理错误: ", e);
+        e.printStackTrace();
     }
 
     @OnMessage

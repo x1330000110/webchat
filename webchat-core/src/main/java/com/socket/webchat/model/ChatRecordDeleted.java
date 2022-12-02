@@ -16,7 +16,7 @@ public class ChatRecordDeleted extends BaseModel {
     /**
      * 发信人uid
      */
-    private String uid;
+    private String guid;
     /**
      * 消息ID
      */

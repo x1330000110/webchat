@@ -2,15 +2,16 @@ package com.socket.client.command.userchange.impl;
 
 import com.socket.client.command.userchange.UserChangeHandler;
 import com.socket.client.model.WsUser;
+import com.socket.webchat.model.command.impl.UserEnum;
 import org.springframework.stereotype.Component;
 
 /**
- * 头像变更
+ * 设置头衔
  */
 @Component
-public class Headimg extends UserChangeHandler {
+public class Alias extends UserChangeHandler {
     @Override
     public void invoke(WsUser target, String param) {
-        target.setHeadimgurl(param);
+        userMap.sendAll(param, UserEnum.ALIAS, target);
     }
 }
