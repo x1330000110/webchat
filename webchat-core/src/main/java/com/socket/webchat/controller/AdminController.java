@@ -27,7 +27,7 @@ public class AdminController {
         String uid = condition.getUid();
         Long time = condition.getTime();
         redisManager.setMute(uid, time);
-        publisher.pushPermissionEvent(uid, time.toString(), PermissionEnum.MUTE);
+        publisher.pushPermissionEvent(uid, time, PermissionEnum.MUTE);
     }
 
     @PostMapping("/lock")
@@ -35,6 +35,6 @@ public class AdminController {
         String uid = condition.getUid();
         Long time = condition.getTime();
         redisManager.setLock(uid, time);
-        publisher.pushPermissionEvent(uid, time.toString(), PermissionEnum.LOCK);
+        publisher.pushPermissionEvent(uid, time, PermissionEnum.LOCK);
     }
 }

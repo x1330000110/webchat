@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class Alias extends PermissionHandler {
     @Override
-    public void invoke(WsUser user, String data) {
-        userMap.sendAll(data, PermissionEnum.ALIAS, user);
+    public <T> void invoke(WsUser self, WsUser target, T param) {
+        userMap.sendAll(param, PermissionEnum.ALIAS, target);
     }
 }

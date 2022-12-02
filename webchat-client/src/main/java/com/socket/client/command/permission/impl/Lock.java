@@ -12,8 +12,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class Lock extends PermissionHandler {
     @Override
-    public void invoke(WsUser user, String data) {
-        userMap.exit(user, Callback.LOGIN_LIMIT.format(Long.parseLong(data)));
-        userMap.sendAll(data, PermissionEnum.LOCK, user);
+    public <T> void invoke(WsUser self, WsUser target, T param) {
+        Long time = (Long) param;
+        userMap.exit(target, Callback.LOGIN_LIMIT.format(time));
+        userMap.sendAll(time, PermissionEnum.LOCK, target);
     }
 }

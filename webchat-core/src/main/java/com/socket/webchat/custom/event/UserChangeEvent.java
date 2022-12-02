@@ -18,16 +18,16 @@ public class UserChangeEvent extends ApplicationEvent {
     /**
      * 新数据
      */
-    private final String data;
+    private final String param;
 
-    public UserChangeEvent(Object source, UserEnum operation, String data) {
-        this(source, operation, data, Wss.getUserId());
+    public UserChangeEvent(Object source, UserEnum operation, String param) {
+        this(source, operation, param, Wss.getUserId());
     }
 
-    public UserChangeEvent(Object source, UserEnum operation, String data, String uid) {
+    public UserChangeEvent(Object source, UserEnum operation, String param, String uid) {
         super(source);
         this.operation = operation;
-        this.data = data;
+        this.param = param;
         this.uid = uid;
     }
 }

@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class Forever extends PermissionHandler {
     @Override
-    public void invoke(WsUser user, String data) {
-        userMap.exit(user, "您已被管理员永久限制登陆");
-        userMap.remove(user.getUid());
+    public <T> void invoke(WsUser self, WsUser target, T param) {
+        userMap.exit(target, "您已被管理员永久限制登陆");
+        userMap.remove(target.getUid());
     }
 }

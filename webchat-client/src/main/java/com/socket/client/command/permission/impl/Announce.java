@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class Announce extends PermissionHandler {
     @Override
-    public void invoke(WsUser user, String data) {
-        userMap.sendAll(data, PermissionEnum.ANNOUNCE);
+    public <T> void invoke(WsUser self, WsUser target, T param) {
+        userMap.sendAll(param, PermissionEnum.ANNOUNCE);
     }
 }

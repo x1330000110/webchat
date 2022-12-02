@@ -11,7 +11,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class Mute extends PermissionHandler {
     @Override
-    public void invoke(WsUser user, String data) {
-        userMap.sendAll(data, PermissionEnum.MUTE, user);
+    public <T> void invoke(WsUser self, WsUser target, T param) {
+        Long time = (Long) param;
+        userMap.sendAll(time, PermissionEnum.MUTE, target);
     }
 }

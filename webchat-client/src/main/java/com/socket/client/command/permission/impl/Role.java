@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class Role extends PermissionHandler {
     @Override
-    public void invoke(WsUser user, String data) {
-        user.setRole(UserRole.of(data));
-        userMap.sendAll(PermissionEnum.ROLE, user);
+    public <T> void invoke(WsUser self, WsUser target, T param) {
+        target.setRole(UserRole.of((String) param));
+        userMap.sendAll(PermissionEnum.ROLE, target);
     }
 }

@@ -1,14 +1,18 @@
 package com.socket.webchat.controller;
 
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.socket.webchat.constant.Constants;
+import com.socket.webchat.model.SysGroup;
 import com.socket.webchat.model.condition.GroupCondition;
 import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.service.SysGroupService;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -44,5 +48,15 @@ public class GroupController {
     public HttpStatus dissolve(@RequestBody GroupCondition condition) {
         boolean b = sysGroupService.dissolveGroup(condition.getGroupId());
         return HttpStatus.of(b, "群组解散成功", "找不到相关信息");
+    }
+
+    @GetMapping("/list")
+    public HttpStatus list(GroupCondition condition) {
+        LambdaQueryWrapper<SysGroup> wrapper = Wrappers.lambdaQuery();
+        String groupId = condition.getGroupId();
+        wrapper.like(StrUtil.isNotEmpty(groupId), SysGroup::getGroupId, groupId);
+        List<SysGroup> list = sysGroupService.list(wrapper);
+        list.removeIf(group -> Constants.GROUP.equals(group.getGroupId()));
+        return HttpStatus.SUCCESS.body(list);
     }
 }

@@ -118,7 +118,8 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
             }
             // 通知成员撤回
             if (!record.isReject()) {
-                publisher.pushPermissionEvent(record, PermissionEnum.WITHDRAW);
+                String self = record.getUid(), target = record.getTarget();
+                publisher.pushPermissionEvent(self, target, record.getMid(), PermissionEnum.WITHDRAW);
             }
             return true;
         }

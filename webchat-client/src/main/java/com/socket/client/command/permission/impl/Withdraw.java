@@ -3,7 +3,6 @@ package com.socket.client.command.permission.impl;
 import com.socket.client.command.permission.PermissionHandler;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
-import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.command.impl.PermissionEnum;
 import com.socket.webchat.util.Wss;
 import org.springframework.stereotype.Component;
@@ -14,23 +13,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class Withdraw extends PermissionHandler {
     @Override
-    public void invoke(ChatRecord record) {
-        WsUser self = userMap.getUser(record.getUid());
+    public <T> void invoke(WsUser self, WsUser target, T param) {
+        String suid = self.getUid(), tuid = target.getUid();
         // 构建消息
-        String target = record.getTarget();
-        String mid = record.getMid();
-        WsMsg wsmsg = new WsMsg(mid, PermissionEnum.WITHDRAW);
-        wsmsg.setUid(self.getUid());
-        wsmsg.setTarget(target);
+        WsMsg wsmsg = new WsMsg((String) param, PermissionEnum.WITHDRAW);
+        wsmsg.setUid(suid);
+        wsmsg.setTarget(tuid);
         // 目标是群组 通知群组撤回此消息
-        if (Wss.isGroup(target)) {
-            wsmsg.setData(groupMap.getGroup(target));
+        if (Wss.isGroup(tuid)) {
+            wsmsg.setData(groupMap.getGroup(tuid));
             groupMap.sendGroup(wsmsg);
             return;
         }
         // 通知双方撤回此消息
         wsmsg.setData(self);
-        userMap.getUser(target).send(wsmsg);
+        userMap.getUser(tuid).send(wsmsg);
         self.send(wsmsg);
     }
 }

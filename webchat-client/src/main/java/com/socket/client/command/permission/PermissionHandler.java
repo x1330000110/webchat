@@ -5,7 +5,6 @@ import com.socket.client.manager.WsGroupMap;
 import com.socket.client.manager.WsUserMap;
 import com.socket.client.model.WsUser;
 import com.socket.webchat.custom.event.PermissionEvent;
-import com.socket.webchat.model.ChatRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Optional;
@@ -20,20 +19,10 @@ public abstract class PermissionHandler implements CommandHandler<PermissionEven
     protected WsUserMap userMap;
 
     public void invoke(PermissionEvent event) {
-        ChatRecord record = event.getRecord();
-        // 消息不为空则实现对消息的处理
-        if (record != null) {
-            invoke(record);
-            return;
-        }
-        // 执行常规命令
-        WsUser user = Optional.ofNullable(event.getTarget()).map(userMap::getUser).orElse(null);
-        invoke(user, event.getData());
+        WsUser self = Optional.ofNullable(event.getSelf()).map(userMap::getUser).orElse(null);
+        WsUser target = Optional.ofNullable(event.getTarget()).map(userMap::getUser).orElse(null);
+        invoke(self, target, event.getParam());
     }
 
-    public void invoke(WsUser user, String data) {
-    }
-
-    public void invoke(ChatRecord record) {
-    }
+    public abstract <T> void invoke(WsUser self, WsUser target, T param);
 }
