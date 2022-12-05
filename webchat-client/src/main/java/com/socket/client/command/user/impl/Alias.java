@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 public class Alias extends UserChangeHandler {
     @Override
     public void invoke(WsUser target, String param) {
+        target.setAlias(param);
         userMap.sendAll(param, UserEnum.ALIAS, target);
     }
 }

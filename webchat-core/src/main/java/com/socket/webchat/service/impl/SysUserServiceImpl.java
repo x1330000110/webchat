@@ -266,6 +266,5 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         wrapper.eq(SysUser::getGuid, target);
         wrapper.set(SysUser::getAlias, alias);
         update(wrapper);
-        // TODO
     }
 }
