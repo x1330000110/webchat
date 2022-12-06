@@ -1,11 +1,10 @@
 package com.socket.client.manager;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
+import com.socket.client.model.GroupPreview;
 import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
-import com.socket.client.model.enums.OnlineState;
 import com.socket.client.support.KeywordSupport;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.RedisManager;
@@ -21,7 +20,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -50,7 +52,7 @@ public class PermissionManager implements InitializingBean {
      *
      * @param self 当前登录的用户
      */
-    public Collection<UserPreview> getUserPreviews(WsUser self) {
+    public Collection<BaseUser> getUserPreviews(WsUser self) {
         // 消息发起者
         String suid = self.getGuid();
         // 与此用户关联的最新未读消息
@@ -58,39 +60,41 @@ public class PermissionManager implements InitializingBean {
         // 登录记录
         Map<String, SysUserLog> logs = sysUserLogService.getUserLogs();
         // 链接数据
-        List<UserPreview> previews = new ArrayList<>();
-        userMap.values().stream().map(UserPreview::new)
-                .peek(preview -> Optional.ofNullable(logs.get(preview.getGuid())).ifPresent(log -> {
-                    // 关联日志
-                    preview.setLastTime(log.getCreateTime().getTime());
-                    preview.setRemoteProvince(log.getRemoteProvince());
-                })).forEach(preview -> {
-                    String target = preview.getGuid();
-                    // 检查未读消息
-                    int count = redisManager.getUnreadCount(suid, target);
-                    if (count > 0) {
-                        Optional.ofNullable(unreadMessages.get(target)).ifPresent(unread -> {
-                            preview.setPreview(unread);
-                            preview.setLastTime(unread.getCreateTime().getTime());
-                            preview.setUnreads(Math.min(count, 99));
-                        });
-                    }
-                    // 为自己赋值屏蔽列表
-                    if (preview.getGuid().equals(suid)) {
-                        preview.setShields(getShield(self));
-                    }
-                    previews.add(preview);
-                });
+        List<BaseUser> previews = new ArrayList<>();
+        for (WsUser user : userMap.values()) {
+            UserPreview userPreview = new UserPreview(user);
+            // 关联日志
+            SysUserLog log = logs.get(userPreview.getGuid());
+            if (log != null) {
+                userPreview.setLastTime(log.getCreateTime().getTime());
+                userPreview.setRemoteProvince(log.getRemoteProvince());
+            }
+            String target = userPreview.getGuid();
+            // 检查未读消息
+            int count = redisManager.getUnreadCount(suid, target);
+            if (count > 0) {
+                ChatRecord unread = unreadMessages.get(target);
+                if (unread != null) {
+                    userPreview.setPreview(unread);
+                    userPreview.setLastTime(unread.getCreateTime().getTime());
+                    userPreview.setUnreads(Math.min(count, 99));
+                }
+            }
+            // 为自己赋值屏蔽列表
+            if (userPreview.getGuid().equals(suid)) {
+                userPreview.setShields(getShield(self));
+            }
+            previews.add(userPreview);
+        }
         // 添加群组到列表
         groupMap.forEach((group, value) -> {
             List<String> uids = value.stream().map(SysUser::getGuid).collect(Collectors.toList());
             // 需要在群里
             if (uids.contains(suid)) {
-                UserPreview preview = BeanUtil.copyProperties(group, UserPreview.class);
+                GroupPreview preview = new GroupPreview(group);
                 preview.setIsgroup(true);
                 preview.setGuids(uids);
-                preview.setOnline(OnlineState.ONLINE);
-                previews.add(preview);
+                previews.add(group);
             }
         });
         return previews;

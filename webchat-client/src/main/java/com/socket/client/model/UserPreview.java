@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * 列表预览用户信息
+ * 预览用户
  *
  * @date 2021/8/20
  */
@@ -48,21 +48,9 @@ public class UserPreview extends SysUser {
      * 未读消息总数
      */
     private Integer unreads;
-    /**
-     * 群所有者uid
-     */
-    private String owner;
-    /**
-     * 是否为群组
-     */
-    private boolean isgroup;
-    /**
-     * 群组成员
-     */
-    private List<String> guids;
 
-    public UserPreview(SysUser sysUser) {
-        BeanUtil.copyProperties(sysUser, this);
+    public UserPreview(SysUser source) {
+        BeanUtil.copyProperties(source, this);
     }
 
     public void setPreview(ChatRecord unread) {

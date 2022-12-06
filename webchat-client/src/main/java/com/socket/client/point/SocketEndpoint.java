@@ -5,7 +5,6 @@ import com.socket.client.exception.SocketException;
 import com.socket.client.manager.PermissionManager;
 import com.socket.client.manager.SocketGroupMap;
 import com.socket.client.manager.SocketUserMap;
-import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
 import com.socket.client.model.enums.OnlineState;
@@ -13,6 +12,7 @@ import com.socket.client.util.Assert;
 import com.socket.secure.exception.InvalidRequestException;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.support.SettingSupport;
+import com.socket.webchat.model.BaseUser;
 import com.socket.webchat.model.command.impl.MessageEnum;
 import com.socket.webchat.model.enums.Setting;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +45,7 @@ public class SocketEndpoint implements ApplicationContextAware {
         // 加入聊天室
         Optional.ofNullable(userMap.join(session, config.getUserProperties())).ifPresent(user -> {
             // 推送所有用户数据
-            Collection<UserPreview> userList = permissionManager.getUserPreviews(user);
+            Collection<BaseUser> userList = permissionManager.getUserPreviews(user);
             user.send("Initialize user", MessageEnum.INIT, userList);
             // 向其他人发送加入通知
             userMap.sendAll(MessageEnum.JOIN, user);
