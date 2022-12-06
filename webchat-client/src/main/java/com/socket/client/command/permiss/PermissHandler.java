@@ -1,13 +1,12 @@
 package com.socket.client.command.permiss;
 
-import cn.hutool.core.util.StrUtil;
 import com.socket.client.command.CommandHandler;
 import com.socket.client.manager.WsGroupMap;
 import com.socket.client.manager.WsUserMap;
 import com.socket.client.model.WsUser;
-import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.event.PermissionEvent;
 import com.socket.webchat.model.BaseUser;
+import com.socket.webchat.util.Wss;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Optional;
@@ -15,7 +14,7 @@ import java.util.Optional;
 /**
  * 权限命令处理基础类
  */
-public abstract class PermissionHandler implements CommandHandler<PermissionEvent> {
+public abstract class PermissHandler implements CommandHandler<PermissionEvent> {
     @Autowired
     protected WsGroupMap groupMap;
     @Autowired
@@ -30,6 +29,6 @@ public abstract class PermissionHandler implements CommandHandler<PermissionEven
     public abstract <T> void invoke(WsUser self, BaseUser target, T param);
 
     private BaseUser getBaseUser(String guid) {
-        return StrUtil.startWith(guid, Constants.GROUP) ? groupMap.getGroup(guid) : userMap.getUser(guid);
+        return Wss.isGroup(guid) ? groupMap.getGroup(guid) : userMap.getUser(guid);
     }
 }
