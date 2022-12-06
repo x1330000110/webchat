@@ -148,9 +148,7 @@ public class SocketEndpoint implements ApplicationContextAware {
         String type = wsmsg.getType().toUpperCase();
         switch (MessageEnum.valueOf(type)) {
             case CHANGE:
-                String content = wsmsg.getContent();
-                self.setOnline(OnlineState.of(content));
-                userMap.sendAll(content, MessageEnum.CHANGE, self);
+                this.onlineChange(wsmsg.getContent());
                 break;
             case CHOOSE:
                 this.choose(target, wsmsg);
@@ -169,15 +167,13 @@ public class SocketEndpoint implements ApplicationContextAware {
     }
 
     /**
-     * WebRTC消息处理
+     * 在线状态变动事件
+     *
+     * @param state 状态
      */
-    private void forwardWebRTC(WsUser target, WsMsg wsmsg) {
-        // 屏蔽检查
-        Assert.isFalse(permissionManager.shield(self, target), "屏蔽目标时无法发起通话请求");
-        if (permissionManager.shield(target, self)) {
-            self.send("对方屏蔽了你", MessageEnum.ERROR);
-        }
-        target.send(wsmsg);
+    private void onlineChange(String state) {
+        self.setOnline(OnlineState.of(state));
+        userMap.sendAll(state, MessageEnum.CHANGE, self);
     }
 
     /**
@@ -188,6 +184,18 @@ public class SocketEndpoint implements ApplicationContextAware {
         if (!wsmsg.isGroup() && userMap.getUnreadCount(self, target) > 0) {
             userMap.readAllMessage(self, target, false);
         }
+    }
+
+    /**
+     * WebRTC消息处理
+     */
+    private void forwardWebRTC(WsUser target, WsMsg wsmsg) {
+        // 屏蔽检查
+        Assert.isFalse(permissionManager.shield(self, target), "屏蔽目标时无法发起通话请求");
+        if (permissionManager.shield(target, self)) {
+            self.send("对方屏蔽了你", MessageEnum.ERROR);
+        }
+        target.send(wsmsg);
     }
 
     @Override
