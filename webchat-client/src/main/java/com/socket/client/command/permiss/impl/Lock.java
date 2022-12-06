@@ -15,7 +15,9 @@ public class Lock extends PermissHandler {
     @Override
     public <T> void invoke(WsUser self, BaseUser target, T param) {
         Long time = (Long) param;
-        userMap.exit((WsUser) target, Callback.LOGIN_LIMIT.format(time));
+        if (time > 0) {
+            userMap.exit((WsUser) target, Callback.LOGIN_LIMIT.format(time));
+        }
         userMap.sendAll(time, PermissEnum.LOCK, target);
     }
 }
