@@ -78,7 +78,7 @@ public class OwnerController {
         wrapper.set(SysUser::isDeleted, 1);
         boolean update = sysUserService.update(wrapper);
         if (update) {
-            publisher.pushPermissionEvent(guid, PermissEnum.FOREVER);
+            publisher.pushPermissionEvent(guid, null, PermissEnum.FOREVER);
         }
         return HttpStatus.of(update, "操作成功", "找不到此用户");
     }
