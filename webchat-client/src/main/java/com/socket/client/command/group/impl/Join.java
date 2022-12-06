@@ -15,7 +15,7 @@ public class Join extends GroupChangeHandler {
     @Override
     public void invoke(SysGroupUser user, SysGroup group) {
         String guid = user.getUid(), gid = user.getGid();
-        WsUser wsuser = userMap.getUser(guid);
+        WsUser wsuser = userMap.get(guid);
         groupMap.getGroupUsers(gid).add(wsuser);
         // 发送通知
         groupMap.sendGroup(gid, gid, GroupEnum.JOIN, user);

@@ -80,17 +80,16 @@ public class SocketEndpoint implements ApplicationContextAware {
     @OnMessage
     public void onMessage(String message) {
         WsMsg wsmsg = self.decrypt(message);
-        WsUser target = permissionManager.getTarget(wsmsg);
-        // 系统消息
         if (wsmsg.isSysmsg()) {
-            this.parseSysMsg(wsmsg, target);
-            return;
+            // 系统消息
+            this.parseSysMsg(wsmsg);
+        } else {
+            // 用户消息
+            this.parseUserMsg(wsmsg);
         }
-        // 用户消息
-        this.parseUserMsg(wsmsg, target);
     }
 
-    public void parseUserMsg(WsMsg wsmsg, WsUser target) {
+    public void parseUserMsg(WsMsg wsmsg) {
         // 禁言状态无法发送消息
         Assert.isFalse(permissionManager.isMute(self), "您已被禁言，请稍后再试");
         // 所有者全员禁言检查
@@ -109,6 +108,11 @@ public class SocketEndpoint implements ApplicationContextAware {
         if (wsmsg.isGroup()) {
             groupMap.sendGroup(wsmsg);
             userMap.cacheRecord(wsmsg, true);
+            return;
+        }
+        WsUser target = userMap.get(wsmsg.getTarget());
+        if (target == null) {
+            self.reject("目标不存在或已被注销", wsmsg);
             return;
         }
         // 你屏蔽了目标
@@ -139,14 +143,15 @@ public class SocketEndpoint implements ApplicationContextAware {
         boolean sysuid = Constants.SYSTEM_UID.equals(wsmsg.getTarget());
         boolean text = Objects.equals(wsmsg.getType(), MessageEnum.TEXT.toString());
         // 判断AI消息
-        if (sysuid && text && !userMap.getUser(Constants.SYSTEM_UID).isOnline()) {
+        if (sysuid && text && !userMap.get(Constants.SYSTEM_UID).isOnline()) {
             userMap.sendAIMessage(self, wsmsg);
         }
     }
 
-    public void parseSysMsg(WsMsg wsmsg, WsUser target) {
-        String type = wsmsg.getType().toUpperCase();
-        switch (MessageEnum.valueOf(type)) {
+    public void parseSysMsg(WsMsg wsmsg) {
+        MessageEnum command = MessageEnum.valueOf(wsmsg.getType().toUpperCase());
+        String target = wsmsg.getTarget();
+        switch (command) {
             case CHANGE:
                 this.onlineChange(wsmsg.getContent());
                 break;
@@ -179,8 +184,13 @@ public class SocketEndpoint implements ApplicationContextAware {
     /**
      * 用户列表选择变动,相关消息设为已读（群组消息默认已读）
      */
-    private void choose(WsUser target, WsMsg wsmsg) {
-        self.setChoose(wsmsg.getTarget());
+    private void choose(String tuid, WsMsg wsmsg) {
+        WsUser target = permissionManager.getTarget(wsmsg);
+        if (target == null) {
+            self.send("目标不存在或已被注销", MessageEnum.WARNING);
+            return;
+        }
+        self.setChoose(tuid);
         if (!wsmsg.isGroup() && userMap.getUnreadCount(self, target) > 0) {
             userMap.readAllMessage(self, target, false);
         }
@@ -189,7 +199,12 @@ public class SocketEndpoint implements ApplicationContextAware {
     /**
      * WebRTC消息处理
      */
-    private void forwardWebRTC(WsUser target, WsMsg wsmsg) {
+    private void forwardWebRTC(String tuid, WsMsg wsmsg) {
+        WsUser target = userMap.get(tuid);
+        // 目标用户空 忽略
+        if (target == null) {
+            return;
+        }
         // 屏蔽检查
         Assert.isFalse(permissionManager.shield(self, target), "屏蔽目标时无法发起通话请求");
         if (permissionManager.shield(target, self)) {

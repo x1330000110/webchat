@@ -16,7 +16,7 @@ import java.util.List;
 public class Exit extends GroupChangeHandler {
     @Override
     public void invoke(SysGroupUser user, SysGroup group) {
-        WsUser find = userMap.getUser(user.getUid());
+        WsUser find = userMap.get(user.getUid());
         String gid = user.getGid();
         List<WsUser> groupUsers = groupMap.getGroupUsers(gid);
         groupMap.sendGroup(gid, null, GroupEnum.EXIT, user);

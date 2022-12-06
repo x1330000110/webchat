@@ -7,7 +7,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
 import com.socket.client.model.enums.Callback;
-import com.socket.client.util.Assert;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.RedisManager;
 import com.socket.webchat.mapper.SysUserMapper;
@@ -58,7 +57,7 @@ public class WsUserMap extends ConcurrentHashMap<String, WsUser> {
         // 查找用户
         Subject subject = (Subject) properties.get(Constants.SUBJECT);
         SysUser principal = (SysUser) subject.getPrincipal();
-        WsUser user = getUser(principal.getGuid());
+        WsUser user = get(principal.getGuid());
         HttpSession hs = (HttpSession) properties.get(Constants.HTTP_SESSION);
         // 检查重复登录
         if (user.isOnline() && user.differentSession(hs)) {
@@ -106,22 +105,20 @@ public class WsUserMap extends ConcurrentHashMap<String, WsUser> {
     /**
      * 通过uid获取用户（不存在时通过缓存获取）
      *
-     * @param guid 用户uid
+     * @param uid 用户uid
      * @return {@link WsUser}
      */
-    public WsUser getUser(String guid) {
-        WsUser user = Optional.ofNullable(this.get(guid)).orElseGet(() -> {
+    public WsUser get(String uid) {
+        return Optional.ofNullable(this.get((Object) uid)).orElseGet(() -> {
             // 从数据库查询
             LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
-            wrapper.eq(SysUser::getGuid, guid);
+            wrapper.eq(SysUser::getGuid, uid);
             SysUser find = userMapper.selectOne(wrapper);
             WsUser wsuser = Optional.ofNullable(find).map(WsUser::new).orElse(null);
             // 写入缓存
-            Optional.ofNullable(wsuser).ifPresent(e -> this.put(guid, e));
+            Optional.ofNullable(wsuser).ifPresent(e -> this.put(uid, e));
             return wsuser;
         });
-        Assert.notNull(user, Callback.USER_NOT_FOUND.format(guid));
-        return user;
     }
 
     /**
@@ -146,12 +143,13 @@ public class WsUserMap extends ConcurrentHashMap<String, WsUser> {
     /**
      * 更新发起人的消息为已读
      *
-     * @param sender 发起人
+     * @param self   发起人
      * @param target 目标
      * @param audio  是否包括语音消息
      */
-    public void readAllMessage(WsUser sender, WsUser target, boolean audio) {
-        String suid = sender.getGuid(), tuid = target.getGuid();
+    public void readAllMessage(WsUser self, WsUser target, boolean audio) {
+        String suid = self.getGuid();
+        String tuid = target.getGuid();
         recordService.readAllMessage(suid, tuid, audio);
         redisManager.setUnreadCount(suid, tuid, 0);
     }
@@ -160,12 +158,12 @@ public class WsUserMap extends ConcurrentHashMap<String, WsUser> {
     /**
      * 获取指定用户的未读消息数量
      *
-     * @param sender 自己
+     * @param self   自己
      * @param target 目标
      * @return 未读消息数
      */
-    public int getUnreadCount(WsUser sender, WsUser target) {
-        return redisManager.getUnreadCount(sender.getGuid(), target.getGuid());
+    public int getUnreadCount(WsUser self, WsUser target) {
+        return redisManager.getUnreadCount(self.getGuid(), target.getGuid());
     }
 
     /**

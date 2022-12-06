@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 public class Delete extends GroupChangeHandler {
     @Override
     public void invoke(SysGroupUser user, SysGroup group) {
-        WsUser find = userMap.getUser(user.getUid());
+        WsUser find = userMap.get(user.getUid());
         find.send("您已被管理员移除群聊", GroupEnum.DELETE);
     }
 }

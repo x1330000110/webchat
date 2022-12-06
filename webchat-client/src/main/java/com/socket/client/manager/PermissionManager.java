@@ -184,13 +184,18 @@ public class PermissionManager implements InitializingBean {
     public WsUser getTarget(WsMsg wsmsg) {
         String target = wsmsg.getTarget();
         if (wsmsg.isGroup()) {
+            // 查找群组
+            SysGroup group = groupMap.get(target);
+            if (group == null) {
+                return null;
+            }
+            // 把群组作为用户处理
             WsUser user = new WsUser();
-            SysGroup group = groupMap.getGroup(target);
             user.setGuid(group.getGuid());
             user.setName(group.getName());
             return user;
         }
-        return userMap.getUser(target);
+        return userMap.get(target);
     }
 
     @Override
@@ -205,7 +210,7 @@ public class PermissionManager implements InitializingBean {
             List<WsUser> collect = groupthis.stream()
                     .filter(e -> e.getGid().equals(group.getGuid()))
                     .map(SysGroupUser::getUid)
-                    .map(userMap::getUser)
+                    .map(userMap::get)
                     .collect(Collectors.toList());
             groupMap.put(group, collect);
         }

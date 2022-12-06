@@ -22,13 +22,13 @@ public class Withdraw extends PermissHandler {
         wsmsg.setTarget(tuid);
         // 目标是群组 通知群组撤回此消息
         if (Wss.isGroup(tuid)) {
-            wsmsg.setData(groupMap.getGroup(tuid));
+            wsmsg.setData(groupMap.get(tuid));
             groupMap.sendGroup(wsmsg);
             return;
         }
         // 通知双方撤回此消息
         wsmsg.setData(self);
-        userMap.getUser(tuid).send(wsmsg);
+        userMap.get(tuid).send(wsmsg);
         self.send(wsmsg);
     }
 }

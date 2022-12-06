@@ -21,7 +21,7 @@ public abstract class PermissHandler implements CommandHandler<PermissionEvent> 
     protected WsUserMap userMap;
 
     public void invoke(PermissionEvent event) {
-        WsUser self = Optional.ofNullable(event.getSelf()).map(userMap::getUser).orElse(null);
+        WsUser self = Optional.ofNullable(event.getSelf()).map(userMap::get).orElse(null);
         // 目标可能是群组
         invoke(self, getBaseUser(event.getTarget()), event.getParam());
     }
@@ -33,6 +33,6 @@ public abstract class PermissHandler implements CommandHandler<PermissionEvent> 
         if (guid == null) {
             return null;
         }
-        return Wss.isGroup(guid) ? groupMap.getGroup(guid) : userMap.getUser(guid);
+        return Wss.isGroup(guid) ? groupMap.get(guid) : userMap.get(guid);
     }
 }
