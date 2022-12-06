@@ -29,6 +29,10 @@ public abstract class PermissHandler implements CommandHandler<PermissionEvent> 
     public abstract <T> void invoke(WsUser self, BaseUser target, T param);
 
     private BaseUser getBaseUser(String guid) {
+        // 目标可能为空（如公告）
+        if (guid == null) {
+            return null;
+        }
         return Wss.isGroup(guid) ? groupMap.getGroup(guid) : userMap.getUser(guid);
     }
 }
