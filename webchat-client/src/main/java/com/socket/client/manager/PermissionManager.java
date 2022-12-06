@@ -103,7 +103,7 @@ public class PermissionManager implements InitializingBean {
     public void checkMute(WsUser user) {
         long time = redisManager.getMuteTime(user.getGuid());
         if (time > 0) {
-            user.send(null, PermissEnum.MUTE, time);
+            user.send(String.valueOf(time), PermissEnum.MUTE, user);
         }
     }
 
