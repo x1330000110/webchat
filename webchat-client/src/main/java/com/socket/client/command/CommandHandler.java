@@ -3,7 +3,8 @@ package com.socket.client.command;
 import org.springframework.context.ApplicationEvent;
 
 /**
- * 命令处理接口
+ * 命令处理接口 <br>
+ * 注意：这个接口只处理与聊天室内部数据有关的内容，其他内容应在此事件之前完成
  */
 public interface CommandHandler<E extends ApplicationEvent> {
     /**
