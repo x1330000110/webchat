@@ -8,10 +8,7 @@ import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.command.Command;
 import com.socket.webchat.model.command.impl.MessageEnum;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.SneakyThrows;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.subject.Subject;
 
@@ -63,6 +60,7 @@ public class WsUser extends SysUser {
      * 登录IP
      */
     @Getter
+    @ToString.Exclude
     private String ip;
 
     /**

@@ -5,7 +5,6 @@ import cn.hutool.core.util.StrUtil;
 import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
-import com.socket.client.model.enums.Callback;
 import com.socket.client.model.enums.OnlineState;
 import com.socket.client.support.KeywordSupport;
 import com.socket.webchat.constant.Constants;
@@ -160,7 +159,8 @@ public class PermissionManager implements InitializingBean {
             long time = TimeUnit.HOURS.toSeconds(Constants.FREQUENT_SPEECHES_MUTE_TIME);
             if (redisManager.incrSpeak(user.getGuid()) > Constants.FREQUENT_SPEECH_THRESHOLD) {
                 redisManager.setMute(user.getGuid(), time);
-                user.send(Callback.BRUSH_SCREEN.format(time), PermissEnum.MUTE, time);
+                // b结尾 特殊的刷屏标记
+                user.send(time + "b", PermissEnum.MUTE, user);
             }
         }
     }

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.socket.webchat.model.enums.UserRole;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.time.LocalDate;
 
@@ -21,6 +22,7 @@ public class SysUser extends BaseUser {
      */
     @JsonIgnore
     @PropIgnore
+    @ToString.Exclude
     private String hash;
     /**
      * 角色
@@ -34,6 +36,8 @@ public class SysUser extends BaseUser {
      * 微信openid
      */
     @JsonIgnore
+    @PropIgnore
+    @ToString.Exclude
     private String openid;
     /**
      * 手机
