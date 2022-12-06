@@ -46,7 +46,7 @@ public class SocketEndpoint implements ApplicationContextAware {
         Optional.ofNullable(userMap.join(session, config.getUserProperties())).ifPresent(user -> {
             // 推送所有用户数据
             Collection<BaseUser> userList = permissionManager.getUserPreviews(user);
-            user.send("Initialize user", MessageEnum.INIT, userList);
+            user.send(MessageEnum.INIT.getName(), MessageEnum.INIT, userList);
             // 向其他人发送加入通知
             userMap.sendAll(MessageEnum.JOIN, user);
             // 检查禁言
@@ -97,6 +97,12 @@ public class SocketEndpoint implements ApplicationContextAware {
             self.reject("所有者开启了全员禁言", wsmsg);
             return;
         }
+        // 检查目标是否存在
+        String tuid = wsmsg.getTarget();
+        if (permissionManager.notHas(tuid)) {
+            self.reject("目标用户/群组不存在", wsmsg);
+            return;
+        }
         // 消息检查
         boolean sensitive = settingSupport.getSetting(Setting.SENSITIVE_WORDS);
         if (!permissionManager.verifyMessage(self, wsmsg, sensitive)) {
@@ -110,12 +116,8 @@ public class SocketEndpoint implements ApplicationContextAware {
             userMap.cacheRecord(wsmsg, true);
             return;
         }
-        WsUser target = userMap.get(wsmsg.getTarget());
-        if (target == null) {
-            self.reject("目标不存在或已被注销", wsmsg);
-            return;
-        }
         // 你屏蔽了目标
+        WsUser target = userMap.get(tuid);
         Assert.isFalse(permissionManager.shield(self, target), "意外的错误，你在屏蔽对方时发送了消息");
         try {
             // 目标屏蔽了你
@@ -185,14 +187,14 @@ public class SocketEndpoint implements ApplicationContextAware {
      * 用户列表选择变动,相关消息设为已读（群组消息默认已读）
      */
     private void choose(String tuid, WsMsg wsmsg) {
-        WsUser target = permissionManager.getTarget(wsmsg);
-        if (target == null) {
-            self.send("目标不存在或已被注销", MessageEnum.WARNING);
+        if (permissionManager.notHas(tuid)) {
+            self.send("目标用户/群组不存在", MessageEnum.WARNING);
             return;
         }
+        String suid = self.getGuid();
         self.setChoose(tuid);
-        if (!wsmsg.isGroup() && userMap.getUnreadCount(self, target) > 0) {
-            userMap.readAllMessage(self, target, false);
+        if (!wsmsg.isGroup() && userMap.getUnreadCount(suid, tuid) > 0) {
+            userMap.readAllMessage(suid, tuid, false);
         }
     }
 

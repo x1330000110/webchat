@@ -147,11 +147,9 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
      * @param target 目标
      * @param audio  是否包括语音消息
      */
-    public void readAllMessage(WsUser self, WsUser target, boolean audio) {
-        String suid = self.getGuid();
-        String tuid = target.getGuid();
-        recordService.readAllMessage(suid, tuid, audio);
-        redisManager.setUnreadCount(suid, tuid, 0);
+    public void readAllMessage(String self, String target, boolean audio) {
+        recordService.readAllMessage(self, target, audio);
+        redisManager.setUnreadCount(self, target, 0);
     }
 
 
@@ -162,8 +160,8 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
      * @param target 目标
      * @return 未读消息数
      */
-    public int getUnreadCount(WsUser self, WsUser target) {
-        return redisManager.getUnreadCount(self.getGuid(), target.getGuid());
+    public int getUnreadCount(String self, String target) {
+        return redisManager.getUnreadCount(self, target);
     }
 
     /**

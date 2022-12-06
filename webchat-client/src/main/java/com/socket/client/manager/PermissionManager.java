@@ -15,6 +15,7 @@ import com.socket.webchat.model.*;
 import com.socket.webchat.model.command.impl.PermissEnum;
 import com.socket.webchat.service.RecordService;
 import com.socket.webchat.service.SysUserLogService;
+import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -180,26 +181,16 @@ public class PermissionManager implements InitializingBean {
     }
 
     /**
-     * 获取消息发送的目标（用户/群组）
+     * 检查用户/群组是否存在
      *
-     * @param wsmsg 消息
-     * @return 目标
+     * @param target 目标uid
+     * @return 是否存在
      */
-    public WsUser getTarget(WsMsg wsmsg) {
-        String target = wsmsg.getTarget();
-        if (wsmsg.isGroup()) {
-            // 查找群组
-            SysGroup group = groupMap.get(target);
-            if (group == null) {
-                return null;
-            }
-            // 把群组作为用户处理
-            WsUser user = new WsUser();
-            user.setGuid(group.getGuid());
-            user.setName(group.getName());
-            return user;
+    public boolean notHas(String target) {
+        if (Wss.isGroup(target)) {
+            return groupMap.get(target) == null;
         }
-        return userMap.get(target);
+        return userMap.get(target) == null;
     }
 
     @Override
