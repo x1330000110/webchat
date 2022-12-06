@@ -38,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class WsUserMap extends ConcurrentHashMap<String, WsUser> {
+public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final XiaoBingAPIRequest xiaoBingAPIRequest;
     private final SysUserLogService logService;

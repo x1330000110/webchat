@@ -1,8 +1,8 @@
 package com.socket.client.command.group;
 
 import com.socket.client.command.CommandHandler;
-import com.socket.client.manager.WsGroupMap;
-import com.socket.client.manager.WsUserMap;
+import com.socket.client.manager.SocketGroupMap;
+import com.socket.client.manager.SocketUserMap;
 import com.socket.webchat.custom.event.GroupChangeEvent;
 import com.socket.webchat.model.SysGroup;
 import com.socket.webchat.model.SysGroupUser;
@@ -13,9 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public abstract class GroupChangeHandler implements CommandHandler<GroupChangeEvent> {
     @Autowired
-    protected WsGroupMap groupMap;
+    protected SocketGroupMap groupMap;
     @Autowired
-    protected WsUserMap userMap;
+    protected SocketUserMap userMap;
 
     public void invoke(GroupChangeEvent event) {
         invoke(event.getUser(), event.getGroup());

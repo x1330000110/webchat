@@ -41,8 +41,8 @@ public class PermissionManager implements InitializingBean {
     private final SysUserMapper sysUserMapper;
 
     private final RedisManager redisManager;
-    private final WsGroupMap groupMap;
-    private final WsUserMap userMap;
+    private final SocketGroupMap groupMap;
+    private final SocketUserMap userMap;
 
 
     /**

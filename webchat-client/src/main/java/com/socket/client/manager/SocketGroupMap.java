@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 @Component
-public class WsGroupMap extends ConcurrentHashMap<SysGroup, List<WsUser>> {
+public class SocketGroupMap extends ConcurrentHashMap<SysGroup, List<WsUser>> {
     /**
      * 向群组发送消息<br>
      *
