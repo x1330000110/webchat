@@ -43,7 +43,7 @@ public class WxloginServiceImpl implements WxloginService {
     @Override
     public SysUser authorize(String code, String uuid) {
         WxUser wxuser = wxAuth2Request.getUserInfo(code);
-        Assert.notNull(wxuser.getOpenid(), "无效的openId", AccountException::new);
+        Assert.notEmpty(wxuser.getOpenid(), "无效的openId", AccountException::new);
         String key = RedisTree.WXUUID.concat(uuid);
         // 二维码过期判断
         if (redis.exist(key)) {
