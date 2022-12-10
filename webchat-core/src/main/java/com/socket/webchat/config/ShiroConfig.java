@@ -42,6 +42,9 @@ public class ShiroConfig {
         definitionMap.put("/user/**", "user");
         definitionMap.put("/resource/**", "user");
         definitionMap.put("/message/**", "user");
+        definitionMap.put("/admin/**", "user");
+        definitionMap.put("/owner/**", "user");
+        definitionMap.put("/group/**", "user");
         return bean;
     }
 
