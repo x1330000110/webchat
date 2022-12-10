@@ -63,13 +63,13 @@ public class PermissionManager implements InitializingBean {
         List<BaseUser> previews = new ArrayList<>();
         for (WsUser user : userMap.values()) {
             UserPreview preview = new UserPreview(user);
+            String target = preview.getGuid();
             // 关联日志
-            SysUserLog log = logs.get(preview.getGuid());
+            SysUserLog log = logs.get(target);
             if (log != null) {
                 preview.setLastTime(log.getCreateTime().getTime());
                 preview.setRemoteProvince(log.getRemoteProvince());
             }
-            String target = preview.getGuid();
             // 检查未读消息
             int count = redisManager.getUnreadCount(suid, target);
             if (count > 0) {
@@ -81,7 +81,7 @@ public class PermissionManager implements InitializingBean {
                 }
             }
             // 为自己赋值屏蔽列表
-            if (preview.getGuid().equals(suid)) {
+            if (target.equals(suid)) {
                 preview.setShields(getShield(self));
             }
             previews.add(preview);
