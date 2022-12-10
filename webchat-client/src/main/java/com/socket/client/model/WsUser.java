@@ -8,7 +8,10 @@ import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.command.Command;
 import com.socket.webchat.model.command.impl.MessageEnum;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.subject.Subject;
 
@@ -56,12 +59,6 @@ public class WsUser extends SysUser {
      */
     @Getter
     private String platform;
-    /**
-     * 登录IP
-     */
-    @Getter
-    @ToString.Exclude
-    private String ip;
 
     /**
      * 构建ws用户信息
@@ -105,7 +102,6 @@ public class WsUser extends SysUser {
      *
      * @param callback 回调消息
      * @param type     消息类型
-     * @date 额外数据
      */
     public void send(String callback, Command<?> type) {
         this.send(callback, type, null);
@@ -117,7 +113,6 @@ public class WsUser extends SysUser {
      * @param callback 回调消息
      * @param type     消息类型
      * @param data     额外数据
-     * @date 额外数据
      */
     public void send(String callback, Command<?> type, Object data) {
         this.send(new WsMsg(callback, type, data), false);
@@ -147,7 +142,6 @@ public class WsUser extends SysUser {
         this.hs = hs;
         this.subject = subject;
         this.platform = (String) hs.getAttribute(Constants.PLATFORM);
-        this.ip = (String) hs.getAttribute(Constants.IP);
         this.online = OnlineState.ONLINE;
     }
 

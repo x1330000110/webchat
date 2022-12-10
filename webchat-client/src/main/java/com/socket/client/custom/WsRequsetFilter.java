@@ -1,6 +1,5 @@
 package com.socket.client.custom;
 
-import cn.hutool.extra.servlet.ServletUtil;
 import cn.hutool.http.Header;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.util.Wss;
@@ -22,7 +21,6 @@ public class WsRequsetFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws ServletException, IOException {
         HttpServletRequest req = (HttpServletRequest) request;
         Optional.ofNullable(req.getSession(false)).ifPresent(session -> {
-            session.setAttribute(Constants.IP, ServletUtil.getClientIP(req));
             session.setAttribute(Constants.PLATFORM, Wss.getPlatform(req.getHeader(Header.USER_AGENT.getValue())));
         });
         chain.doFilter(request, response);

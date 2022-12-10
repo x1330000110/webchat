@@ -73,10 +73,6 @@ public interface Constants {
      */
     String SYSTEM_UID = "10000";
     /**
-     * 保存在session的IP地址
-     */
-    String IP = "REQUSET.IP";
-    /**
      * 最大消息长度
      */
     int MAX_MESSAGE_LENGTH = 300;
