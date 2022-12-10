@@ -11,7 +11,6 @@ import com.socket.webchat.model.command.impl.MessageEnum;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.subject.Subject;
 
@@ -19,7 +18,10 @@ import javax.servlet.http.HttpSession;
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import static javax.websocket.CloseReason.CloseCodes;
@@ -34,7 +36,7 @@ public class WsUser extends SysUser {
     /**
      * WebSocket Session
      */
-    private Session ws;
+    private final List<Session> wss = new ArrayList<>();
     /**
      * Http Session
      */
@@ -118,15 +120,20 @@ public class WsUser extends SysUser {
         this.send(new WsMsg(callback, type, data), false);
     }
 
-    @SneakyThrows
     private void send(WsMsg wsmsg, boolean async) {
-        if (isOnline() && ws.isOpen()) {
-            Supplier<String> supplier = () -> AES.encrypt(JSONUtil.toJsonStr(wsmsg), hs);
-            if (async) {
-                ws.getAsyncRemote().sendText(supplier.get());
-            } else {
-                ws.getBasicRemote().sendText(supplier.get());
-            }
+        if (isOnline()) {
+            wss.stream().filter(Session::isOpen).forEach(ws -> {
+                Supplier<String> supplier = () -> AES.encrypt(JSONUtil.toJsonStr(wsmsg), hs);
+                if (async) {
+                    ws.getAsyncRemote().sendText(supplier.get());
+                } else {
+                    try {
+                        ws.getBasicRemote().sendText(supplier.get());
+                    } catch (IOException e) {
+                        log.warn(e.getMessage());
+                    }
+                }
+            });
         }
     }
 
@@ -138,9 +145,14 @@ public class WsUser extends SysUser {
      * @param subject shiro
      */
     public void login(Session ws, HttpSession hs, Subject subject) {
-        this.ws = ws;
-        this.hs = hs;
-        this.subject = subject;
+        // 不同的http session
+        if (differentSession(hs)) {
+            this.wss.clear();
+            this.hs = hs;
+            this.subject = subject;
+        }
+        // 初始化
+        this.wss.add(ws);
         this.platform = (String) hs.getAttribute(Constants.PLATFORM);
         this.online = OnlineState.ONLINE;
     }
@@ -151,22 +163,30 @@ public class WsUser extends SysUser {
      * @param reason 原因（强制退出时填写）
      */
     public void logout(String reason) {
-        // 始终清除ws会话
-        if (ws != null) {
-            try {
-                ws.close(new CloseReason(CloseCodes.NORMAL_CLOSURE, reason));
-            } catch (IOException e) {
-                log.warn(e.getMessage());
-            }
-            this.ws = null;
+        // 清除ws会话
+        if (!wss.isEmpty()) {
+            Predicate<Session> test = ws -> reason != null || !ws.isOpen();
+            wss.stream().filter(test).forEach(ws -> closeWs(ws, reason));
+            wss.removeIf(test);
         }
-        // 原因为null为自主退出 无需立即终止session
+        // 清除hs会话
         if (reason != null && subject != null) {
             subject.logout();
             this.subject = null;
             this.hs = null;
         }
-        this.online = null;
+        // 清除登录状态
+        if (wss.isEmpty()) {
+            this.online = null;
+        }
+    }
+
+    private void closeWs(Session session, String reason) {
+        try {
+            session.close(new CloseReason(CloseCodes.NORMAL_CLOSURE, reason));
+        } catch (IOException e) {
+            log.warn(e.getMessage());
+        }
     }
 
     /**
