@@ -18,6 +18,6 @@ public class Lock extends PermissHandler {
         if (time > 0) {
             userMap.exit((WsUser) target, Callback.LOGIN_LIMIT.format(time));
         }
-        userMap.sendAll(time, PermissEnum.LOCK, target);
+        userMap.sendAll(String.valueOf(time), PermissEnum.LOCK, target);
     }
 }

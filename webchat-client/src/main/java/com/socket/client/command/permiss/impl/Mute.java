@@ -14,6 +14,6 @@ public class Mute extends PermissHandler {
     @Override
     public <T> void invoke(WsUser self, BaseUser target, T param) {
         Long time = (Long) param;
-        userMap.sendAll(time, PermissEnum.MUTE, target);
+        userMap.sendAll(String.valueOf(time), PermissEnum.MUTE, target);
     }
 }

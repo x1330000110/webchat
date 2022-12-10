@@ -83,20 +83,19 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
      * @param type    消息类型
      * @param data    附加用户信息
      */
-    public void sendAll(Object content, Command<?> type, Object data) {
-        String constr = content == null ? null : content.toString();
-        this.values().forEach(wsuser -> wsuser.send(constr, type, data));
+    public void sendAll(String content, Command<?> type, Object data) {
+        this.values().forEach(wsuser -> wsuser.send(content, type, data));
     }
 
     /**
-     * @see #sendAll(Object, Command, Object)
+     * @see #sendAll(String, Command, Object)
      */
-    public void sendAll(Object content, Command<?> type) {
+    public void sendAll(String content, Command<?> type) {
         this.sendAll(content, type, null);
     }
 
     /**
-     * @see #sendAll(Object, Command, Object)
+     * @see #sendAll(String, Command, Object)
      */
     public void sendAll(Command<?> type, Object data) {
         this.sendAll(null, type, data);
