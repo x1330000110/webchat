@@ -126,8 +126,11 @@ public class SecureCore {
         Assert.isTrue(equals, RequsetTemplate.PUBLIC_KEY_SIGNATURE_MISMATCH, InvalidRequestException::new);
         session.removeAttribute(key);
         // Generate AES key
-        String aeskey = AES.generateAesKey();
-        session.setAttribute(SecureConstant.AESKEY, aeskey);
+        String aeskey = AES.getAesKey(session);
+        if (aeskey == null) {
+            aeskey = AES.generateAesKey();
+            session.setAttribute(SecureConstant.AESKEY, aeskey);
+        }
         // Push event
         publisher.publishEvent(new KeyEvent(publisher, session, aeskey));
         return RSA.encrypt(aeskey, pubkey).toUpperCase();
