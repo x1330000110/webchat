@@ -58,8 +58,8 @@ public class ShiroConfig {
         CookieRememberMeManager rememberMeManager = new CookieRememberMeManager();
         rememberMeManager.setCipherKey("SNVIUDEFWHDWIEJF".getBytes());
         SimpleCookie simpleCookie = new SimpleCookie("RSID");
-        // 自动登录保持24小时
-        simpleCookie.setMaxAge(60 * 60 * 24);
+        // 自动登录保持30天
+        simpleCookie.setMaxAge(60 * 60 * 24 * 30);
         rememberMeManager.setCookie(simpleCookie);
         return rememberMeManager;
     }
