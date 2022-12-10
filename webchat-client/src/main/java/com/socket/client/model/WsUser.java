@@ -42,7 +42,7 @@ public class WsUser extends SysUser {
      */
     private HttpSession hs;
     /**
-     * Shiro SysUser
+     * Shiro Subject
      */
     private Subject subject;
     /**
