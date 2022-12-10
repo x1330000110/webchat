@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
-import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -45,7 +45,7 @@ public class SocketEndpoint implements ApplicationContextAware {
         // 加入聊天室
         Optional.ofNullable(userMap.join(session, config.getUserProperties())).ifPresent(user -> {
             // 推送所有用户数据
-            Collection<BaseUser> userList = permissionManager.getUserPreviews(user);
+            List<BaseUser> userList = permissionManager.getUserPreviews(user);
             user.send(MessageEnum.INIT.getName(), MessageEnum.INIT, userList);
             // 向其他人发送加入通知
             userMap.sendAll(MessageEnum.JOIN, user);

@@ -22,7 +22,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -53,7 +52,7 @@ public class PermissionManager implements InitializingBean {
      *
      * @param self 当前登录的用户
      */
-    public Collection<BaseUser> getUserPreviews(WsUser self) {
+    public List<BaseUser> getUserPreviews(WsUser self) {
         // 消息发起者
         String suid = self.getGuid();
         // 与此用户关联的最新未读消息
@@ -63,29 +62,29 @@ public class PermissionManager implements InitializingBean {
         // 链接数据
         List<BaseUser> previews = new ArrayList<>();
         for (WsUser user : userMap.values()) {
-            UserPreview userPreview = new UserPreview(user);
+            UserPreview preview = new UserPreview(user);
             // 关联日志
-            SysUserLog log = logs.get(userPreview.getGuid());
+            SysUserLog log = logs.get(preview.getGuid());
             if (log != null) {
-                userPreview.setLastTime(log.getCreateTime().getTime());
-                userPreview.setRemoteProvince(log.getRemoteProvince());
+                preview.setLastTime(log.getCreateTime().getTime());
+                preview.setRemoteProvince(log.getRemoteProvince());
             }
-            String target = userPreview.getGuid();
+            String target = preview.getGuid();
             // 检查未读消息
             int count = redisManager.getUnreadCount(suid, target);
             if (count > 0) {
                 ChatRecord unread = unreadMessages.get(target);
                 if (unread != null) {
-                    userPreview.setPreview(unread);
-                    userPreview.setLastTime(unread.getCreateTime().getTime());
-                    userPreview.setUnreads(Math.min(count, 99));
+                    preview.setPreview(unread);
+                    preview.setLastTime(unread.getCreateTime().getTime());
+                    preview.setUnreads(Math.min(count, 99));
                 }
             }
             // 为自己赋值屏蔽列表
-            if (userPreview.getGuid().equals(suid)) {
-                userPreview.setShields(getShield(self));
+            if (preview.getGuid().equals(suid)) {
+                preview.setShields(getShield(self));
             }
-            previews.add(userPreview);
+            previews.add(preview);
         }
         // 添加群组到列表
         groupMap.forEach((group, value) -> {
@@ -95,7 +94,7 @@ public class PermissionManager implements InitializingBean {
                 GroupPreview preview = new GroupPreview(group);
                 preview.setIsgroup(true);
                 preview.setGuids(uids);
-                previews.add(group);
+                previews.add(preview);
             }
         });
         return previews;
