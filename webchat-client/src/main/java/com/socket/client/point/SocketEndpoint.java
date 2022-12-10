@@ -45,8 +45,8 @@ public class SocketEndpoint implements ApplicationContextAware {
         // 加入聊天室
         Optional.ofNullable(userMap.join(session, config.getUserProperties())).ifPresent(user -> {
             // 推送所有用户数据
-            List<BaseUser> userList = permissionManager.getUserPreviews(user);
-            user.send(MessageEnum.INIT.getName(), MessageEnum.INIT, userList);
+            List<BaseUser> previews = permissionManager.getUserPreviews(user);
+            user.send(MessageEnum.INIT.getName(), MessageEnum.INIT, previews);
             // 向其他人发送加入通知
             userMap.sendAll(MessageEnum.JOIN, user);
             // 检查禁言
