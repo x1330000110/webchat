@@ -1,12 +1,12 @@
 package com.socket.client.manager;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
-import com.socket.client.model.enums.Callback;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.RedisManager;
 import com.socket.webchat.mapper.SysUserMapper;
@@ -68,7 +68,7 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
         // 检查登录限制（会话缓存检查）
         long time = redisManager.getLockTime(user.getGuid());
         if (time > 0) {
-            this.exit(user, Callback.LOGIN_LIMIT.format(time));
+            this.exit(user, StrUtil.format("您已被管理员限制登陆{}", time));
             return null;
         }
         // 记录登录信息
