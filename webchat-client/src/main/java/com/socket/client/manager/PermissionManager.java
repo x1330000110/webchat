@@ -140,8 +140,8 @@ public class PermissionManager implements InitializingBean {
     /**
      * 检查指定用户是否被目标屏蔽（优先通过缓存加载）
      */
-    public boolean shield(WsUser secure, WsUser target) {
-        return getShield(secure).contains(target.getGuid());
+    public boolean shield(WsUser source, WsUser target) {
+        return getShield(source).contains(target.getGuid());
     }
 
     /**
@@ -194,7 +194,7 @@ public class PermissionManager implements InitializingBean {
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         // 缓存用户
         List<SysUser> userList = sysUserMapper.selectList(null);
         userList.stream().map(WsUser::new).forEach(e -> userMap.put(e.getGuid(), e));
