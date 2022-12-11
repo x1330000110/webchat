@@ -151,7 +151,7 @@ public class SocketEndpoint implements ApplicationContextAware {
     }
 
     public void parseSysMsg(WsMsg wsmsg) {
-        CommandEnum command = CommandEnum.valueOf(wsmsg.getType().toUpperCase());
+        CommandEnum command = CommandEnum.of(wsmsg.getType());
         String target = wsmsg.getTarget();
         switch (command) {
             case CHANGE:

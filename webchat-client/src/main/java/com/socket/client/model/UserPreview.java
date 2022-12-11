@@ -54,7 +54,7 @@ public class UserPreview extends SysUser {
     }
 
     public void setPreview(ChatRecord unread) {
-        CommandEnum type = CommandEnum.valueOf(unread.getType().toUpperCase());
+        CommandEnum type = CommandEnum.of(unread.getType());
         this.preview = type == CommandEnum.TEXT ? unread.getContent() : '[' + type.getPreview() + ']';
     }
 }
