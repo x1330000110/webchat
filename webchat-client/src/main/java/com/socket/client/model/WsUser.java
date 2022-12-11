@@ -7,7 +7,7 @@ import com.socket.secure.util.AES;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.command.Command;
-import com.socket.webchat.model.command.impl.MessageEnum;
+import com.socket.webchat.model.command.impl.CommandEnum;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -196,7 +196,7 @@ public class WsUser extends SysUser {
      * @param wsmsg  消息
      */
     public void reject(String reason, WsMsg wsmsg) {
-        this.send(reason, MessageEnum.WARNING);
+        this.send(reason, CommandEnum.WARNING);
         wsmsg.setReject(true);
         this.send(wsmsg);
     }

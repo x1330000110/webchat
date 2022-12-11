@@ -19,7 +19,7 @@ import com.socket.webchat.model.BaseModel;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.ChatRecordDeleted;
 import com.socket.webchat.model.ChatRecordOffset;
-import com.socket.webchat.model.command.impl.MessageEnum;
+import com.socket.webchat.model.command.impl.CommandEnum;
 import com.socket.webchat.model.command.impl.PermissEnum;
 import com.socket.webchat.service.RecordService;
 import com.socket.webchat.util.Publisher;
@@ -204,7 +204,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         wrapper.eq(ChatRecord::getGuid, target);
         wrapper.eq(ChatRecord::getTarget, guid);
         // 语音消息已读设置
-        wrapper.ne(!audio, ChatRecord::getType, MessageEnum.AUDIO.getName());
+        wrapper.ne(!audio, ChatRecord::getType, CommandEnum.AUDIO.getName());
         wrapper.set(ChatRecord::isUnread, 0);
         super.update(wrapper);
         // 清空redis计数器
