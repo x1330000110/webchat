@@ -18,9 +18,9 @@ import javax.servlet.http.HttpSession;
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -36,7 +36,7 @@ public class WsUser extends SysUser {
     /**
      * WebSocket Session
      */
-    private final List<Session> wss = new ArrayList<>();
+    private final List<Session> wss = new CopyOnWriteArrayList<>();
     /**
      * Http Session
      */
