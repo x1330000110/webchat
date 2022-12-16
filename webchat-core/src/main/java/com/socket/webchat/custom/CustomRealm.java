@@ -127,7 +127,8 @@ public class CustomRealm extends AuthorizingRealm {
                 // IP所属省是否相同
                 boolean offsite = Objects.equals(log.getRemoteProvince(), ipRequest.getProvince(remoteIP));
                 // 返回的异常为脱敏的绑定邮箱信息
-                Assert.isTrue(offsite, DesensitizedUtil.email(user.getEmail()), OffsiteLoginException::new);
+                String email = DesensitizedUtil.email(user.getEmail());
+                Assert.isTrue(offsite, email, OffsiteLoginException::new);
             }
         }
     }
