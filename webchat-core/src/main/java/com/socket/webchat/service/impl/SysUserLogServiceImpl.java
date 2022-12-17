@@ -1,6 +1,5 @@
 package com.socket.webchat.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -28,17 +26,10 @@ public class SysUserLogServiceImpl extends ServiceImpl<SysUserLogMapper, SysUser
     @Override
     public void saveLog(SysUserLog log, LogType type) {
         String ip = log.getIp();
-        // 尝试在本地获取IP所属省份
-        LambdaQueryWrapper<SysUserLog> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(SysUserLog::getIp, ip);
-        wrapper.isNotNull(SysUserLog::getRemoteProvince);
-        SysUserLog first = getFirst(wrapper);
-        String province = Optional.ofNullable(first)
-                .map(SysUserLog::getRemoteProvince)
-                .orElseGet(() -> ipRequest.getProvince(ip));
         // 保存数据
         log.setType(type);
-        log.setRemoteProvince(province);
+        log.setIp(ip);
+        log.setRemoteProvince(ipRequest.getProvince(ip));
         log.setCreateTime(null);
         log.setUpdateTime(null);
         save(log);
