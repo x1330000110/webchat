@@ -127,7 +127,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         if (mapping == null) {
             mapping = lanzouRequest.getResourceURL(url);
             if (mapping != null) {
-                client.set(key, mapping, 30, TimeUnit.MINUTES);
+                client.set(key, mapping, 1, TimeUnit.MINUTES);
             }
         }
         return mapping;

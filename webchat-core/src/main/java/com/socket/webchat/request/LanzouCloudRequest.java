@@ -30,7 +30,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class LanzouCloudRequest {
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36 Edg/106.0.1370.37";
-    private static final String DOWNLOAD_URL = "https://api.leafone.cn/api/lanzou?url={}";
+    private static final String DOWNLOAD_URL = "http://tool.bitefu.net/lanzou/?url={}";
     private static final String UPLOAD_URL = "https://pc.woozooo.com/fileup.php";
     private final LanzouProperties properties;
 
@@ -94,10 +94,10 @@ public class LanzouCloudRequest {
                 .execute();
         String body = execute.body();
         JSONObject json = JSONUtil.parseObj(body);
-        if (json.getInt("code") != 200) {
+        if (json.getInt("status") == 0) {
             return null;
         }
-        return json.getJSONObject("data").getStr("url");
+        return json.getStr("info");
     }
 
     private Map<String, Object> getForm(Resource resource, FileType type) {
