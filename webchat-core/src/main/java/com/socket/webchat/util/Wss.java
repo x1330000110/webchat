@@ -106,7 +106,7 @@ public class Wss {
      * 检查目标是否为群组
      */
     public static boolean isGroup(String guid) {
-        return guid != null && guid.startsWith(Constants.GROUP);
+        return guid != null && guid.startsWith(Constants.GROUP_PREFIX);
     }
 
     /**

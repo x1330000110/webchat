@@ -51,7 +51,11 @@ public interface Constants {
     /**
      * 客户端群组前缀标识
      */
-    String GROUP = "Group";
+    String GROUP_PREFIX = "G";
+    /**
+     * 默认群组标记
+     */
+    String DEFAULT_GROUP = "Group";
     /**
      * 微信手机快捷登录标识
      */

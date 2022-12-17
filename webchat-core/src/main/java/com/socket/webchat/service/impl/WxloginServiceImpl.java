@@ -58,7 +58,7 @@ public class WxloginServiceImpl implements WxloginService {
                 user.setHash(Bcrypt.digest(Constants.WX_DEFAULT_PASSWORD));
                 sysUserService.save(user);
                 // 加入默认群组
-                sysGroupService.joinGroup(Constants.GROUP, user.getGuid());
+                sysGroupService.joinGroup(Constants.DEFAULT_GROUP, user.getGuid());
             }
             // 设置用户UID到Redis
             return redis.setIfPresent(key, user.getGuid(), Constants.QR_CODE_EXPIRATION_TIME) ? user : null;

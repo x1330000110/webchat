@@ -52,7 +52,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         Assert.isNull(getFirst(wrapper), "群组名称已存在", IllegalStateException::new);
         // 写入数据库
         SysGroup group = new SysGroup();
-        String gid = Constants.GROUP + RandomUtil.randomNumbers(6);
+        String gid = Constants.GROUP_PREFIX + RandomUtil.randomNumbers(6);
         group.setGuid(gid);
         group.setName(groupName);
         group.setOwner(userId);

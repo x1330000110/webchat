@@ -109,7 +109,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         }
         super.save(user);
         // 加入默认群组
-        sysGroupService.joinGroup(Constants.GROUP, user.getGuid());
+        sysGroupService.joinGroup(Constants.DEFAULT_GROUP, user.getGuid());
         // 通过邮箱登录
         this.login(new LoginCondition(condition.getEmail(), condition.getPass()));
     }
