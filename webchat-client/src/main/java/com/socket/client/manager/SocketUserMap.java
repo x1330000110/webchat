@@ -72,7 +72,9 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
             return null;
         }
         // 记录登录信息
-        logService.saveLog(BeanUtil.copyProperties(user, SysUserLog.class), LogType.LOGIN);
+        SysUserLog userLog = BeanUtil.copyProperties(user, SysUserLog.class);
+        userLog.setIp(user.getIp());
+        logService.saveLog(userLog, LogType.LOGIN);
         return user;
     }
 

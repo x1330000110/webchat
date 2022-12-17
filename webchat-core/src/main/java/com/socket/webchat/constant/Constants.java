@@ -13,6 +13,14 @@ public interface Constants {
      */
     String HTTP_SESSION = "HTTP_SESSION";
     /**
+     * 用户IP地址
+     */
+    String IP = "REQUEST.IP";
+    /**
+     * 保存在session的平台标记
+     */
+    String PLATFORM = "REQUEST.PLATFORM";
+    /**
      * 邮箱验证码有效时间（单位：分钟）
      */
     int EMAIL_CODE_VALID_TIME = 5;
@@ -68,10 +76,6 @@ public interface Constants {
      * 异地验证成功标记
      */
     String OFFSITE = "OFFSITE";
-    /**
-     * 保存在session的平台标记
-     */
-    String PLATFORM = "REQUSET.PLATFORM";
     /**
      * 系统管理员账号
      */

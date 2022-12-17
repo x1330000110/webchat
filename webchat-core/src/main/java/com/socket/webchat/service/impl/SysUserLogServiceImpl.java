@@ -26,9 +26,7 @@ public class SysUserLogServiceImpl extends ServiceImpl<SysUserLogMapper, SysUser
     @Override
     public void saveLog(SysUserLog log, LogType type) {
         String ip = log.getIp();
-        // 保存数据
         log.setType(type);
-        log.setIp(ip);
         log.setRemoteProvince(ipRequest.getProvince(ip));
         log.setCreateTime(null);
         log.setUpdateTime(null);

@@ -42,6 +42,9 @@ public class SysUser extends BaseUser {
     /**
      * QQ uin
      */
+    @JsonIgnore
+    @PropIgnore
+    @ToString.Exclude
     private String uin;
     /**
      * 手机

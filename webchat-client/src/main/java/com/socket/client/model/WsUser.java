@@ -1,5 +1,6 @@
 package com.socket.client.model;
 
+import cn.hutool.core.annotation.PropIgnore;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONUtil;
 import com.socket.client.model.enums.OnlineState;
@@ -61,6 +62,12 @@ public class WsUser extends SysUser {
      */
     @Getter
     private String platform;
+    /**
+     * IP地址（日志使用）
+     */
+    @PropIgnore
+    @Getter
+    private String ip;
 
     /**
      * 构建ws用户信息
@@ -154,6 +161,7 @@ public class WsUser extends SysUser {
         // 初始化
         this.wss.add(ws);
         this.platform = (String) hs.getAttribute(Constants.PLATFORM);
+        this.ip = (String) hs.getAttribute(Constants.IP);
         this.online = OnlineState.ONLINE;
     }
 
