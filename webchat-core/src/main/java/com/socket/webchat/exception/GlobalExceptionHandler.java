@@ -1,5 +1,6 @@
 package com.socket.webchat.exception;
 
+import cn.hutool.http.HttpException;
 import com.socket.webchat.model.enums.HttpStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authc.IncorrectCredentialsException;
@@ -57,7 +58,7 @@ public class GlobalExceptionHandler {
     })
     public HttpStatus isNumberFormatException(Exception e) {
         e.printStackTrace();
-        return HttpStatus.FAILURE.message("参数不正确：{}", e.getMessage());
+        return HttpStatus.FAILURE.message("请求参数不正确");
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
@@ -68,6 +69,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RedirectException.class)
     public void isRedirectException() {
         // Ignore
+    }
+
+    @ExceptionHandler(HttpException.class)
+    public HttpStatus isHttpException(Exception e) {
+        log.warn("内置URL解析器处理出错: {}", e.getMessage());
+        return HttpStatus.FAILURE.message("解析请求出现问题，请稍后再试");
     }
 
     @ExceptionHandler(Exception.class)

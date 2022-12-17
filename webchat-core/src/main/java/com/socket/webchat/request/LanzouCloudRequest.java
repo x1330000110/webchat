@@ -6,12 +6,14 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.Header;
 import cn.hutool.http.HttpRequest;
+import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.socket.secure.util.Assert;
 import com.socket.webchat.constant.properties.LanzouProperties;
 import com.socket.webchat.model.enums.FileType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.net.HttpCookie;
@@ -22,6 +24,7 @@ import java.util.Map;
 /**
  * 蓝奏云API（实验性）
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class LanzouCloudRequest {
@@ -84,10 +87,11 @@ public class LanzouCloudRequest {
      * @return 直链接
      */
     public String getResourceURL(String lanzouURL) {
-        String body = HttpRequest.get(StrUtil.format(DOWNLOAD_URL, lanzouURL))
+        String url = StrUtil.format(DOWNLOAD_URL, lanzouURL);
+        HttpResponse execute = HttpRequest.get(url)
                 .header(Header.USER_AGENT, USER_AGENT)
-                .execute()
-                .body();
+                .execute();
+        String body = execute.body();
         JSONObject json = JSONUtil.parseObj(body);
         if (json.getInt("code") != 200) {
             return null;
