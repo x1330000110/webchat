@@ -23,16 +23,4 @@ public class WxUser implements Serializable {
      * 头像地址
      */
     private String headimgurl;
-    /**
-     * 所在省份
-     */
-    private String province;
-    /**
-     * 所在城市
-     */
-    private String city;
-    /**
-     * 性别
-     */
-    private Integer sex;
 }

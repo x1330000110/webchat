@@ -1,5 +1,6 @@
 package com.socket.webchat.request;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.io.resource.BytesResource;
 import cn.hutool.core.io.resource.Resource;
 import cn.hutool.core.util.RandomUtil;
@@ -113,7 +114,7 @@ public class LanzouCloudRequest {
     }
 
     private List<HttpCookie> getCookies() {
-        return List.of(
+        return ListUtil.of(
                 new HttpCookie("ylogin", properties.getYlogin()),
                 new HttpCookie("phpdisk_info", properties.getPhpdiskInfo())
         );

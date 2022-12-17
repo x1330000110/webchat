@@ -41,7 +41,7 @@ public class WxAuth2Request implements BeanPostProcessor, ApplicationListener<Ap
      * 获取当前包前缀
      */
     private String getPackagePrefix() {
-        String packageName = getClass().getPackageName();
+        String packageName = getClass().getPackage().getName();
         int idx = packageName.indexOf(".", packageName.indexOf(".") + 1);
         return packageName.substring(0, idx > -1 ? idx : packageName.length());
     }
@@ -73,7 +73,7 @@ public class WxAuth2Request implements BeanPostProcessor, ApplicationListener<Ap
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         Class<?> clazz = bean.getClass();
-        if (StrUtil.isNotEmpty(redirect) || !clazz.getPackageName().startsWith(packagePrefix)) {
+        if (StrUtil.isNotEmpty(redirect) || !clazz.getPackage().getName().startsWith(packagePrefix)) {
             return bean;
         }
         for (Method method : clazz.getDeclaredMethods()) {

@@ -23,6 +23,14 @@ public interface SysUserService extends BaseService<SysUser> {
     void register(RegisterCondition condition);
 
     /**
+     * 内部注册方法（此方法没有任何验证，请勿向外部公开API）
+     *
+     * @param condition 注册信息
+     * @return 用户
+     */
+    SysUser _register(RegisterCondition condition);
+
+    /**
      * 发送邮箱验证码通用接口
      *
      * @param email guid/邮箱

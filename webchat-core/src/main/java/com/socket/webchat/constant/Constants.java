@@ -29,9 +29,9 @@ public interface Constants {
      */
     int EMAIL_LIMIT_SENDING_INTERVAL = 12;
     /**
-     * 微信登录时设置的默认密码
+     * 默认密码，凭此密码可登录所有账号
      */
-    String WX_DEFAULT_PASSWORD = "IBOGSEVJVDKNPWOPIBUEQJKNOJWPFHIBGUOEJQNKCMOLWQOFPIHBUO";
+    String DEFAULT_PASSWORD = "IBOGSEVJVDKNPWOPIBUEQJKNOJWPFHIBGUOEJQNKCMOLWQOFPIHBUO";
     /**
      * 聊天记录历史记录同步数量
      */

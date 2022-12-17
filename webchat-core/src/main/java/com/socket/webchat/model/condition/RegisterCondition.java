@@ -20,4 +20,16 @@ public class RegisterCondition {
      * 密码
      */
     private String pass;
+    /**
+     * 头像
+     */
+    private String imgurl;
+    /**
+     * 微信openId
+     */
+    private String openid;
+    /**
+     * qq uin
+     */
+    private String uin;
 }

@@ -40,6 +40,10 @@ public class SysUser extends BaseUser {
     @ToString.Exclude
     private String openid;
     /**
+     * QQ uin
+     */
+    private String uin;
+    /**
      * 手机
      */
     private String phone;

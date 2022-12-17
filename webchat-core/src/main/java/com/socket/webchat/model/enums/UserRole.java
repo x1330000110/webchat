@@ -27,7 +27,7 @@ public enum UserRole implements IEnum<String> {
     }
 
     public static UserRole of(String role) {
-        return Arrays.stream(values()).filter(e -> e.getRole().equals(role)).findFirst().orElseThrow();
+        return Arrays.stream(values()).filter(e -> e.getRole().equals(role)).findFirst().orElseThrow(IllegalStateException::new);
     }
 
     @JsonValue

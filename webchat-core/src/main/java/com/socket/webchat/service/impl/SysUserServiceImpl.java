@@ -28,8 +28,7 @@ import com.socket.webchat.model.enums.FileType;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.request.LanzouCloudRequest;
-import com.socket.webchat.request.QQAccountRequest;
-import com.socket.webchat.request.bean.QQUser;
+import com.socket.webchat.request.QQRequest;
 import com.socket.webchat.service.SysGroupService;
 import com.socket.webchat.service.SysUserService;
 import com.socket.webchat.service.UploadService;
@@ -54,7 +53,7 @@ import java.util.concurrent.TimeUnit;
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
     private final SysGroupService sysGroupService;
     private final UploadService uploadService;
-    private final QQAccountRequest qqAccountRequest;
+    private final QQRequest qqRequest;
     private final LanzouCloudRequest lanzouRequest;
     private final RedisClient<Object> redis;
     private final Publisher publisher;
@@ -89,29 +88,22 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         Assert.equals(condition.getCode(), redis.get(key), "验证码不正确", IllegalStateException::new);
         redis.remove(key);
         // 注册
+        SysUser user = _register(condition);
+        // 登录
+        this.login(new LoginCondition(user.getGuid(), condition.getPass()));
+    }
+
+    public SysUser _register(RegisterCondition condition) {
         SysUser user = SysUser.buildNewUser();
-        String email = condition.getEmail();
-        user.setName("用户" + user.getGuid());
-        user.setEmail(email);
+        user.setName(StrUtil.emptyToDefault(condition.getName(), "用户" + user.getGuid()));
+        user.setHeadimgurl(condition.getImgurl());
+        user.setEmail(condition.getEmail());
         user.setHash(Bcrypt.digest(condition.getPass()));
-        // 如果是QQ邮箱 同步昵称和头像
-        if (email.toLowerCase().endsWith("qq.com")) {
-            String qq = StrUtil.subBefore(email, "@", false);
-            QQUser info = qqAccountRequest.getInfo(qq);
-            if (info != null) {
-                // 昵称
-                if (!info.getName().isBlank()) {
-                    user.setName(StrUtil.sub(info.getName().trim(), 0, 6));
-                }
-                // 头像
-                user.setHeadimgurl(info.getImg());
-            }
-        }
+        user.setUin(condition.getUin());
         super.save(user);
         // 加入默认群组
         sysGroupService.joinGroup(Constants.DEFAULT_GROUP, user.getGuid());
-        // 通过邮箱登录
-        this.login(new LoginCondition(condition.getEmail(), condition.getPass()));
+        return user;
     }
 
     @Override

@@ -14,5 +14,5 @@ public class QQUser {
     /**
      * 头像
      */
-    private String img;
+    private String imgurl;
 }

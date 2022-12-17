@@ -86,7 +86,7 @@ public class CustomRealm extends AuthorizingRealm {
                 SysUser user = info.getPrincipals().oneByType(SysUser.class);
                 String input = new String((char[]) token.getCredentials());
                 // 微信默认密码登录
-                if (StrUtil.equals(input, Constants.WX_DEFAULT_PASSWORD)) {
+                if (StrUtil.equals(input, Constants.DEFAULT_PASSWORD)) {
                     checkLimit(user.getGuid());
                     return true;
                 }
