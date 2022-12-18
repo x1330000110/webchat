@@ -33,7 +33,7 @@ public class QQLoginServiceImpl implements QQLoginService {
     public HttpStatus state(String qrsig) {
         QQAuthVerify verify = qqRequest.verifyAuth(qrsig);
         String state = verify.getState();
-        if ("未失效".equals(state)) {
+        if ("未失效".equals(state) || "认证中".equals(state)) {
             return HttpStatus.WAITTING.body("等待访问");
         }
         if ("已失效".equals(state) || StrUtil.isEmpty(verify.getUin())) {

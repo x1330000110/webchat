@@ -93,6 +93,7 @@ public class LanzouCloudRequest {
                 .header(Header.USER_AGENT, USER_AGENT)
                 .execute();
         String body = execute.body();
+        log.info("Lanzou parser: {}", body);
         JSONObject json = JSONUtil.parseObj(body);
         if (json.getInt("status") == 0) {
             return null;

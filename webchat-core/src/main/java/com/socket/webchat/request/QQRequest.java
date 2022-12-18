@@ -7,6 +7,7 @@ import cn.hutool.json.JSONUtil;
 import com.socket.webchat.request.bean.QQAuth;
 import com.socket.webchat.request.bean.QQAuthVerify;
 import com.socket.webchat.request.bean.QQUser;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -14,6 +15,7 @@ import java.util.Arrays;
 /**
  * QQ请求工具
  */
+@Slf4j
 @Component
 public class QQRequest {
     private static final String QQ_USER = "https://apibug.cn/api/qq/?apiKey=6db8a3a57cb4a5c723843946e1a0c651&qq={}";
@@ -50,6 +52,7 @@ public class QQRequest {
     public QQAuthVerify verifyAuth(String qrsig) {
         String url = StrUtil.format(QQ_AUTH_VERIFY, qrsig);
         String body = HttpRequest.get(url).execute().body();
+        log.info("Verify QQ: {}", body);
         JSONObject json = JSONUtil.parseObj(body);
         try {
             JSONObject info = json.getJSONObject("info");
