@@ -12,6 +12,7 @@ import com.socket.webchat.model.command.impl.CommandEnum;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.subject.Subject;
 
@@ -24,6 +25,7 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static javax.websocket.CloseReason.CloseCodes;
 
@@ -127,20 +129,18 @@ public class WsUser extends SysUser {
         this.send(new WsMsg(callback, type, data), false);
     }
 
+    @SneakyThrows(IOException.class)
     private void send(WsMsg wsmsg, boolean async) {
         if (isOnline()) {
             Supplier<String> supplier = () -> AES.encrypt(JSONUtil.toJsonStr(wsmsg), hs);
-            wss.stream().filter(Session::isOpen).forEach(ws -> {
+            List<Session> collect = wss.stream().filter(Session::isOpen).collect(Collectors.toList());
+            for (Session session : collect) {
                 if (async) {
-                    ws.getAsyncRemote().sendText(supplier.get());
+                    session.getAsyncRemote().sendText(supplier.get());
                 } else {
-                    try {
-                        ws.getBasicRemote().sendText(supplier.get());
-                    } catch (IOException e) {
-                        log.warn(e.getMessage());
-                    }
+                    session.getBasicRemote().sendText(supplier.get());
                 }
-            });
+            }
         }
     }
 
