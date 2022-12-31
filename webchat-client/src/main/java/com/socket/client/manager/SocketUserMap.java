@@ -104,7 +104,7 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
     }
 
     /**
-     * 通过uid获取用户（不存在时通过缓存获取）
+     * 通过uid获取用户（不存在时通过数据库获取）
      *
      * @param uid 用户uid
      * @return {@link WsUser}

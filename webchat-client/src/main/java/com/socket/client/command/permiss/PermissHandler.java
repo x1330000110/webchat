@@ -22,7 +22,6 @@ public abstract class PermissHandler implements CommandHandler<PermissionEvent> 
 
     public void invoke(PermissionEvent event) {
         WsUser self = Optional.ofNullable(event.getSelf()).map(userMap::get).orElse(null);
-        // 目标可能是群组
         invoke(self, getBaseUser(event.getTarget()), event.getParam());
     }
 
