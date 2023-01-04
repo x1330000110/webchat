@@ -48,7 +48,7 @@ public enum Hmac {
      *
      * @param session {@link HttpSession}
      * @param data    data
-     * @return digeset hex data
+     * @return digest hex data
      */
     public String digestHex(HttpSession session, String data) {
         return digestHex(session, data.getBytes());
@@ -59,7 +59,7 @@ public enum Hmac {
      *
      * @param session {@link HttpSession}
      * @param data    bytes
-     * @return digeset hex string
+     * @return digest hex string
      */
     public String digestHex(HttpSession session, byte[] data) {
         try {

@@ -96,7 +96,7 @@ public final class SecureRequestFilter implements Filter {
     /**
      * Gets the mapping of the current request URI {@link Method} <br>
      *
-     * @param request {@link ServletRequest}
+     * @param request {@link HttpServletRequest}
      * @return If no matching controller is found or no annotation is specified, null is returned
      */
     private HandlerMethod getHandlerMethod(HttpServletRequest request) {
@@ -118,16 +118,17 @@ public final class SecureRequestFilter implements Filter {
      * Spring event push
      *
      * @param request {@link HttpServletRequest}
+     * @param handler {@link HandlerMethod}
      * @param reason  Authentication failure reason
      */
-    private void pushEvent(HttpServletRequest request, HandlerMethod hander, String reason) {
+    private void pushEvent(HttpServletRequest request, HandlerMethod handler, String reason) {
         InitiatorEvent event = new InitiatorEvent(publisher);
         UserAgent userAgent = UserAgentParser.parse(request.getHeader(Header.USER_AGENT.getValue()));
         event.setUserAgent(userAgent);
         event.setRemote(ServletUtil.getClientIP(request));
         event.setSession(request.getSession());
-        event.setMethod(hander.getMethod());
-        event.setController(hander.getBeanType());
+        event.setMethod(handler.getMethod());
+        event.setController(handler.getBeanType());
         event.setReason(reason);
         publisher.publishEvent(event);
     }
