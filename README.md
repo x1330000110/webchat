@@ -29,9 +29,10 @@ webchat-core ----------|---> group
 
                                         | -----> RSA
                        | ---> core -----|
---------------         |                | -----> AES            | ----> ExpiredValidator
-webchat-secure --------|                                        |                               | -----> MappedRepeatValidator
---------------         | ---> filter --------> validator -------| ----> RepeatValidator --------|
+--------------         |                | -----> AES
+webchat-secure --------|                                        | ----> ExpiredValidator
+--------------         |                                        |                               | -----> MappedRepeatValidator
+                       | ---> filter --------> validator -------| ----> RepeatValidator --------|
                                                                 |                               | -----> RedisRepeatValidator
                                                                 | ----> SignatureValidator
 ```
