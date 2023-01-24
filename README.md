@@ -9,31 +9,36 @@
 #### 层级结构
 
 ```
-
---------------                             |----> PermissionManager -------> RedisManager
-webchat-client -------> SocketEndpoint ----|
---------------                             |----> SettingSupport
+                                                                                                | -----> GroupCommandParser
+                                                                                                |
+--------------                             |----> PermissionManager ------> CommandParser ------| -----> UserCommandParser
+webchat-client -------> SocketEndpoint ----|                                                    |
+--------------                             |----> SettingSupport                                | -----> PermissCommandParser
 
                        |---> message
                        |                      | ------> BaiduSpeech
                        |---> resource --------| 
-------------           |                      | ------> 云储存
+------------           |                      | ------> LanzouCloud
 webchat-core ----------|---> group
-------------           |              |---> admin
-                       |---> user ----|
-                       |              |---> owner    | ------> Wechat
-                       |---> login  -----------------|
-                                                     | ------> shiro
+------------           |                      |---> admin
+                       |---> user ------------|
+                       |                      |---> owner
+                       |                                       | ------> wechat
+                       |---> login  ----------> shiro ---------|
+                                                               | ------> QQ
 
---------------         | ---> core
-webchat-secure --------|                                        | ----> MappedRepeatValidator
---------------         | ---> filter --------> validator -------|
-                                                                | ----> RedisRepeatValidator
+                                        | -----> RSA
+                       | ---> core -----|
+--------------         |                | -----> AES            | ----> ExpiredValidator
+webchat-secure --------|                                        |                               | -----> MappedRepeatValidator
+--------------         | ---> filter --------> validator -------| ----> RepeatValidator --------|
+                                                                |                               | -----> RedisRepeatValidator
+                                                                | ----> SignatureValidator
 ```
 
-基于JDK11
+基于JDK1.8
 
-* 后端：Spring Boot、Mybatis Plus、Shiro、MySQL、Redis、Kafka、Socket
+* 后端：Spring Boot、Mybatis Plus、Shiro、MySQL、Redis、Kafka、WebSocket
 
 需要配置的环境依赖
 
