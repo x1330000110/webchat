@@ -125,8 +125,11 @@ public class SecureCore {
         boolean equals = Hmac.SHA512.digestHex(session, pubkey).toUpperCase().equals(digest);
         Assert.isTrue(equals, RequsetTemplate.PUBLIC_KEY_SIGNATURE_MISMATCH, InvalidRequestException::new);
         session.removeAttribute(key);
-        // Generate AES key
-        String aeskey = AES.getAesKey(session);
+        // Get/Generate AES key
+        String aeskey = null;
+        if (properties.isSameSessionWithOnlyAesKey()) {
+            aeskey = AES.getAesKey(session);
+        }
         if (aeskey == null) {
             aeskey = AES.generateAesKey();
             session.setAttribute(SecureConstant.AESKEY, aeskey);

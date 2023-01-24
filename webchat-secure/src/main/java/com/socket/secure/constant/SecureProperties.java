@@ -63,6 +63,13 @@ public class SecureProperties {
      * (turning off this configuration may be at risk of man-in-the-middle attack)
      */
     private boolean verifyRequestRemote = true;
+    /**
+     * For the same HttpSession exchange the same AES key
+     * (Used for support multi-window WebSocket data decryption,
+     * do not enable this configuration under normal circumstances,
+     * which may lead to the risk of SESSION_ID forgery attacks)
+     */
+    private boolean sameSessionWithOnlyAesKey = false;
 
     public int getDisguiseFilesCount() {
         return disguiseFilesCount;
@@ -117,5 +124,13 @@ public class SecureProperties {
 
     public void setVerifyRequestRemote(boolean verifyRequestRemote) {
         this.verifyRequestRemote = verifyRequestRemote;
+    }
+
+    public boolean isSameSessionWithOnlyAesKey() {
+        return sameSessionWithOnlyAesKey;
+    }
+
+    public void setSameSessionWithOnlyAesKey(boolean sameSessionWithOnlyAesKey) {
+        this.sameSessionWithOnlyAesKey = sameSessionWithOnlyAesKey;
     }
 }
