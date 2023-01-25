@@ -25,7 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -57,9 +56,9 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         group.setName(groupName);
         group.setOwner(userId);
         // 散列密码
-        Optional.ofNullable(password)
-                .filter(StrUtil::isNotEmpty)
-                .ifPresent(e -> group.setPassword(Bcrypt.digest(e)));
+        if (StrUtil.isNotEmpty(password)) {
+            group.setPassword(Bcrypt.digest(password));
+        }
         if (super.save(group)) {
             // 推送事件
             publisher.pushGroupEvent(group, GroupEnum.CREATE);

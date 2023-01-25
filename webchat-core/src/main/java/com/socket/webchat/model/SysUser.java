@@ -91,9 +91,4 @@ public class SysUser extends BaseUser {
     public boolean isOwner() {
         return getRole() == UserRole.OWNER;
     }
-
-    @PropIgnore
-    public String getOpenid() {
-        return openid;
-    }
 }

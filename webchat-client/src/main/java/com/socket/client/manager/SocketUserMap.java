@@ -189,7 +189,9 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
      * @param reason 原因
      */
     public void exit(WsUser user, String reason) {
-        logService.saveLog(BeanUtil.copyProperties(user, SysUserLog.class), LogType.LOGOUT);
+        SysUserLog log = BeanUtil.copyProperties(user, SysUserLog.class);
+        log.setIp(user.getIp());
+        logService.saveLog(log, LogType.LOGOUT);
         user.logout(reason);
     }
 }
