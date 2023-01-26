@@ -20,7 +20,11 @@ public class WxProperties {
      */
     private String appsecret;
     /**
+     * 反向代理地址（可以为空）
+     */
+    private String proxy;
+    /**
      * 登录认证重定向地址
      */
-    private String redirectUrl;
+    private String redirect;
 }

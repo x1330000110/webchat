@@ -80,7 +80,8 @@ public class WxAuth2Request implements InitializingBean {
             }
             path = StrUtil.addPrefixIfNot(path, "/");
             // 拼接url
-            this.redirect = properties.getRedirectUrl() + root + path;
+            String proxy = StrUtil.addPrefixIfNot(properties.getProxy(), "/");
+            this.redirect = properties.getRedirect() + proxy + root + path;
             log.info("构造微信认证跳转地址：{}", redirect);
             return;
         }

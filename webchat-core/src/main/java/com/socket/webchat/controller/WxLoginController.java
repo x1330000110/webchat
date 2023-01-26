@@ -45,7 +45,7 @@ public class WxLoginController {
 
     @WeChatRedirect("/login")
     public void login(String code, String state, HttpServletResponse response) {
-        String url = properties.getRedirectUrl();
+        String url = properties.getRedirect();
         response.setContentType(ContentType.TEXT_HTML.toString(StandardCharsets.UTF_8));
         SysUser user = wxloginService.authorize(code, state);
         boolean wxMobile = state.endsWith(Constants.WX_MOBILE);
