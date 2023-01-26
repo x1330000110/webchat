@@ -45,21 +45,21 @@ public class WxLoginController {
 
     @WeChatRedirect("/login")
     public void login(String code, String state, HttpServletResponse response) {
-        String domain = properties.getDomainService();
+        String url = properties.getRedirectUrl();
         response.setContentType(ContentType.TEXT_HTML.toString(StandardCharsets.UTF_8));
         SysUser user = wxloginService.authorize(code, state);
         boolean wxMobile = state.endsWith(Constants.WX_MOBILE);
         // 二维码过期
-        RedirectUtil.redirectIfNull(user, response, domain + "/status/failed.html?key=expired");
+        RedirectUtil.redirectIfNull(user, response, url + "/status/failed.html?key=expired");
         // 永久限制登录
-        RedirectUtil.redirectIf(user.isDeleted(), response, domain + "/status/failed.html?key=lock");
+        RedirectUtil.redirectIf(user.isDeleted(), response, url + "/status/failed.html?key=lock");
         // 临时限制登录
         long time = redis.getExpired(RedisTree.LOCK.concat(user.getGuid()));
-        RedirectUtil.redirectIf(time > 0, response, domain + "/status/failed.html?key=lock&time=" + time);
+        RedirectUtil.redirectIf(time > 0, response, url + "/status/failed.html?key=lock&time=" + time);
         // 手机扫码登录处理
-        RedirectUtil.redirectIf(!wxMobile, response, domain + "/status/success.html");
+        RedirectUtil.redirectIf(!wxMobile, response, url + "/status/success.html");
         // 扫码登录
         wxloginService.login(state);
-        RedirectUtil.redirect(response, domain);
+        RedirectUtil.redirect(response, url);
     }
 }

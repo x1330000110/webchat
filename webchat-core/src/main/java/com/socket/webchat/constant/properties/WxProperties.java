@@ -20,7 +20,7 @@ public class WxProperties {
      */
     private String appsecret;
     /**
-     * 授权回调页面域名（请保持与微信后台设置相同）
+     * 登录认证重定向地址
      */
-    private String domainService;
+    private String redirectUrl;
 }

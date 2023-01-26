@@ -7,44 +7,33 @@ import cn.hutool.json.JSONUtil;
 import com.socket.secure.util.Assert;
 import com.socket.webchat.constant.properties.WxProperties;
 import com.socket.webchat.request.bean.WxUser;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.ApplicationListener;
+import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * 微信授权登录管理器
  */
 @Slf4j
 @Component
-public class WxAuth2Request implements BeanPostProcessor, ApplicationListener<ApplicationReadyEvent> {
+@RequiredArgsConstructor
+public class WxAuth2Request implements InitializingBean {
     private static final String AUTHORIZE = "https://open.weixin.qq.com/connect/oauth2/authorize?appid={}&redirect_uri={}&response_type=code&scope=snsapi_userinfo&state={}#wechat_redirect";
     private static final String ACCESS_TOKEN_URL = "https://api.weixin.qq.com/sns/oauth2/access_token?appid={}&secret={}&code={}&grant_type=authorization_code";
     private static final String USER_INFO_URL = "https://api.weixin.qq.com/sns/userinfo?access_token={}&openid={}&lang=zh_CN";
+    private final RequestMappingHandlerMapping mapping;
     private final WxProperties properties;
-    private final String packagePrefix;
     private String redirect;
-
-    public WxAuth2Request(WxProperties properties) {
-        this.properties = properties;
-        this.packagePrefix = getPackagePrefix();
-    }
-
-    /**
-     * 获取当前包前缀
-     */
-    private String getPackagePrefix() {
-        String packageName = getClass().getPackage().getName();
-        int idx = packageName.indexOf(".", packageName.indexOf(".") + 1);
-        return packageName.substring(0, idx > -1 ? idx : packageName.length());
-    }
 
     /**
      * 获取微信登录URL地址，注意需要标记{@linkplain WeChatRedirect}才能使用此方法
@@ -71,30 +60,30 @@ public class WxAuth2Request implements BeanPostProcessor, ApplicationListener<Ap
     }
 
     @Override
-    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-        Class<?> clazz = bean.getClass();
-        if (StrUtil.isNotEmpty(redirect) || !clazz.getPackage().getName().startsWith(packagePrefix)) {
-            return bean;
-        }
-        for (Method method : clazz.getDeclaredMethods()) {
-            WeChatRedirect annotation = method.getAnnotation(WeChatRedirect.class);
-            if (annotation != null) {
-                RequestMapping outer = AnnotationUtils.findAnnotation(clazz, RequestMapping.class);
-                String uri = outer == null ? "" : Arrays.stream(outer.value()).findFirst().orElse("");
-                String redirect = Arrays.stream(annotation.value()).findFirst().orElse("");
-                uri = uri.startsWith("/") ? uri : "/" + uri;
-                redirect = redirect.startsWith("/") ? redirect : "/" + redirect;
-                this.redirect = String.join("", properties.getDomainService(), uri, redirect);
-                break;
+    public void afterPropertiesSet() {
+        for (HandlerMethod handler : mapping.getHandlerMethods().values()) {
+            Method method = handler.getMethod();
+            WeChatRedirect anno = AnnotationUtils.findAnnotation(method, WeChatRedirect.class);
+            if (anno == null) {
+                continue;
             }
+            RequestMapping mapp = AnnotationUtils.findAnnotation(handler.getBeanType(), RequestMapping.class);
+            // mapping地址获取
+            Function<String[], String> getURI = t -> Optional.ofNullable(t)
+                    .map(e -> e.length == 0 ? null : e[0])
+                    .orElse(StrUtil.EMPTY);
+            // 格式化地址
+            String root = getURI.apply(mapp == null ? null : mapp.value());
+            String path = getURI.apply(anno.value());
+            if (StrUtil.isNotEmpty(root)) {
+                root = StrUtil.addPrefixIfNot(root, "/");
+            }
+            path = StrUtil.addPrefixIfNot(path, "/");
+            // 拼接url
+            this.redirect = properties.getRedirectUrl() + root + path;
+            log.info("构造微信认证跳转地址：{}", redirect);
+            return;
         }
-        return bean;
-    }
-
-    @Override
-    public void onApplicationEvent(ApplicationReadyEvent event) {
-        if (StrUtil.isEmpty(redirect)) {
-            log.warn("微信登录授权跳转地址为空，无法使用微信授权登录");
-        }
+        throw new BeanCreationException("找不到微信认证跳转地址，请在控制器下标记@WeChatRedirect");
     }
 }
