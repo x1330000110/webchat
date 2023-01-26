@@ -30,7 +30,10 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -51,13 +54,17 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
     @Override
     public List<ChatRecord> getRecords(String mid, String target) {
         String userId = Wss.getUserId();
-        // wrapper构造器
         LambdaQueryWrapper<ChatRecord> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ChatRecord::isSysmsg, 0);
+
+        // 排除已删除的消息id
+        LambdaQueryWrapper<ChatRecordDeleted> exclude = Wrappers.lambdaQuery();
+
         // 若查询群组，获取所有目标为群组的消息
         if (Wss.isGroup(target)) {
-            wrapper.eq(ChatRecord::getTarget, target);
             wrapper.eq(ChatRecord::isReject, false);
+            wrapper.eq(ChatRecord::getTarget, target);
+            exclude.eq(ChatRecordDeleted::getTarget, target);
         } else {
             // 反之仅获取相互发送的消息
             wrapper.and(ew -> ew.eq(ChatRecord::isReject, false).or().eq(ChatRecord::getGuid, userId));
@@ -66,34 +73,43 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
                     .eq(ChatRecord::getTarget, target)
                     .or()
                     .eq(ChatRecord::getGuid, target)
-                    .eq(ChatRecord::getTarget, userId)
-            );
+                    .eq(ChatRecord::getTarget, userId));
+            exclude.and(ew -> ew
+                    .eq(ChatRecordDeleted::getGuid, userId)
+                    .eq(ChatRecordDeleted::getTarget, target)
+                    .or()
+                    .eq(ChatRecordDeleted::getGuid, target)
+                    .eq(ChatRecordDeleted::getTarget, userId));
         }
+
         // 限制起始边界id
-        LambdaQueryWrapper<ChatRecordOffset> wrapper1 = Wrappers.lambdaQuery();
-        wrapper1.eq(ChatRecordOffset::getGuid, userId);
-        wrapper1.eq(ChatRecordOffset::getTarget, target);
-        ChatRecordOffset limit = offsetMapper.selectOne(wrapper1);
-        Optional.ofNullable(limit).ifPresent(e -> wrapper.gt(BaseModel::getId, e.getOffset()));
+        LambdaQueryWrapper<ChatRecordOffset> start = Wrappers.lambdaQuery();
+        start.eq(ChatRecordOffset::getGuid, userId);
+        start.eq(ChatRecordOffset::getTarget, target);
+        ChatRecordOffset limit = offsetMapper.selectOne(start);
+        if (limit != null) {
+            wrapper.gt(BaseModel::getId, limit.getOffset());
+            exclude.ge(ChatRecordDeleted::getRecordId, limit.getOffset());
+        }
+
         // 限制结束边界id
-        ChatRecord offset = null;
         if (mid != null) {
             // 通过mid查询id
-            LambdaQueryWrapper<ChatRecord> wrapper2 = Wrappers.lambdaQuery();
-            wrapper2.eq(ChatRecord::getMid, mid);
-            offset = getFirst(wrapper2);
+            LambdaQueryWrapper<ChatRecord> end = Wrappers.lambdaQuery();
+            end.eq(ChatRecord::getMid, mid);
+            ChatRecord offset = getFirst(end);
             Assert.notNull(offset, "无效的MID", IllegalStateException::new);
             wrapper.lt(BaseModel::getId, offset.getId());
+            exclude.le(ChatRecordDeleted::getRecordId, offset.getId());
         }
-        // 排除已删除的消息id
-        LambdaQueryWrapper<ChatRecordDeleted> wrapper3 = Wrappers.lambdaQuery();
-        wrapper3.eq(ChatRecordDeleted::getGuid, userId);
-        Optional.ofNullable(offset).ifPresent(m -> wrapper3.lt(ChatRecordDeleted::getRecordTime, m.getCreateTime()));
-        List<String> deleted = deletedMapper.selectList(wrapper3)
+
+        // 将单独删除的消息转为集合
+        List<Long> deleted = deletedMapper.selectList(exclude)
                 .stream()
-                .map(ChatRecordDeleted::getMid)
+                .map(ChatRecordDeleted::getRecordId)
                 .collect(Collectors.toList());
-        wrapper.notIn(!deleted.isEmpty(), ChatRecord::getMid, deleted);
+        wrapper.notIn(!deleted.isEmpty(), ChatRecord::getId, deleted);
+
         // 限制结果
         wrapper.orderByDesc(ChatRecord::getCreateTime);
         wrapper.last(StrUtil.format("LIMIT {}", Constants.SYNC_RECORDS_NUMS));
@@ -140,8 +156,8 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         // 确保移除的目标不是自己（自己可能是发起者或目标）
         String guid = record.getGuid(), target = record.getTarget();
         deleted.setTarget(Wss.isGroup(target) || guid.equals(userId) ? target : guid);
-        deleted.setMid(record.getMid());
-        deleted.setRecordTime(record.getCreateTime());
+        deleted.setRecordId(record.getId());
+        deleted.setCreateTime(record.getCreateTime());
         return deletedMapper.insert(deleted) == 1;
     }
 

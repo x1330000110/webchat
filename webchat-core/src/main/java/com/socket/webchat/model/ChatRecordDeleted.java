@@ -3,8 +3,6 @@ package com.socket.webchat.model;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.Date;
-
 /**
  * 消息移除标记表
  *
@@ -18,15 +16,11 @@ public class ChatRecordDeleted extends BaseModel {
      */
     private String guid;
     /**
-     * 消息ID
-     */
-    private String mid;
-    /**
      * 目标uid
      */
     private String target;
     /**
-     * 消息创建时间
+     * {@link ChatRecord#getId()}
      */
-    private Date recordTime;
+    private Long recordId;
 }
