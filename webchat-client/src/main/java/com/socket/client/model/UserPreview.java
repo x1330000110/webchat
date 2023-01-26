@@ -33,9 +33,9 @@ public class UserPreview extends SysUser {
      */
     private String platform;
     /**
-     * IP所属省
+     * IP所属省（市）
      */
-    private String remoteProvince;
+    private String province;
     /**
      * 未读的最后一条消息
      */

@@ -18,5 +18,5 @@ public interface SysUserLogService extends BaseService<SysUserLog> {
      *
      * @return 日志列表
      */
-    Map<String, SysUserLog> getUserLogs();
+    Map<String, SysUserLog> getLatestUserLogs();
 }

@@ -124,8 +124,8 @@ public class CustomRealm extends AuthorizingRealm {
             // 检查异地
             String remoteIP = Wss.getRemoteIP();
             if (!Objects.equals(log.getIp(), remoteIP)) {
-                // IP所属省是否相同
-                boolean offsite = Objects.equals(log.getRemoteProvince(), ipRequest.getProvince(remoteIP));
+                // IP所属是否相同
+                boolean offsite = Objects.equals(log.getProvince(), ipRequest.getProvince(remoteIP));
                 // 返回的异常为脱敏的绑定邮箱信息
                 String email = DesensitizedUtil.email(user.getEmail());
                 Assert.isTrue(offsite, email, OffsiteLoginException::new);

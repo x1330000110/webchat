@@ -58,7 +58,7 @@ public class PermissionManager implements InitializingBean {
         // 与此用户关联的最新未读消息
         Map<String, ChatRecord> unreadMessages = recordService.getLatestUnreadMessages(suid);
         // 登录记录
-        Map<String, SysUserLog> logs = sysUserLogService.getUserLogs();
+        Map<String, SysUserLog> logs = sysUserLogService.getLatestUserLogs();
         // 链接数据
         List<BaseUser> previews = new ArrayList<>();
         for (WsUser user : userMap.values()) {
@@ -68,7 +68,7 @@ public class PermissionManager implements InitializingBean {
             SysUserLog log = logs.get(target);
             if (log != null) {
                 preview.setLastTime(log.getCreateTime().getTime());
-                preview.setRemoteProvince(log.getRemoteProvince());
+                preview.setProvince(log.getProvince());
             }
             // 检查未读消息
             int count = redisManager.getUnreadCount(suid, target);

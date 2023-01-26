@@ -17,6 +17,7 @@ public class IPRequest {
      */
     public String getProvince(String ip) {
         String body = HttpRequest.get(StrUtil.format(URL, ip)).execute().body();
-        return JSONUtil.parseObj(body).getStr("regionName");
+        String regionName = JSONUtil.parseObj(body).getStr("regionName");
+        return StrUtil.emptyToDefault(regionName, "未知");
     }
 }

@@ -21,9 +21,9 @@ public class SysUserLog extends BaseModel {
      */
     private String ip;
     /**
-     * IP所属省
+     * IP所属省（市）
      */
-    private String remoteProvince;
+    private String province;
     /**
      * 日志类型
      */
