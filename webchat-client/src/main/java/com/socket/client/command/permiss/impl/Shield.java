@@ -13,6 +13,6 @@ import org.springframework.stereotype.Component;
 public class Shield extends PermissHandler {
     @Override
     public <T> void invoke(WsUser self, BaseUser target, T param) {
-        userMap.sendAll(PermissEnum.SHIELD, target);
+        self.send(null, PermissEnum.SHIELD, target);
     }
 }

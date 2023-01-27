@@ -75,4 +75,11 @@ public class GroupController {
         }
         return HttpStatus.SUCCESS.body(list);
     }
+
+    @Encrypted
+    @PostMapping("/updatePass")
+    public HttpStatus updatePassword(@RequestBody GroupCondition condition) {
+        boolean state = sysGroupService.updatePassword(condition.getGid(), condition.getPassword());
+        return HttpStatus.state(state, "操作");
+    }
 }

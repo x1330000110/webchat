@@ -59,7 +59,7 @@ public interface Constants {
     /**
      * 客户端群组前缀标识
      */
-    String GROUP_PREFIX = "G";
+    String GROUP_PREFIX = "#";
     /**
      * 默认群组标记
      */

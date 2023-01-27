@@ -151,4 +151,18 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         }
         return false;
     }
+
+    @Override
+    public boolean updatePassword(String gid, String password) {
+        String userId = Wss.getUserId();
+        LambdaUpdateWrapper<SysGroup> wrapper = Wrappers.lambdaUpdate();
+        wrapper.eq(BaseUser::getGuid, gid);
+        SysGroup group = getFirst(wrapper);
+        Assert.notNull(group, "找不到群组ID: " + gid, IllegalStateException::new);
+        boolean equals = group.getOwner().equals(userId);
+        Assert.isTrue(equals, "权限不足", IllegalStateException::new);
+        String digestPass = StrUtil.isEmpty(password) ? null : Bcrypt.digest(password);
+        wrapper.set(SysGroup::getPassword, digestPass);
+        return update(wrapper);
+    }
 }

@@ -199,9 +199,9 @@ public class PermissionManager implements InitializingBean {
         userList.stream().map(WsUser::new).forEach(e -> userMap.put(e.getGuid(), e));
         // 缓存群组
         List<SysGroup> sysGroups = sysGroupMapper.selectList(null);
-        List<SysGroupUser> groupthis = sysGroupUserMapper.selectList(null);
+        List<SysGroupUser> groupUsers = sysGroupUserMapper.selectList(null);
         for (SysGroup group : sysGroups) {
-            List<WsUser> collect = groupthis.stream()
+            List<WsUser> collect = groupUsers.stream()
                     .filter(e -> e.getGid().equals(group.getGuid()))
                     .map(SysGroupUser::getUid)
                     .map(userMap::get)

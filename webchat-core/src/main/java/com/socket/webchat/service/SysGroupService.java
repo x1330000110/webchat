@@ -57,4 +57,13 @@ public interface SysGroupService extends BaseService<SysGroup> {
      * @return 是否成功
      */
     boolean exitGroup(String gid);
+
+    /**
+     * 修改入群密码
+     *
+     * @param gid      群组id
+     * @param password 新密码
+     * @return
+     */
+    boolean updatePassword(String gid, String password);
 }
