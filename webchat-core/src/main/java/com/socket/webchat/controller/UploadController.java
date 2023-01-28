@@ -85,7 +85,7 @@ public class UploadController {
         String url = condition.getUrl();
         VideoType parse = VideoType.of(condition.getType());
         Assert.notNull(parse, IllegalArgumentException::new);
-        String data = parseRequest.parseVideo(url, parse);
+        String data = parse.getExec().apply(url);
         return url == null ? HttpStatus.FAILURE.body() : HttpStatus.SUCCESS.body(data);
     }
 }

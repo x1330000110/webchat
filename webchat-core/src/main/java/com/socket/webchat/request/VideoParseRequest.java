@@ -4,7 +4,6 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.socket.webchat.request.bean.VideoType;
 import org.springframework.stereotype.Component;
 
 /**
@@ -12,12 +11,24 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class VideoParseRequest {
+    private static final String VIP_URL = "https://api.leafone.cn/api/jx?url={}";
+    private static final String SHORT_URL = "https://api.kit9.cn/api/aggregate_videos/api.php?link={}";
 
-    public String parseVideo(String url, VideoType type) {
-        String body = HttpRequest.get(StrUtil.format(type.getUrl(), url)).execute().body();
+    /**
+     * VIP视频解析
+     */
+    public static String parseVipVideo(String url) {
+        return null;
+    }
+
+    /**
+     * 短视频解析
+     */
+    public static String parseShortVideo(String url) {
+        String body = HttpRequest.get(StrUtil.format(SHORT_URL, url)).execute().body();
         JSONObject json = JSONUtil.parseObj(body);
         if (json.getInt("code") == 200) {
-            return json.getJSONObject("data").getStr("url");
+            return json.getJSONObject("data").getStr("video_link");
         }
         return null;
     }

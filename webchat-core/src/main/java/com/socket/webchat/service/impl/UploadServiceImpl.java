@@ -83,7 +83,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         if (Wss.checkMessagePermission(record)) {
             String url = file.getUrl();
             VideoType parse = VideoType.of(file.getType());
-            return parse != null ? parseRequest.parseVideo(url, parse) : getResourceURLByCache(url);
+            return parse != null ? parse.getExec().apply(url) : getResourceURLByCache(url);
         }
         return null;
     }

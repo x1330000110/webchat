@@ -1,23 +1,28 @@
 package com.socket.webchat.request.bean;
 
+import com.socket.webchat.request.VideoParseRequest;
 import lombok.Getter;
 
 import java.util.Arrays;
+import java.util.function.Function;
 
 @Getter
 public enum VideoType {
-    VIP_VIDEO("https://api.leafone.cn/api/jx?url={}"),
-    SHORT_VIDEO("https://api.leafone.cn/api/dsp?url={}");
+    VIP_VIDEO(VideoParseRequest::parseVipVideo),
+    SHORT_VIDEO(VideoParseRequest::parseShortVideo);
 
-    private final String url;
+    private final Function<String, String> exec;
     private final String key;
 
-    VideoType(String url) {
+    VideoType(Function<String, String> exec) {
         this.key = name().toLowerCase();
-        this.url = url;
+        this.exec = exec;
     }
 
     public static VideoType of(String type) {
-        return Arrays.stream(values()).filter(e -> e.key.equalsIgnoreCase(type)).findFirst().orElse(null);
+        return Arrays.stream(values())
+                .filter(e -> e.key.equalsIgnoreCase(type))
+                .findFirst()
+                .orElse(null);
     }
 }
