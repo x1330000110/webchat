@@ -11,7 +11,7 @@ import com.socket.webchat.model.condition.RegisterCondition;
 import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.request.QQRequest;
 import com.socket.webchat.request.bean.QQAuth;
-import com.socket.webchat.request.bean.QQAuthVerify;
+import com.socket.webchat.request.bean.QQAuthResp;
 import com.socket.webchat.request.bean.QQUser;
 import com.socket.webchat.service.QQLoginService;
 import com.socket.webchat.service.SysUserService;
@@ -31,7 +31,7 @@ public class QQLoginServiceImpl implements QQLoginService {
     }
 
     public HttpStatus state(String qrsig) {
-        QQAuthVerify verify = qqRequest.verifyAuth(qrsig);
+        QQAuthResp verify = qqRequest.verifyAuth(qrsig);
         String state = verify.getState();
         if ("未失效".equals(state) || "认证中".equals(state)) {
             return HttpStatus.WAITTING.body("等待访问");

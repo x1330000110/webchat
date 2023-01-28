@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-public class QQAuthVerify {
+public class QQAuthResp {
     /**
      * 登录状态
      */
@@ -22,7 +22,7 @@ public class QQAuthVerify {
      */
     private String skey;
 
-    public QQAuthVerify(String state) {
+    public QQAuthResp(String state) {
         this.state = state;
     }
 }

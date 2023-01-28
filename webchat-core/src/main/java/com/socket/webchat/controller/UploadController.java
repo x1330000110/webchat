@@ -6,7 +6,6 @@ import com.socket.webchat.model.condition.FileCondition;
 import com.socket.webchat.model.condition.URLCondition;
 import com.socket.webchat.model.enums.FileType;
 import com.socket.webchat.model.enums.HttpStatus;
-import com.socket.webchat.request.VideoParseRequest;
 import com.socket.webchat.request.bean.VideoType;
 import com.socket.webchat.service.UploadService;
 import lombok.RequiredArgsConstructor;
@@ -17,15 +16,11 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-/**
- * @date 2022/6/17
- */
 @RestController
 @RequestMapping("/resource")
 @RequiredArgsConstructor
 public class UploadController {
     private final UploadService uploadService;
-    private final VideoParseRequest parseRequest;
 
     @PostMapping("/audio")
     public HttpStatus uploadAudio(FileCondition condition) throws IOException {
@@ -85,7 +80,7 @@ public class UploadController {
         String url = condition.getUrl();
         VideoType parse = VideoType.of(condition.getType());
         Assert.notNull(parse, IllegalArgumentException::new);
-        String data = parse.getExec().apply(url);
+        String data = parse.getParser().apply(url);
         return url == null ? HttpStatus.FAILURE.body() : HttpStatus.SUCCESS.body(data);
     }
 }

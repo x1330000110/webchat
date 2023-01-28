@@ -5,7 +5,7 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.socket.webchat.request.bean.QQAuth;
-import com.socket.webchat.request.bean.QQAuthVerify;
+import com.socket.webchat.request.bean.QQAuthResp;
 import com.socket.webchat.request.bean.QQUser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -47,9 +47,9 @@ public class QQRequest {
      * 验证QQ登录状态
      *
      * @param qrsig {@link QQAuth#getQrsig()}
-     * @return {@link QQAuthVerify}
+     * @return {@link QQAuthResp}
      */
-    public QQAuthVerify verifyAuth(String qrsig) {
+    public QQAuthResp verifyAuth(String qrsig) {
         String url = StrUtil.format(QQ_AUTH_VERIFY, qrsig);
         String body = HttpRequest.get(url).execute().body();
         log.info("Verify QQ: {}", body);
@@ -57,16 +57,16 @@ public class QQRequest {
         try {
             JSONObject info = json.getJSONObject("info");
             if (info.getStr("state") == null) {
-                return new QQAuthVerify("已失效");
+                return new QQAuthResp("已失效");
             }
             // 解析cookie
             JSONObject object = new JSONObject();
             Arrays.stream(info.getStr("cookie").split(";"))
                     .map(e -> e.split("="))
                     .forEach(e -> object.set(e[0], e[1]));
-            return object.toBean(QQAuthVerify.class);
+            return object.toBean(QQAuthResp.class);
         } catch (Exception e) {
-            return new QQAuthVerify(json.getStr("info"));
+            return new QQAuthResp(json.getStr("info"));
         }
     }
 }

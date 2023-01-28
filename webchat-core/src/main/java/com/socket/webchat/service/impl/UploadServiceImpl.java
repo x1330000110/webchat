@@ -16,7 +16,6 @@ import com.socket.webchat.model.enums.FileType;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.request.BaiduSpeechRequest;
 import com.socket.webchat.request.LanzouCloudRequest;
-import com.socket.webchat.request.VideoParseRequest;
 import com.socket.webchat.request.bean.VideoType;
 import com.socket.webchat.service.UploadService;
 import com.socket.webchat.util.RedisClient;
@@ -40,7 +39,6 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
     private final BaiduSpeechRequest baiduSpeechRequest;
     private final ChatRecordMapper chatRecordMapper;
     private final LanzouCloudRequest lanzouRequest;
-    private final VideoParseRequest parseRequest;
     private final RedisClient<String> client;
 
     @Override
@@ -83,7 +81,12 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         if (Wss.checkMessagePermission(record)) {
             String url = file.getUrl();
             VideoType parse = VideoType.of(file.getType());
-            return parse != null ? parse.getExec().apply(url) : getResourceURLByCache(url);
+            // VIP视频/短视频返回解析后URL
+            if (parse != null) {
+                return parse.parseURL(url);
+            }
+            // 返回lanzou解析URL
+            return getResourceURLByCache(url);
         }
         return null;
     }
@@ -119,7 +122,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
     }
 
     /**
-     * 优先从Redis缓存获取LanzouAPi直链接
+     * 优先从Redis缓存获取LanzouAPI直链接
      */
     private String getResourceURLByCache(String url) {
         String key = RedisTree.LANZOU_URL.concat(url);
@@ -127,7 +130,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         if (mapping == null) {
             mapping = lanzouRequest.getResourceURL(url);
             if (mapping != null) {
-                client.set(key, mapping, 1, TimeUnit.MINUTES);
+                client.set(key, mapping, 10, TimeUnit.MINUTES);
             }
         }
         return mapping;
