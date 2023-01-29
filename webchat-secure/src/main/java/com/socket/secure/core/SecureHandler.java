@@ -22,12 +22,12 @@ public class SecureHandler {
         this.secureCore = secureCore;
     }
 
-    @GetMapping("/secure")
+    @GetMapping(value = "/secure/favicon.ico")
     private void syncPubkey(HttpServletResponse response) throws IOException {
         secureCore.syncPubkey(response);
     }
 
-    @PostMapping("/secure")
+    @PostMapping("/secure/exchange")
     private String syncAeskey(@RequestBody String certificate, HttpServletRequest request) {
         String signature = request.getHeader("signature");
         if (signature != null && signature.length() == 168) {

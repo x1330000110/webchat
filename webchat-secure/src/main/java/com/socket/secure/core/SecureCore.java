@@ -11,7 +11,6 @@ import com.socket.secure.constant.SecureProperties;
 import com.socket.secure.event.entity.KeyEvent;
 import com.socket.secure.exception.InvalidRequestException;
 import com.socket.secure.util.*;
-import org.apache.tomcat.util.http.FastHttpDateFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -52,7 +51,7 @@ public class SecureCore {
         // Write public key
         long timestamp = this.writePublickey(stream);
         // Write request header time (required)
-        response.setHeader(Header.DATE.getValue(), FastHttpDateFormat.formatDate(timestamp));
+        response.setDateHeader(Header.DATE.getValue(), timestamp);
     }
 
     /**
