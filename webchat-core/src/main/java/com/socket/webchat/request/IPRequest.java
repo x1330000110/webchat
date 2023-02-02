@@ -10,14 +10,14 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class IPRequest {
-    private static final String URL = "http://ip-api.com/json/{}?lang=zh-CN";
+    private static final String URL = "https://ip.useragentinfo.com/json?ip={}";
 
     /**
      * 获取IP地址所在省
      */
     public String getProvince(String ip) {
         String body = HttpRequest.get(StrUtil.format(URL, ip)).execute().body();
-        String regionName = JSONUtil.parseObj(body).getStr("regionName");
+        String regionName = JSONUtil.parseObj(body).getStr("province");
         return StrUtil.emptyToDefault(regionName, "未知");
     }
 }

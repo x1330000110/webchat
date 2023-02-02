@@ -2,6 +2,7 @@ package com.socket.webchat.request;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpRequest;
+import cn.hutool.json.JSONException;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.socket.webchat.request.bean.QQAuth;
@@ -65,7 +66,7 @@ public class QQRequest {
                     .map(e -> e.split("="))
                     .forEach(e -> object.set(e[0], e[1]));
             return object.toBean(QQAuthResp.class);
-        } catch (Exception e) {
+        } catch (JSONException e) {
             return new QQAuthResp(json.getStr("info"));
         }
     }

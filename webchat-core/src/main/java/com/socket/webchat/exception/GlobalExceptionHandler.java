@@ -1,6 +1,7 @@
 package com.socket.webchat.exception;
 
 import cn.hutool.http.HttpException;
+import cn.hutool.json.JSONException;
 import com.socket.webchat.model.enums.HttpStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authc.IncorrectCredentialsException;
@@ -38,6 +39,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MailSendException.class)
     public HttpStatus isSendFailedException(Exception e) {
         return HttpStatus.FAILURE.message("邮箱验证码发送失败");
+    }
+
+    @ExceptionHandler(JSONException.class)
+    public HttpStatus isJSONException(JSONException e) {
+        e.printStackTrace();
+        return HttpStatus.UNKNOWN.message("JSON内部解析错误");
     }
 
     @ExceptionHandler(OffsiteLoginException.class)
