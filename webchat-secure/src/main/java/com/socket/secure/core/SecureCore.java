@@ -76,8 +76,9 @@ public class SecureCore {
             int random = RandomUtil.randomInt(count);
             Function<byte[], String> getName = bytes -> Hmac.SHA384.digestHex(session, Base64.encode(bytes));
             for (int i = 0; i <= count; i++) {
-                byte[] bytes = i == random ? pubkey : Randoms.randomBytes(pubkey.length);
-                String name = i == random ? getName.apply(bytes) : Randoms.randomHex(96);
+                boolean hit = i == random;
+                byte[] bytes = hit ? pubkey : Randoms.randomBytes(pubkey.length);
+                String name = hit ? getName.apply(bytes) : Randoms.randomHex(96);
                 ZipEntry entry = new ZipEntry(name);
                 entry.setComment(Hmac.SHA224.digestHex(session, name));
                 zip.putNextEntry(entry);
