@@ -1,16 +1,13 @@
 package com.socket.secure.util;
 
 import cn.hutool.core.util.HexUtil;
-import cn.hutool.crypto.SecureUtil;
 import cn.hutool.http.Header;
 import com.socket.secure.constant.RequsetTemplate;
-import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.exception.InvalidRequestException;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.security.GeneralSecurityException;
 
 public enum Hmac {
@@ -35,37 +32,39 @@ public enum Hmac {
     }
 
     /**
-     * Cache global hmac key
-     */
-    public static void cacheGlobalHmacKey(HttpServletRequest request) {
-        String ua = request.getHeader(Header.USER_AGENT.getValue());
-        String digest = SecureUtil.sha1().digestHex(ua);
-        request.getSession().setAttribute(SecureConstant.DIGEST_UA, digest);
-    }
-
-    /**
      * digest string
      *
-     * @param session {@link HttpSession}
-     * @param data    data
+     * @param request   {@link HttpServletRequest}
+     * @param plaintext plaintext string
      * @return digest hex data
      */
-    public String digestHex(HttpSession session, String data) {
-        return digestHex(session, data.getBytes());
+    public String digestHex(HttpServletRequest request, String plaintext) {
+        return digestHex(request, plaintext.getBytes());
     }
 
     /**
      * digest bytes
      *
-     * @param session {@link HttpSession}
-     * @param data    bytes
+     * @param request {@link HttpServletRequest}
+     * @param bytes   bytes
      * @return digest hex string
      */
-    public String digestHex(HttpSession session, byte[] data) {
+    public String digestHex(HttpServletRequest request, byte[] bytes) {
+        return digestHex(getKey(request), bytes);
+    }
+
+    /**
+     * digest bytes
+     *
+     * @param key   key
+     * @param bytes bytes
+     * @return digest hex string
+     */
+    public String digestHex(byte[] key, byte[] bytes) {
         try {
             Mac engine = Mac.getInstance(algorithm);
-            engine.init(new SecretKeySpec(getKey(session), algorithm));
-            engine.update(data, 0, data.length);
+            engine.init(new SecretKeySpec(key, algorithm));
+            engine.update(bytes, 0, bytes.length);
             return HexUtil.encodeHexStr(engine.doFinal());
         } catch (GeneralSecurityException e) {
             throw new InvalidRequestException(RequsetTemplate.HMAC_DIGEST_ERROR);
@@ -73,11 +72,11 @@ public enum Hmac {
     }
 
     /**
-     * Get the Hmac key for this session.
+     * Hash UA using SHA3 and the current algorithm name
      */
-    private byte[] getKey(HttpSession session) {
-        String key = (String) session.getAttribute(SecureConstant.DIGEST_UA);
-        Assert.notNull(key, RequsetTemplate.DIGEST_UA_NOT_FOUNT, InvalidRequestException::new);
+    private byte[] getKey(HttpServletRequest request) {
+        String ua = request.getHeader(Header.USER_AGENT.getValue());
+        String key = SHA1.digestHex(algorithm.getBytes(), ua.getBytes());
         return key.getBytes();
     }
 }

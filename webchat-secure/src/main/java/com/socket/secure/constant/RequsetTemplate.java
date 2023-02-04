@@ -18,7 +18,6 @@ public enum RequsetTemplate {
     HMAC_DIGEST_ERROR("HMAC digest error: {}"),
     GENERATE_AESKEY_ERROR("Generate AES key error: {}"),
     GENERATE_RSAKEY_ERROR("Generate RSA key error: {}"),
-    DIGEST_UA_NOT_FOUNT("Cached hash UA not found"),
     INVALID_HEADER_SIGNATURE("Invalid request header signature"),
     REQUSET_SIGNATURE_NOT_FOUNT("The signature for the current request cannot be found");
 

@@ -34,7 +34,7 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
     /**
      * Json config
      */
-    private final JSONConfig config = JSONConfig.create().setOrder(true).setIgnoreNullValue(false);
+    private final JSONConfig config = JSONConfig.create().setIgnoreNullValue(false);
     /**
      * Client standard form data
      */
@@ -75,7 +75,7 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
     private JSONObject getBody() throws IOException {
         if (!isFileRequest()) {
             String obj = super.getReader().lines().collect(Collectors.joining());
-            if (JSONUtil.isJson(obj)) {
+            if (JSONUtil.isTypeJSONObject(obj)) {
                 return JSONUtil.parseObj(obj, config);
             }
         }
@@ -246,13 +246,13 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
             for (Part part : part) {
                 String fileName = part.getSubmittedFileName();
                 if (fileName != null) {
-                    String digest = Hmac.MD5.digestHex(getSession(), IoUtil.readBytes(part.getInputStream()));
-                    sb.append(Hmac.MD5.digestHex(getSession(), fileName + digest));
+                    String digest = Hmac.MD5.digestHex(this, IoUtil.readBytes(part.getInputStream()));
+                    sb.append(Hmac.MD5.digestHex(this, fileName + digest));
                 }
             }
         }
         // check sign
-        String digest = Hmac.SHA1.digestHex(getSession(), sb + timestamp36);
+        String digest = Hmac.SHA1.digestHex(this, sb + timestamp36);
         return digest.equalsIgnoreCase(signature);
     }
 

@@ -20,7 +20,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.security.KeyPair;
 import java.util.function.Function;
 import java.util.zip.ZipEntry;
@@ -43,30 +42,17 @@ public class SecureCore {
      */
     public void syncPubkey(HttpServletResponse response) throws IOException {
         // Cache user identity
-        Hmac.cacheGlobalHmacKey(request);
         IPHash.cacheIPHash(session, ServletUtil.getClientIP(request));
         session.setAttribute(SecureConstant.CONCURRENT_TIME, SystemClock.now());
         // Write camouflage picture
         ServletOutputStream stream = response.getOutputStream();
         stream.write(SecureConstant.CAMOUFLAGE_PICTURE_BYTES);
         // Write public key
-        long timestamp = this.writePublickey(stream);
-        // Write request header time (required)
-        response.setDateHeader(Header.DATE.getValue(), timestamp);
-    }
-
-    /**
-     * Writes public key data to the specified {@linkplain OutputStream}
-     *
-     * @param stream image stream
-     * @return write time
-     */
-    public long writePublickey(OutputStream stream) throws IOException {
         int count = properties.getDisguiseFilesCount();
         // Generate rsa keys
         KeyPair keyPair = RSA.generateKeyPair();
         byte[] pubkey = keyPair.getPublic().getEncoded();
-        String digest = Hmac.SHA1.digestHex(session, Base64.encode(pubkey));
+        String digest = Hmac.SHA1.digestHex(request, Base64.encode(pubkey));
         String base64Prikey = Base64.encode(keyPair.getPrivate().getEncoded());
         // Hmac sha1 save the corresponding private key
         session.setAttribute(digest.toUpperCase(), base64Prikey);
@@ -74,18 +60,27 @@ public class SecureCore {
         long headtime = SystemClock.now();
         try (ZipOutputStream zip = new ZipOutputStream(stream)) {
             int random = RandomUtil.randomInt(count);
-            Function<byte[], String> getName = bytes -> Hmac.SHA384.digestHex(session, Base64.encode(bytes));
+            StringBuilder signs = new StringBuilder();
+            Function<byte[], String> getName = bytes -> Hmac.SHA384.digestHex(request, Base64.encode(bytes));
+            // The build starts
             for (int i = 0; i <= count; i++) {
                 boolean hit = i == random;
                 byte[] bytes = hit ? pubkey : Randoms.randomBytes(pubkey.length);
                 String name = hit ? getName.apply(bytes) : Randoms.randomHex(96);
                 ZipEntry entry = new ZipEntry(name);
-                entry.setComment(Hmac.SHA224.digestHex(session, name));
+                // Signature of the file name
+                String sign = Hmac.SHA224.digestHex(request, name);
+                signs.append(sign);
+                entry.setComment(sign);
                 zip.putNextEntry(entry);
                 zip.write(bytes);
             }
+            // SHA1 collection of file signatures
+            String comment = Hmac.SHA1.digestHex(request, signs.toString());
+            zip.setComment(comment);
         }
-        return headtime;
+        // Write request header time (required)
+        response.setDateHeader(Header.DATE.getValue(), headtime);
     }
 
     /**
@@ -119,7 +114,7 @@ public class SecureCore {
         }
         String pubkey = sb.toString();
         // Verify signature
-        boolean equals = Hmac.SHA512.digestHex(session, pubkey).toUpperCase().equals(digest);
+        boolean equals = Hmac.SHA512.digestHex(request, pubkey).toUpperCase().equals(digest);
         Assert.isTrue(equals, RequsetTemplate.PUBLIC_KEY_SIGNATURE_MISMATCH, InvalidRequestException::new);
         session.removeAttribute(key);
         // Get/Generate AES key
