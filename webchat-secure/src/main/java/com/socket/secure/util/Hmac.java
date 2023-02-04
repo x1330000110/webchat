@@ -72,7 +72,7 @@ public enum Hmac {
     }
 
     /**
-     * Hash UA using SHA3 and the current algorithm name
+     * Hash UA using SHA1 and the current algorithm name
      */
     private byte[] getKey(HttpServletRequest request) {
         String ua = request.getHeader(Header.USER_AGENT.getValue());

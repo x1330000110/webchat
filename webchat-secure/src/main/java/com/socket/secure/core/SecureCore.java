@@ -62,7 +62,7 @@ public class SecureCore {
         try (ZipOutputStream zip = new ZipOutputStream(stream)) {
             int random = RandomUtil.randomInt(count);
             StringBuilder signs = new StringBuilder();
-            // The build starts
+            // Build starts
             for (int i = 0; i <= count; i++) {
                 boolean hit = i == random;
                 byte[] bytes = hit ? pubkey : Randoms.randomBytes(pubkey.length);
