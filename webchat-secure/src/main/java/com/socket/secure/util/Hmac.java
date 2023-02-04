@@ -38,8 +38,8 @@ public enum Hmac {
      * Cache global hmac key
      */
     public static void cacheGlobalHmacKey(HttpServletRequest request) {
-        String header = request.getHeader(Header.USER_AGENT.getValue());
-        String digest = SecureUtil.sha1().digestHex(header);
+        String ua = request.getHeader(Header.USER_AGENT.getValue());
+        String digest = SecureUtil.sha1().digestHex(ua);
         request.getSession().setAttribute(SecureConstant.DIGEST_UA, digest);
     }
 
