@@ -22,6 +22,7 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.KeyPair;
+import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -73,14 +74,10 @@ public class SecureCore {
         long headtime = SystemClock.now();
         try (ZipOutputStream zip = new ZipOutputStream(stream)) {
             int random = RandomUtil.randomInt(count);
+            Function<byte[], String> getName = bytes -> Hmac.SHA384.digestHex(session, Base64.encode(bytes));
             for (int i = 0; i <= count; i++) {
-                String name = Randoms.randomHex(96);
-                byte[] bytes = Randoms.randomBytes(pubkey.length);
-                // Insert real public key
-                if (i == random) {
-                    bytes = pubkey;
-                    name = Hmac.SHA384.digestHex(session, Base64.encode(bytes));
-                }
+                byte[] bytes = i == random ? pubkey : Randoms.randomBytes(pubkey.length);
+                String name = i == random ? getName.apply(bytes) : Randoms.randomHex(96);
                 ZipEntry entry = new ZipEntry(name);
                 entry.setComment(Hmac.SHA224.digestHex(session, name));
                 zip.putNextEntry(entry);
