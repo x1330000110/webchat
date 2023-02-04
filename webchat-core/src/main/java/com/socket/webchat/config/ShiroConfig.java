@@ -76,7 +76,7 @@ public class ShiroConfig {
             }
             WebUtils.toHttp(response).setStatus(403);
             response.setContentType(ContentType.JSON.toString(StandardCharsets.UTF_8));
-            response.getWriter().write(Wss.toJson(HttpStatus.UNAUTHORIZED.message("登录信息失效")));
+            response.getWriter().write(Wss.enumToJSON(HttpStatus.UNAUTHORIZED.message("登录信息失效")));
             return false;
         }
     }

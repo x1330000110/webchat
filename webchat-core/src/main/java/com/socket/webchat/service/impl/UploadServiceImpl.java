@@ -80,7 +80,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         // 检查来源
         if (Wss.checkMessagePermission(record)) {
             String url = file.getUrl();
-            VideoType parse = VideoType.of(file.getType());
+            VideoType parse = Wss.enumOf(VideoType.class, file.getType());
             // VIP视频/短视频返回解析后URL
             if (parse != null) {
                 return parse.parseURL(url);
@@ -106,7 +106,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
     @Override
     public void saveResolve(URLCondition condition) {
         String url = condition.getUrl();
-        VideoType parse = VideoType.of(condition.getType());
+        VideoType parse = Wss.enumOf(VideoType.class, condition.getType());
         Assert.notNull(parse, IllegalArgumentException::new);
         String hash = Wss.generateHash(url.getBytes(StandardCharsets.UTF_8));
         this.save(new ChatRecordFile(condition.getMid(), parse.getKey(), url, hash, null));

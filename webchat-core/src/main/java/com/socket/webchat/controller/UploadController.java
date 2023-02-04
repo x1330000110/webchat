@@ -8,6 +8,7 @@ import com.socket.webchat.model.enums.FileType;
 import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.request.bean.VideoType;
 import com.socket.webchat.service.UploadService;
+import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
@@ -78,7 +79,7 @@ public class UploadController {
     @GetMapping("/resolveURL")
     public HttpStatus resolveURL(URLCondition condition) {
         String url = condition.getUrl();
-        VideoType parse = VideoType.of(condition.getType());
+        VideoType parse = Wss.enumOf(VideoType.class, condition.getType());
         Assert.notNull(parse, IllegalArgumentException::new);
         String data = parse.getParser().apply(url);
         return url == null ? HttpStatus.FAILURE.body() : HttpStatus.SUCCESS.body(data);

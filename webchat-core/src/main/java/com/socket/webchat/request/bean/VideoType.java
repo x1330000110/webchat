@@ -3,7 +3,6 @@ package com.socket.webchat.request.bean;
 import com.socket.webchat.request.VideoParseRequest;
 import lombok.Getter;
 
-import java.util.Arrays;
 import java.util.function.Function;
 
 @Getter
@@ -17,13 +16,6 @@ public enum VideoType {
     VideoType(Function<String, String> parser) {
         this.key = name().toLowerCase();
         this.parser = parser;
-    }
-
-    public static VideoType of(String type) {
-        return Arrays.stream(values())
-                .filter(e -> e.key.equalsIgnoreCase(type))
-                .findFirst()
-                .orElse(null);
     }
 
     public String parseURL(String url) {

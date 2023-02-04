@@ -2,8 +2,6 @@ package com.socket.client.model.enums;
 
 import cn.hutool.core.lang.EnumItem;
 
-import java.util.Arrays;
-
 /**
  * 在线状态
  */
@@ -20,10 +18,6 @@ public enum OnlineState implements EnumItem<OnlineState> {
      * 离开（10分钟内无页面操作）
      */
     SUSPEND;
-
-    public static OnlineState of(String item) {
-        return Arrays.stream(values()).filter(e -> e.name().equalsIgnoreCase(item)).findFirst().orElse(null);
-    }
 
     @Override
     public int intVal() {

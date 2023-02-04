@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 /**
- * 收集request信息
+ * Ws过滤器 收集请求信息
  */
 @WebFilter
 @Component
@@ -22,7 +22,8 @@ public class WsRequsetFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws ServletException, IOException {
         HttpServletRequest req = (HttpServletRequest) request;
         Optional.ofNullable(req.getSession(false)).ifPresent(session -> {
-            session.setAttribute(Constants.PLATFORM, Wss.getPlatform(req.getHeader(Header.USER_AGENT.getValue())));
+            String platform = Wss.getPlatform(req.getHeader(Header.USER_AGENT.getValue()));
+            session.setAttribute(Constants.PLATFORM, platform);
             session.setAttribute(Constants.IP, ServletUtil.getClientIP(req));
         });
         chain.doFilter(request, response);

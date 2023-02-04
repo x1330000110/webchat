@@ -15,14 +15,26 @@ import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
 import org.apache.shiro.SecurityUtils;
 
+import java.util.Arrays;
+
 public class Wss {
     /**
      * 枚举转JSON
      */
-    public static <E extends Enum<E>> String toJson(E e) {
+    public static <E extends Enum<E>> String enumToJSON(E e) {
         JSONObject json = new JSONObject();
         BeanUtil.descForEach(e.getClass(), prop -> json.set(prop.getFieldName(), prop.getValue(e)));
         return json.toString();
+    }
+
+    /**
+     * 字符串匹配枚举
+     */
+    public static <E extends Enum<E>> E enumOf(Class<E> enumClass, String value) {
+        return Arrays.stream(enumClass.getEnumConstants())
+                .filter(e -> e.name().replace("_", "").equalsIgnoreCase(value))
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -82,7 +94,10 @@ public class Wss {
         if (userId == null) {
             return false;
         }
-        return Wss.isGroup(record.getTarget()) || userId.equals(record.getGuid()) || userId.equals(record.getTarget());
+        boolean isgroup = Wss.isGroup(record.getTarget());
+        boolean self = userId.equals(record.getGuid());
+        boolean target = userId.equals(record.getTarget());
+        return isgroup || self || target;
     }
 
 

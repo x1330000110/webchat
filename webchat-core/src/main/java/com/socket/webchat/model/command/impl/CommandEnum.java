@@ -3,8 +3,6 @@ package com.socket.webchat.model.command.impl;
 import com.socket.webchat.model.command.Command;
 import lombok.Getter;
 
-import java.util.Arrays;
-
 /**
  * ws命令操作枚举
  */
@@ -73,13 +71,6 @@ public enum CommandEnum implements Command<CommandEnum> {
 
     CommandEnum(String preview) {
         this.preview = preview;
-    }
-
-    public static CommandEnum of(String value) {
-        return Arrays.stream(values())
-                .filter(e -> e.name().equalsIgnoreCase(value))
-                .findFirst()
-                .orElse(null);
     }
 
     @Override
