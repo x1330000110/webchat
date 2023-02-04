@@ -8,6 +8,7 @@ import cn.hutool.http.Header;
 import com.socket.secure.constant.RequsetTemplate;
 import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.constant.SecureProperties;
+import com.socket.secure.core.generator.SignatureGenerator;
 import com.socket.secure.event.entity.KeyEvent;
 import com.socket.secure.exception.InvalidRequestException;
 import com.socket.secure.util.*;
@@ -21,7 +22,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.security.KeyPair;
-import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -31,6 +31,7 @@ import java.util.zip.ZipOutputStream;
 @Service
 public class SecureCore {
     private ApplicationEventPublisher publisher;
+    private SignatureGenerator generator;
     private SecureProperties properties;
     private HttpServletRequest request;
     private HttpSession session;
@@ -61,15 +62,14 @@ public class SecureCore {
         try (ZipOutputStream zip = new ZipOutputStream(stream)) {
             int random = RandomUtil.randomInt(count);
             StringBuilder signs = new StringBuilder();
-            Function<byte[], String> getName = bytes -> Hmac.SHA384.digestHex(request, Base64.encode(bytes));
             // The build starts
             for (int i = 0; i <= count; i++) {
                 boolean hit = i == random;
                 byte[] bytes = hit ? pubkey : Randoms.randomBytes(pubkey.length);
-                String name = hit ? getName.apply(bytes) : Randoms.randomHex(96);
+                String name = hit ? generator.generatePublicKeySignature(bytes) : Randoms.randomHex(96);
                 ZipEntry entry = new ZipEntry(name);
                 // Signature of the file name
-                String sign = Hmac.SHA224.digestHex(request, name);
+                String sign = generator.generateFileNameSignature(name);
                 signs.append(sign);
                 entry.setComment(sign);
                 zip.putNextEntry(entry);
@@ -139,6 +139,11 @@ public class SecureCore {
     @Autowired
     public void setProperties(SecureProperties properties) {
         this.properties = properties;
+    }
+
+    @Autowired
+    public void setGenerator(SignatureGenerator generator) {
+        this.generator = generator;
     }
 
     @Autowired
