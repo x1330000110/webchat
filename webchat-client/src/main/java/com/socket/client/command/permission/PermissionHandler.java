@@ -1,4 +1,4 @@
-package com.socket.client.command.permiss;
+package com.socket.client.command.permission;
 
 import com.socket.client.command.CommandHandler;
 import com.socket.client.manager.SocketGroupMap;
@@ -14,7 +14,7 @@ import java.util.Optional;
 /**
  * 权限命令处理基础类
  */
-public abstract class PermissHandler implements CommandHandler<PermissionEvent> {
+public abstract class PermissionHandler implements CommandHandler<PermissionEvent> {
     @Autowired
     protected SocketGroupMap groupMap;
     @Autowired
@@ -22,7 +22,7 @@ public abstract class PermissHandler implements CommandHandler<PermissionEvent> 
 
     public void invoke(PermissionEvent event) {
         WsUser self = Optional.ofNullable(event.getSelf()).map(userMap::get).orElse(null);
-        invoke(self, getBaseUser(event.getTarget()), event.getParam());
+        this.invoke(self, getBaseUser(event.getTarget()), event.getParam());
     }
 
     public abstract <T> void invoke(WsUser self, BaseUser target, T param);

@@ -46,7 +46,7 @@ public class SocketEndpoint implements ApplicationContextAware {
         Optional.ofNullable(userMap.join(session, config.getUserProperties())).ifPresent(user -> {
             // 推送所有用户数据
             List<BaseUser> previews = permissionManager.getUserPreviews(user);
-            user.send(CommandEnum.INIT.getName(), CommandEnum.INIT, previews);
+            user.send(CommandEnum.INIT.getCommand(), CommandEnum.INIT, previews);
             // 向其他人发送加入通知
             userMap.sendAll(CommandEnum.JOIN, user);
             // 检查禁言

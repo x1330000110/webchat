@@ -1,12 +1,10 @@
 package com.socket.webchat.util;
 
 import com.socket.webchat.exception.RedirectException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@ControllerAdvice
 public class RedirectUtil {
 
     /**

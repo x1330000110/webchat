@@ -112,21 +112,21 @@ public class WsUser extends SysUser {
      * 发送回调通知
      *
      * @param callback 回调消息
-     * @param type     消息类型
+     * @param command  消息类型
      */
-    public void send(String callback, Command<?> type) {
-        this.send(callback, type, null);
+    public void send(String callback, Command<?> command) {
+        this.send(callback, command, null);
     }
 
     /**
      * 发送回调通知
      *
      * @param callback 回调消息
-     * @param type     消息类型
+     * @param command     消息类型
      * @param data     额外数据
      */
-    public void send(String callback, Command<?> type, Object data) {
-        this.send(new WsMsg(callback, type, data), false);
+    public void send(String callback, Command<?> command, Object data) {
+        this.send(new WsMsg(callback, command, data), false);
     }
 
     @SneakyThrows(IOException.class)

@@ -18,7 +18,7 @@ public abstract class GroupChangeHandler implements CommandHandler<GroupChangeEv
     protected SocketUserMap userMap;
 
     public void invoke(GroupChangeEvent event) {
-        invoke(event.getUser(), event.getGroup());
+        this.invoke(event.getUser(), event.getGroup());
     }
 
     public abstract void invoke(SysGroupUser user, SysGroup group);

@@ -28,8 +28,8 @@ public class SocketGroupMap extends ConcurrentHashMap<SysGroup, List<WsUser>> {
     /**
      * @see #sendGroup(String, String, Command, Object)
      */
-    public void sendGroup(String gid, String content, Command<?> type) {
-        sendGroup(gid, content, type, null);
+    public void sendGroup(String gid, String content, Command<?> command) {
+        sendGroup(gid, content, command, null);
     }
 
     /**
@@ -37,11 +37,11 @@ public class SocketGroupMap extends ConcurrentHashMap<SysGroup, List<WsUser>> {
      *
      * @param gid     群id
      * @param content 消息内容
-     * @param type    消息类型
+     * @param command 消息类型
      * @param data    额外数据
      */
-    public void sendGroup(String gid, String content, Command<?> type, Object data) {
-        getGroupUsers(gid).forEach(wsuser -> wsuser.send(content, type, data));
+    public void sendGroup(String gid, String content, Command<?> command, Object data) {
+        getGroupUsers(gid).forEach(wsuser -> wsuser.send(content, command, data));
     }
 
     /**

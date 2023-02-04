@@ -26,7 +26,7 @@ public class Wss {
     }
 
     /**
-     * 获取当前用户登录的UID
+     * 获取当前登录用户
      */
     public static SysUser getUser() {
         return (SysUser) SecurityUtils.getSubject().getPrincipal();

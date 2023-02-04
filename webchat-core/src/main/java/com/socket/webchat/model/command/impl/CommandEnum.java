@@ -83,7 +83,7 @@ public enum CommandEnum implements Command<CommandEnum> {
     }
 
     @Override
-    public String getName() {
-        return name().toLowerCase();
+    public String getCommand() {
+        return getImplName();
     }
 }

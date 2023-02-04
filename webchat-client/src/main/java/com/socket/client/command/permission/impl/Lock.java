@@ -1,7 +1,7 @@
-package com.socket.client.command.permiss.impl;
+package com.socket.client.command.permission.impl;
 
 import cn.hutool.core.util.StrUtil;
-import com.socket.client.command.permiss.PermissHandler;
+import com.socket.client.command.permission.PermissionHandler;
 import com.socket.client.model.WsUser;
 import com.socket.webchat.model.BaseUser;
 import com.socket.webchat.model.command.impl.PermissEnum;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  * 限制登陆
  */
 @Component
-public class Lock extends PermissHandler {
+public class Lock extends PermissionHandler {
     @Override
     public <T> void invoke(WsUser self, BaseUser target, T param) {
         Long time = (Long) param;

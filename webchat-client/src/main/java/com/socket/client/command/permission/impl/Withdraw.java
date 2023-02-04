@@ -1,6 +1,6 @@
-package com.socket.client.command.permiss.impl;
+package com.socket.client.command.permission.impl;
 
-import com.socket.client.command.permiss.PermissHandler;
+import com.socket.client.command.permission.PermissionHandler;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
 import com.socket.webchat.model.BaseUser;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
  * 撤回消息
  */
 @Component
-public class Withdraw extends PermissHandler {
+public class Withdraw extends PermissionHandler {
     @Override
     public <T> void invoke(WsUser self, BaseUser target, T param) {
         String suid = self.getGuid(), tuid = target.getGuid();

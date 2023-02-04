@@ -220,7 +220,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         wrapper.eq(ChatRecord::getGuid, target);
         wrapper.eq(ChatRecord::getTarget, guid);
         // 语音消息已读设置
-        wrapper.ne(!audio, ChatRecord::getType, CommandEnum.AUDIO.getName());
+        wrapper.ne(!audio, ChatRecord::getType, CommandEnum.AUDIO.getCommand());
         wrapper.set(ChatRecord::isUnread, 0);
         super.update(wrapper);
         // 清空redis计数器
