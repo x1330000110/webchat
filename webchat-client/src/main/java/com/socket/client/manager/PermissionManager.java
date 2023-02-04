@@ -12,7 +12,7 @@ import com.socket.webchat.mapper.SysGroupMapper;
 import com.socket.webchat.mapper.SysGroupUserMapper;
 import com.socket.webchat.mapper.SysUserMapper;
 import com.socket.webchat.model.*;
-import com.socket.webchat.model.command.impl.PermissEnum;
+import com.socket.webchat.model.command.impl.PermissionEnum;
 import com.socket.webchat.service.RecordService;
 import com.socket.webchat.service.SysUserLogService;
 import com.socket.webchat.util.Wss;
@@ -106,7 +106,7 @@ public class PermissionManager implements InitializingBean {
     public void checkMute(WsUser user) {
         long time = redisManager.getMuteTime(user.getGuid());
         if (time > 0) {
-            user.send(String.valueOf(time), PermissEnum.MUTE, user);
+            user.send(String.valueOf(time), PermissionEnum.MUTE, user);
         }
     }
 
@@ -164,7 +164,7 @@ public class PermissionManager implements InitializingBean {
             if (redisManager.incrSpeak(user.getGuid()) > Constants.FREQUENT_SPEECH_THRESHOLD) {
                 redisManager.setMute(user.getGuid(), time);
                 // b结尾 特殊的刷屏标记
-                user.send(time + "b", PermissEnum.MUTE, user);
+                user.send(time + "b", PermissionEnum.MUTE, user);
             }
         }
     }

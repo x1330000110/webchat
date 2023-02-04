@@ -4,7 +4,7 @@ import com.socket.webchat.model.command.Command;
 import lombok.Getter;
 
 /**
- * ws命令操作枚举
+ * WS基础命令枚举
  */
 @Getter
 public enum CommandEnum implements Command<CommandEnum> {

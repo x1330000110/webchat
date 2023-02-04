@@ -11,7 +11,7 @@ import com.socket.webchat.custom.support.SettingSupport;
 import com.socket.webchat.model.Announce;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
-import com.socket.webchat.model.command.impl.PermissEnum;
+import com.socket.webchat.model.command.impl.PermissionEnum;
 import com.socket.webchat.model.command.impl.UserEnum;
 import com.socket.webchat.model.condition.MessageCondition;
 import com.socket.webchat.model.condition.SettingCondition;
@@ -65,7 +65,7 @@ public class OwnerController {
         String content = announce.getContent();
         redisManager.pushNotice(content);
         if (StrUtil.isNotEmpty(content)) {
-            publisher.pushPermissionEvent(content, PermissEnum.ANNOUNCE);
+            publisher.pushPermissionEvent(content, PermissionEnum.ANNOUNCE);
         }
     }
 
@@ -78,7 +78,7 @@ public class OwnerController {
         wrapper.set(SysUser::isDeleted, 1);
         boolean update = sysUserService.update(wrapper);
         if (update) {
-            publisher.pushPermissionEvent(guid, null, PermissEnum.FOREVER);
+            publisher.pushPermissionEvent(guid, null, PermissionEnum.FOREVER);
         }
         return HttpStatus.of(update, "操作成功", "找不到此用户");
     }

@@ -20,7 +20,7 @@ import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.ChatRecordDeleted;
 import com.socket.webchat.model.ChatRecordOffset;
 import com.socket.webchat.model.command.impl.CommandEnum;
-import com.socket.webchat.model.command.impl.PermissEnum;
+import com.socket.webchat.model.command.impl.PermissionEnum;
 import com.socket.webchat.service.RecordService;
 import com.socket.webchat.util.Publisher;
 import com.socket.webchat.util.Wss;
@@ -135,7 +135,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
             // 通知成员撤回
             if (!record.isReject()) {
                 String self = record.getGuid(), target = record.getTarget();
-                publisher.pushPermissionEvent(self, target, record.getMid(), PermissEnum.WITHDRAW);
+                publisher.pushPermissionEvent(self, target, record.getMid(), PermissionEnum.WITHDRAW);
             }
             return true;
         }

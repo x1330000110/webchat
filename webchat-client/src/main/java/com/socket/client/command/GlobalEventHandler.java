@@ -7,7 +7,7 @@ import com.socket.webchat.custom.event.GroupChangeEvent;
 import com.socket.webchat.custom.event.PermissionEvent;
 import com.socket.webchat.custom.event.UserChangeEvent;
 import com.socket.webchat.model.command.impl.GroupEnum;
-import com.socket.webchat.model.command.impl.PermissEnum;
+import com.socket.webchat.model.command.impl.PermissionEnum;
 import com.socket.webchat.model.command.impl.UserEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
@@ -48,7 +48,7 @@ public class GlobalEventHandler {
      */
     @EventListener(PermissionEvent.class)
     public void onPermission(PermissionEvent event) {
-        PermissEnum command = event.getOperation();
+        PermissionEnum command = event.getOperation();
         permissionHandlers.get(command.getImplName()).invoke(event);
     }
 }
