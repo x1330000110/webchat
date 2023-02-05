@@ -10,7 +10,7 @@ import com.socket.webchat.model.SysGroup;
 import com.socket.webchat.model.condition.GroupCondition;
 import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.service.SysGroupService;
-import com.socket.webchat.util.Wss;
+import com.socket.webchat.util.ShiroUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,7 +26,7 @@ public class GroupController {
     @PostMapping("/join")
     public HttpStatus joinGroup(@RequestBody GroupCondition condition) {
         String password = condition.getPassword();
-        List<String> uids = sysGroupService.joinGroup(condition.getGid(), Wss.getUserId(), password);
+        List<String> uids = sysGroupService.joinGroup(condition.getGid(), ShiroUser.getUserId(), password);
         return HttpStatus.SUCCESS.body("加入成功", uids);
     }
 

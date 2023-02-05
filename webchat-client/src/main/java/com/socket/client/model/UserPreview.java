@@ -5,7 +5,7 @@ import com.socket.client.model.enums.OnlineState;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.command.impl.CommandEnum;
-import com.socket.webchat.util.Wss;
+import com.socket.webchat.util.Enums;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -55,7 +55,7 @@ public class UserPreview extends SysUser {
     }
 
     public void setPreview(ChatRecord unread) {
-        CommandEnum type = Wss.enumOf(CommandEnum.class, unread.getType());
+        CommandEnum type = Enums.of(CommandEnum.class, unread.getType());
         this.preview = type == CommandEnum.TEXT ? unread.getContent() : '[' + type.getPreview() + ']';
     }
 }

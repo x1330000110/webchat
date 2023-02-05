@@ -1,5 +1,6 @@
 package com.socket.webchat.model.enums;
 
+import com.socket.webchat.util.Enums;
 import lombok.Getter;
 
 /**
@@ -27,6 +28,6 @@ public enum Setting {
     private final String key;
 
     Setting() {
-        this.key = name();
+        this.key = Enums.key(this);
     }
 }

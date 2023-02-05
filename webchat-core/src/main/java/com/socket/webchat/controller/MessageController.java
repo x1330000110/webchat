@@ -7,7 +7,7 @@ import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.condition.MessageCondition;
 import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.service.RecordService;
-import com.socket.webchat.util.Wss;
+import com.socket.webchat.util.ShiroUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,7 +37,7 @@ public class MessageController {
         if (condition.getMid() != null) {
             recordService.readMessage(condition.getMid(), condition.getTarget());
         } else {
-            recordService.readAllMessage(Wss.getUserId(), condition.getTarget(), true);
+            recordService.readAllMessage(ShiroUser.getUserId(), condition.getTarget(), true);
         }
         return HttpStatus.SUCCESS.message("操作成功");
     }

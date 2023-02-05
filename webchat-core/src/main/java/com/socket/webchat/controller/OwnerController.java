@@ -22,7 +22,7 @@ import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.service.RecordService;
 import com.socket.webchat.service.SysUserService;
 import com.socket.webchat.util.Publisher;
-import com.socket.webchat.util.Wss;
+import com.socket.webchat.util.ShiroUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,7 +41,7 @@ public class OwnerController {
 
     @ModelAttribute
     public void checkPermission() {
-        Assert.isTrue(Wss.getUser().isOwner(), "权限不足", InvalidRequestException::new);
+        Assert.isTrue(ShiroUser.get().isOwner(), "权限不足", InvalidRequestException::new);
     }
 
     @PostMapping("/alias")
@@ -56,7 +56,7 @@ public class OwnerController {
     public void role(@RequestBody UserCondition condition) {
         String guid = condition.getGuid();
         UserRole role = sysUserService.switchRole(guid);
-        Wss.getUser().setRole(role);
+        ShiroUser.set(SysUser::getRole, role);
         publisher.pushUserEvent(guid, role.getRole(), UserEnum.ROLE);
     }
 

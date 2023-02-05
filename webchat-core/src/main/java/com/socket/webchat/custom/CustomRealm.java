@@ -120,9 +120,9 @@ public class CustomRealm extends AuthorizingRealm {
             return;
         }
         // 检查标记
-        if (Requests.notExist(Constants.OFFSITE)) {
+        if (!Requests.exist(Constants.OFFSITE)) {
             // 检查异地
-            String remoteIP = Wss.getRemoteIP();
+            String remoteIP = Requests.getRemoteIP();
             if (!Objects.equals(log.getIp(), remoteIP)) {
                 // IP所属是否相同
                 boolean offsite = Objects.equals(log.getProvince(), ipRequest.getProvince(remoteIP));

@@ -1,5 +1,6 @@
 package com.socket.webchat.model.enums;
 
+import com.socket.webchat.util.Enums;
 import lombok.Getter;
 
 /**
@@ -27,7 +28,7 @@ public enum FileType {
     private final int size;
 
     FileType(int size, int code) {
-        this.key = name().toLowerCase();
+        this.key = Enums.key(this);
         this.size = size;
         this.code = code;
     }

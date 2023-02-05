@@ -18,6 +18,7 @@ import com.socket.webchat.request.BaiduSpeechRequest;
 import com.socket.webchat.request.LanzouCloudRequest;
 import com.socket.webchat.request.bean.VideoType;
 import com.socket.webchat.service.UploadService;
+import com.socket.webchat.util.Enums;
 import com.socket.webchat.util.RedisClient;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
@@ -80,7 +81,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         // 检查来源
         if (Wss.checkMessagePermission(record)) {
             String url = file.getUrl();
-            VideoType parse = Wss.enumOf(VideoType.class, file.getType());
+            VideoType parse = Enums.of(VideoType.class, file.getType());
             // VIP视频/短视频返回解析后URL
             if (parse != null) {
                 return parse.parseURL(url);
@@ -106,7 +107,7 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
     @Override
     public void saveResolve(URLCondition condition) {
         String url = condition.getUrl();
-        VideoType parse = Wss.enumOf(VideoType.class, condition.getType());
+        VideoType parse = Enums.of(VideoType.class, condition.getType());
         Assert.notNull(parse, IllegalArgumentException::new);
         String hash = Wss.generateHash(url.getBytes(StandardCharsets.UTF_8));
         this.save(new ChatRecordFile(condition.getMid(), parse.getKey(), url, hash, null));

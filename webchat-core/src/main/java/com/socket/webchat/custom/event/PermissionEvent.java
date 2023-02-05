@@ -1,7 +1,7 @@
 package com.socket.webchat.custom.event;
 
 import com.socket.webchat.model.command.impl.PermissionEnum;
-import com.socket.webchat.util.Wss;
+import com.socket.webchat.util.ShiroUser;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
@@ -17,7 +17,7 @@ public class PermissionEvent extends ApplicationEvent {
     }
 
     public PermissionEvent(Object source, String target, Object param, PermissionEnum operation) {
-        this(source, Wss.getUserId(), target, param, operation);
+        this(source, ShiroUser.getUserId(), target, param, operation);
     }
 
     public PermissionEvent(Object source, String self, String target, Object param, PermissionEnum operation) {

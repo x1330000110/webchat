@@ -1,5 +1,9 @@
 package com.socket.webchat.util;
 
+import cn.hutool.extra.servlet.ServletUtil;
+import cn.hutool.http.Header;
+import cn.hutool.http.useragent.Platform;
+import cn.hutool.http.useragent.UserAgentParser;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -28,10 +32,6 @@ public class Requests {
      */
     public static boolean exist(String name) {
         return get(name) != null;
-    }
-
-    public static boolean notExist(String name) {
-        return !exist(name);
     }
 
     /**
@@ -64,5 +64,35 @@ public class Requests {
      */
     public static void set(String name, Object value) {
         get().setAttribute(name, value);
+    }
+
+    /**
+     * 获取客户端的真实IP地址
+     */
+    public static String getRemoteIP() {
+        return getRemoteIP(get());
+    }
+
+    /**
+     * 获取当前请求登录平台
+     */
+    public static String getPlatform() {
+        return getPlatform(get());
+    }
+
+    /**
+     * 获取客户端的真实IP地址
+     */
+    public static String getRemoteIP(HttpServletRequest request) {
+        return ServletUtil.getClientIP(request);
+    }
+
+    /**
+     * 获取当前请求登录平台
+     */
+    public static String getPlatform(HttpServletRequest request) {
+        String ua = request.getHeader(Header.USER_AGENT.getValue());
+        Platform platform = UserAgentParser.parse(ua).getPlatform();
+        return platform.isAndroid() ? "手机" : platform.isIos() ? "iPhone" : "PC";
     }
 }

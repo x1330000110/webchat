@@ -15,7 +15,7 @@ import com.socket.webchat.custom.support.SettingSupport;
 import com.socket.webchat.model.BaseUser;
 import com.socket.webchat.model.command.impl.CommandEnum;
 import com.socket.webchat.model.enums.Setting;
-import com.socket.webchat.util.Wss;
+import com.socket.webchat.util.Enums;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -152,7 +152,7 @@ public class SocketEndpoint implements ApplicationContextAware {
     }
 
     public void parseSysMsg(WsMsg wsmsg) {
-        CommandEnum command = Wss.enumOf(CommandEnum.class, wsmsg.getType());
+        CommandEnum command = Enums.of(CommandEnum.class, wsmsg.getType());
         String target = wsmsg.getTarget();
         switch (command) {
             case CHANGE:
@@ -180,7 +180,7 @@ public class SocketEndpoint implements ApplicationContextAware {
      * @param state 状态
      */
     private void onlineChange(String state) {
-        self.setOnline(Wss.enumOf(OnlineState.class, state));
+        self.setOnline(Enums.of(OnlineState.class, state));
         userMap.sendAll(state, CommandEnum.CHANGE, self);
     }
 

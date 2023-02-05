@@ -1,5 +1,7 @@
 package com.socket.webchat.model.enums;
 
+import com.socket.webchat.util.Enums;
+
 /**
  * Redis目录树
  */
@@ -56,7 +58,7 @@ public enum RedisTree {
     private final String dir;
 
     RedisTree() {
-        this.dir = name();
+        this.dir = Enums.key(this);
     }
 
     public String get() {

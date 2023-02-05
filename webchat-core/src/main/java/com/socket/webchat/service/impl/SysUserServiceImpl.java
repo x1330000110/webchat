@@ -139,7 +139,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     public boolean updatePassword(PasswordCondition condition) {
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
         String email = condition.getEmail();
-        SysUser user = Wss.getUser();
+        SysUser user = ShiroUser.get();
         if (StrUtil.isEmpty(email)) {
             Assert.notNull(user, "请输入邮箱", IllegalStateException::new);
             email = user.getEmail();
@@ -167,7 +167,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             long between = LocalDateTimeUtil.between(time, LocalDateTime.now(), ChronoUnit.YEARS);
             user.setAge(Math.toIntExact(between));
         }
-        wrapper.eq(SysUser::getGuid, Wss.getUserId());
+        wrapper.eq(SysUser::getGuid, ShiroUser.getUserId());
         Assert.isTrue(super.update(user, wrapper), "修改失败", IllegalStateException::new);
         // 推送变动事件
         publisher.pushUserEvent(user.getName(), UserEnum.NAME);
@@ -197,7 +197,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         String mapping = uploadService.getMapping(FileType.IMAGE, hash);
         // 保存头像
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
-        wrapper.eq(SysUser::getGuid, Wss.getUserId());
+        wrapper.eq(SysUser::getGuid, ShiroUser.getUserId());
         wrapper.set(SysUser::getHeadimgurl, mapping);
         Assert.isTrue(super.update(wrapper), "修改失败", IllegalStateException::new);
         // 保存文件映射
@@ -210,26 +210,26 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     public void updateEmail(EmailCondition condition) {
         // 验证原邮箱
-        SysUser user = Wss.getUser();
-        String selfemail = user.getEmail();
-        if (StrUtil.isNotEmpty(selfemail)) {
-            String selfcode = redis.get(RedisTree.EMAIL.concat(selfemail));
+        SysUser user = ShiroUser.get();
+        String olds = user.getEmail();
+        if (StrUtil.isNotEmpty(olds)) {
+            String selfcode = redis.get(RedisTree.EMAIL.concat(olds));
             // 对比验证码
-            Assert.equals(selfcode, condition.getSelfcode(), "原邮箱验证码不正确", IllegalStateException::new);
+            Assert.equals(selfcode, condition.getOcode(), "原邮箱验证码不正确", IllegalStateException::new);
         }
         // 验证新邮箱
-        String newemail = condition.getUser();
+        String news = condition.getEmail();
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
-        wrapper.eq(SysUser::getEmail, newemail);
+        wrapper.eq(SysUser::getEmail, news);
         Assert.isNull(this.getFirst(wrapper), "该邮箱已被其他账号绑定", IllegalStateException::new);
-        String newcode = redis.get(RedisTree.EMAIL.concat(newemail));
-        Assert.equals(newcode, condition.getNewcode(), "新邮箱验证码不正确", IllegalStateException::new);
+        String newcode = redis.get(RedisTree.EMAIL.concat(news));
+        Assert.equals(newcode, condition.getNcode(), "新邮箱验证码不正确", IllegalStateException::new);
         // 更新邮箱
         wrapper.clear();
         wrapper.eq(SysUser::getGuid, user.getGuid());
-        wrapper.set(SysUser::getEmail, newemail);
+        wrapper.set(SysUser::getEmail, news);
         Assert.isTrue(super.update(wrapper), "修改失败", IllegalStateException::new);
-        Wss.getUser().setEmail(newemail);
+        ShiroUser.set(SysUser::getEmail, news);
     }
 
     @Override

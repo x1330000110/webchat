@@ -36,7 +36,7 @@ public class LoginController {
 
     @PostMapping("/send")
     public HttpStatus send(@RequestBody EmailCondition condition) {
-        String email = sysUserService.sendEmail(condition.getUser());
+        String email = sysUserService.sendEmail(condition.getEmail());
         return HttpStatus.SUCCESS.body("发送成功", email);
     }
 

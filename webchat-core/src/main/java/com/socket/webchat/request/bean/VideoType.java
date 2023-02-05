@@ -1,6 +1,7 @@
 package com.socket.webchat.request.bean;
 
 import com.socket.webchat.request.VideoParseRequest;
+import com.socket.webchat.util.Enums;
 import lombok.Getter;
 
 import java.util.function.Function;
@@ -14,7 +15,7 @@ public enum VideoType {
     private final String key;
 
     VideoType(Function<String, String> parser) {
-        this.key = name().toLowerCase();
+        this.key = Enums.key(this);
         this.parser = parser;
     }
 

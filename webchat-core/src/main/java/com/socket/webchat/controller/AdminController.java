@@ -6,7 +6,7 @@ import com.socket.webchat.custom.RedisManager;
 import com.socket.webchat.model.command.impl.PermissionEnum;
 import com.socket.webchat.model.condition.LimitCondition;
 import com.socket.webchat.util.Publisher;
-import com.socket.webchat.util.Wss;
+import com.socket.webchat.util.ShiroUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +19,7 @@ public class AdminController {
 
     @ModelAttribute
     public void checkPermission() {
-        Assert.isTrue(Wss.getUser().isAdmin(), "权限不足", InvalidRequestException::new);
+        Assert.isTrue(ShiroUser.get().isAdmin(), "权限不足", InvalidRequestException::new);
     }
 
     @PostMapping("/mute")

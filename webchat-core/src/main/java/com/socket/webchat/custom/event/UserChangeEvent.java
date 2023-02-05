@@ -1,7 +1,7 @@
 package com.socket.webchat.custom.event;
 
 import com.socket.webchat.model.command.impl.UserEnum;
-import com.socket.webchat.util.Wss;
+import com.socket.webchat.util.ShiroUser;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
@@ -21,7 +21,7 @@ public class UserChangeEvent extends ApplicationEvent {
     private final String param;
 
     public UserChangeEvent(Object source, String param, UserEnum operation) {
-        this(source, Wss.getUserId(), param, operation);
+        this(source, ShiroUser.getUserId(), param, operation);
     }
 
     public UserChangeEvent(Object source, String target, String param, UserEnum operation) {

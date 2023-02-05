@@ -7,7 +7,7 @@ import com.socket.webchat.custom.RedisManager;
 import com.socket.webchat.mapper.ShieldUserMapper;
 import com.socket.webchat.model.ShieldUser;
 import com.socket.webchat.service.ShieldUserService;
-import com.socket.webchat.util.Wss;
+import com.socket.webchat.util.ShiroUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +19,7 @@ public class ShieldUserServiceImpl extends ServiceImpl<ShieldUserMapper, ShieldU
     private final RedisManager redisManager;
 
     public boolean shieldTarget(String target) {
-        String guid = Wss.getUserId();
+        String guid = ShiroUser.getUserId();
         List<String> shields = redisManager.getShield(guid);
         LambdaUpdateWrapper<ShieldUser> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(ShieldUser::getGuid, guid);

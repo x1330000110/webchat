@@ -3,7 +3,7 @@ package com.socket.webchat.config;
 import cn.hutool.http.ContentType;
 import com.socket.webchat.custom.CustomRealm;
 import com.socket.webchat.model.enums.HttpStatus;
-import com.socket.webchat.util.Wss;
+import com.socket.webchat.util.Enums;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
@@ -76,7 +76,7 @@ public class ShiroConfig {
             }
             WebUtils.toHttp(response).setStatus(403);
             response.setContentType(ContentType.JSON.toString(StandardCharsets.UTF_8));
-            response.getWriter().write(Wss.enumToJSON(HttpStatus.UNAUTHORIZED.message("登录信息失效")));
+            response.getWriter().write(Enums.toJSON(HttpStatus.UNAUTHORIZED.message("登录信息失效")));
             return false;
         }
     }

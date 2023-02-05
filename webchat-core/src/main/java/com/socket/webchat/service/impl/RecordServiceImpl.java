@@ -22,7 +22,9 @@ import com.socket.webchat.model.ChatRecordOffset;
 import com.socket.webchat.model.command.impl.CommandEnum;
 import com.socket.webchat.model.command.impl.PermissionEnum;
 import com.socket.webchat.service.RecordService;
+import com.socket.webchat.util.DBUtil;
 import com.socket.webchat.util.Publisher;
+import com.socket.webchat.util.ShiroUser;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,7 +55,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
 
     @Override
     public List<ChatRecord> getRecords(String mid, String target) {
-        String userId = Wss.getUserId();
+        String userId = ShiroUser.getUserId();
         LambdaQueryWrapper<ChatRecord> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ChatRecord::isSysmsg, 0);
 
@@ -119,7 +121,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
     @Override
     public boolean withdrawMessage(String mid) {
         LambdaUpdateWrapper<ChatRecord> wrapper = Wrappers.lambdaUpdate();
-        wrapper.eq(ChatRecord::getGuid, Wss.getUserId());
+        wrapper.eq(ChatRecord::getGuid, ShiroUser.getUserId());
         wrapper.eq(ChatRecord::getMid, mid);
         ChatRecord record = getFirst(wrapper);
         Assert.notNull(record, "服务器消息同步中，请稍后再试", IllegalStateException::new);
@@ -144,7 +146,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
 
     @Override
     public boolean removeMessage(String mid) {
-        String userId = Wss.getUserId();
+        String userId = ShiroUser.getUserId();
         LambdaUpdateWrapper<ChatRecord> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(ChatRecord::getMid, mid);
         wrapper.eq(ChatRecord::getGuid, userId);
@@ -163,9 +165,9 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
 
     @Override
     public void removeAllMessage(String target) {
-        String guid = Wss.getUserId();
+        String guid = ShiroUser.getUserId();
         QueryWrapper<ChatRecord> wrapper = Wrappers.query();
-        wrapper.select(Wss.selectMax(BaseModel::getId));
+        wrapper.select(DBUtil.selectMax(BaseModel::getId));
         LambdaQueryWrapper<ChatRecord> lambda = wrapper.lambda();
         // 群组特殊条件
         if (Wss.isGroup(target)) {
@@ -207,7 +209,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
         // 此方法由阅读者调用，目标为此消息的发起者，匹配对应数据库的uid发起者
         wrapper.eq(ChatRecord::getGuid, target);
         wrapper.eq(ChatRecord::getMid, mid);
-        wrapper.eq(ChatRecord::getTarget, Wss.getUserId());
+        wrapper.eq(ChatRecord::getTarget, ShiroUser.getUserId());
         wrapper.set(ChatRecord::isUnread, 0);
         super.update(wrapper);
     }

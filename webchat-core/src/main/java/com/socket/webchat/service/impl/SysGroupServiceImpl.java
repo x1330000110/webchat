@@ -19,7 +19,7 @@ import com.socket.webchat.model.command.impl.GroupEnum;
 import com.socket.webchat.service.SysGroupService;
 import com.socket.webchat.util.Bcrypt;
 import com.socket.webchat.util.Publisher;
-import com.socket.webchat.util.Wss;
+import com.socket.webchat.util.ShiroUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,7 +35,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
     private final Publisher publisher;
 
     public String createGroup(String groupName, String password) {
-        String userId = Wss.getUserId();
+        String userId = ShiroUser.getUserId();
         // 创建检查
         boolean expression = StrUtil.isEmpty(password) || password.length() <= Constants.MAX_GROUP_PASSWORD;
         Assert.isTrue(expression, "密码长度不合法", IllegalStateException::new);
@@ -100,7 +100,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
     }
 
     public boolean removeUser(String gid, String uid) {
-        String stater = Wss.getUserId();
+        String stater = ShiroUser.getUserId();
         LambdaQueryWrapper<SysGroup> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(SysGroup::getGuid, gid);
         SysGroup group = getFirst(wrapper);
@@ -119,7 +119,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
     }
 
     public boolean dissolveGroup(String gid) {
-        String userId = Wss.getUserId();
+        String userId = ShiroUser.getUserId();
         LambdaUpdateWrapper<SysGroup> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(SysGroup::getGuid, gid);
         wrapper.eq(SysGroup::getOwner, userId);
@@ -137,7 +137,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
 
     @Override
     public boolean exitGroup(String gid) {
-        String userId = Wss.getUserId();
+        String userId = ShiroUser.getUserId();
         LambdaUpdateWrapper<SysGroupUser> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(SysGroupUser::getGid, gid);
         wrapper.eq(SysGroupUser::getUid, userId);
@@ -154,7 +154,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
 
     @Override
     public boolean updatePassword(String gid, String password) {
-        String userId = Wss.getUserId();
+        String userId = ShiroUser.getUserId();
         LambdaUpdateWrapper<SysGroup> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(BaseUser::getGuid, gid);
         SysGroup group = getFirst(wrapper);
