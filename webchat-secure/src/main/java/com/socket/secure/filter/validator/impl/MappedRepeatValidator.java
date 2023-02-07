@@ -14,11 +14,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Repeat request validator based on {@link ConcurrentHashMap}+{@link MappedByteBuffer}<br>
@@ -37,7 +33,6 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @see ConcurrentHashMap
  * @see MappedByteBuffer
- * @see ReentrantLock
  */
 public class MappedRepeatValidator implements RepeatValidator, InitializingBean {
     /**
@@ -51,19 +46,19 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
     /**
      * internal map
      */
-    private final Map<String, Long> map = new ConcurrentHashMap<>();
+    private final Map<String, Long> internalMap = new ConcurrentHashMap<>();
     /**
      * Query count
      */
     private final AtomicInteger queryCount = new AtomicInteger();
     /**
-     * memory write status
+     * Disk refresh wait status
      */
-    private final AtomicBoolean force = new AtomicBoolean();
+    private final Object force = new Object();
     /**
      * memory mapped lock
      */
-    private final ReentrantLock lock = new ReentrantLock();
+    private final Object write = new Object();
     /**
      * cache file
      */
@@ -96,45 +91,41 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
             queryCount.set(0);
         }
         // Save sign ID
-        Long value = map.putIfAbsent(sign, time);
+        Long value = internalMap.putIfAbsent(sign, time);
         // Save mapped data
         if (value == null) {
-            lock.lock();
-            try {
-                bufferPut(buffer, time, sign);
-                force.set(true);
-            } finally {
-                lock.unlock();
-            }
+            this.writeBuffer(buffer, time, sign);
         }
         return value != null;
     }
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        initByteBuffer();
-        initSyncMappedThread();
+        this.initByteBuffer();
+        this.startFileBufferSyncThread();
     }
 
     /**
      * Initialize Memory Timing Mapped File Task
      */
-    private void initSyncMappedThread() {
-        Executors.newSingleThreadScheduledExecutor(runnable -> {
-            Thread thread = new Thread(runnable, "MappedByteBuffer Task");
-            thread.setDaemon(true);
-            return thread;
-        }).scheduleAtFixedRate(() -> {
-            if (force.get() && lock.tryLock()) {
-                try {
-                    buffer.force();
-                    force.set(false);
-                    log.debug("Flush disk file");
-                } finally {
-                    lock.unlock();
+    private void startFileBufferSyncThread() {
+        Thread thread = new Thread(() -> {
+            while (true) {
+                synchronized (force) {
+                    try {
+                        force.wait();
+                    } catch (InterruptedException e) {
+                        throw new IllegalStateException(e);
+                    }
+                    synchronized (write) {
+                        buffer.force();
+                        log.debug("Flush disk file");
+                    }
                 }
             }
-        }, 500, 500, TimeUnit.MILLISECONDS);
+        });
+        thread.setDaemon(true);
+        thread.start();
     }
 
     /**
@@ -163,10 +154,10 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
             byte[] signBytes = new byte[16];
             buffer.get(signBytes);
             // save data
-            map.put(HexUtil.encodeHexStr(signBytes), time);
+            internalMap.put(HexUtil.encodeHexStr(signBytes), time);
         }
-        log.debug("Read {} pieces of data", map.size());
-        clearExpiredData();
+        log.debug("Read {} pieces of data", internalMap.size());
+        this.clearExpiredData();
     }
 
     /**
@@ -175,30 +166,33 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
     private void clearExpiredData() {
         // clear map
         ByteBuffer cache = ByteBuffer.allocate(buffer.capacity());
-        map.forEach((sign, time) -> {
+        internalMap.forEach((sign, time) -> {
             if (this.isExpired(time, effective)) {
-                map.remove(sign);
+                internalMap.remove(sign);
             } else {
-                bufferPut(cache, time, sign);
+                this.writeBuffer(cache, time, sign);
             }
         });
-        lock.lock();
-        try {
-            // clear buffer
+        // clear buffer
+        synchronized (write) {
             buffer.clear();
             buffer.put(cache.array());
-            buffer.position(map.size() * BLOCK_SIZE);
-            force.set(true);
-        } finally {
-            lock.unlock();
+            buffer.position(internalMap.size() * BLOCK_SIZE);
         }
     }
 
     /**
      * write to buffer
      */
-    private void bufferPut(ByteBuffer buffer, long time, String sign) {
-        buffer.putLong(time);
-        buffer.put(HexUtil.decodeHex(sign));
+    private void writeBuffer(ByteBuffer buffer, long time, String sign) {
+        // write buffer
+        synchronized (write) {
+            buffer.putLong(time);
+            buffer.put(HexUtil.decodeHex(sign));
+        }
+        // refresh disk
+        synchronized (force) {
+            force.notify();
+        }
     }
 }
