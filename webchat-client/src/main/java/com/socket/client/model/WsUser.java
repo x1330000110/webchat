@@ -122,7 +122,7 @@ public class WsUser extends SysUser {
      * 发送回调通知
      *
      * @param callback 回调消息
-     * @param command     消息类型
+     * @param command  消息类型
      * @param data     额外数据
      */
     public void send(String callback, Command<?> command, Object data) {
@@ -163,6 +163,16 @@ public class WsUser extends SysUser {
         this.platform = (String) hs.getAttribute(Constants.PLATFORM);
         this.ip = (String) hs.getAttribute(Constants.IP);
         this.online = OnlineState.ONLINE;
+    }
+
+    /**
+     * 判断HTTP Session是否与现存的不同（用于网络断开重连）
+     *
+     * @param session http session
+     * @return 是否不同
+     */
+    public boolean differentSession(HttpSession session) {
+        return hs == null || !Objects.equals(hs.getId(), session.getId());
     }
 
     /**
@@ -214,15 +224,5 @@ public class WsUser extends SysUser {
      */
     public boolean isOnline() {
         return online != null;
-    }
-
-    /**
-     * 判断HTTP Session是否与现存的不同（用于网络断开重连）
-     *
-     * @param session http session
-     * @return 是否不同
-     */
-    public boolean differentSession(HttpSession session) {
-        return hs == null || !Objects.equals(hs.getId(), session.getId());
     }
 }

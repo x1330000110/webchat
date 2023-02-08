@@ -22,17 +22,17 @@ public class ShiroUser {
     }
 
     /**
-     * 获取当前登录用户
-     */
-    public static SysUser get() {
-        return (SysUser) SecurityUtils.getSubject().getPrincipal();
-    }
-
-    /**
      * 获取当前用户登录的UID
      */
     public static String getUserId() {
         return Opt.ofNullable(get()).map(SysUser::getGuid).get();
+    }
+
+    /**
+     * 获取当前登录用户
+     */
+    public static SysUser get() {
+        return (SysUser) SecurityUtils.getSubject().getPrincipal();
     }
 
     /**

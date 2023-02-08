@@ -76,18 +76,6 @@ public enum HttpStatus {
     }
 
     /**
-     * 快速构建{@link HttpStatus}，并设置成功/失败回调消息
-     *
-     * @param state 状态
-     * @param s     成功消息
-     * @param f     失败消息
-     * @return {@link HttpStatus}
-     */
-    public static HttpStatus of(boolean state, String s, String f) {
-        return state ? SUCCESS.message(s) : FAILURE.message(f);
-    }
-
-    /**
      * 快速构建{@link HttpStatus}，并设置本次执行成功/失败关键词
      *
      * @param state   状态
@@ -99,10 +87,15 @@ public enum HttpStatus {
     }
 
     /**
-     * 映射执行时间
+     * 快速构建{@link HttpStatus}，并设置成功/失败回调消息
+     *
+     * @param state 状态
+     * @param s     成功消息
+     * @param f     失败消息
+     * @return {@link HttpStatus}
      */
-    public long getTimestamp() {
-        return timestamp = System.currentTimeMillis();
+    public static HttpStatus of(boolean state, String s, String f) {
+        return state ? SUCCESS.message(s) : FAILURE.message(f);
     }
 
     /**
@@ -117,6 +110,13 @@ public enum HttpStatus {
         this.data = null;
         this.message = StrUtil.format(message, args);
         return this;
+    }
+
+    /**
+     * 映射执行时间
+     */
+    public long getTimestamp() {
+        return timestamp = System.currentTimeMillis();
     }
 
     /**

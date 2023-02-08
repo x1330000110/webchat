@@ -40,11 +40,6 @@ public class XiaoBingAPIRequest {
         this.instance = instance;
     }
 
-    @SneakyThrows
-    private String getEncryptString(String keyword) {
-        return (String) instance.eval(StrUtil.format("a('{}','3d9d5f16-5df0-43d7-902e-19274eecdc41',256)", keyword));
-    }
-
     /**
      * 发起小冰对话
      */
@@ -65,5 +60,10 @@ public class XiaoBingAPIRequest {
         } catch (JSONException e) {
             return AsyncResult.forExecutionException(e);
         }
+    }
+
+    @SneakyThrows
+    private String getEncryptString(String keyword) {
+        return (String) instance.eval(StrUtil.format("a('{}','3d9d5f16-5df0-43d7-902e-19274eecdc41',256)", keyword));
     }
 }

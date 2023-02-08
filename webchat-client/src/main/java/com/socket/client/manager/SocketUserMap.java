@@ -79,31 +79,6 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
     }
 
     /**
-     * 向所有用户发送系统消息
-     *
-     * @param content 消息内容
-     * @param command 消息类型
-     * @param data    附加用户信息
-     */
-    public void sendAll(String content, Command<?> command, Object data) {
-        this.values().forEach(wsuser -> wsuser.send(content, command, data));
-    }
-
-    /**
-     * @see #sendAll(String, Command, Object)
-     */
-    public void sendAll(String content, Command<?> command) {
-        this.sendAll(content, command, null);
-    }
-
-    /**
-     * @see #sendAll(String, Command, Object)
-     */
-    public void sendAll(Command<?> command, Object data) {
-        this.sendAll(null, command, data);
-    }
-
-    /**
      * 通过uid获取用户（不存在时通过数据库获取）
      *
      * @param uid 用户uid
@@ -123,23 +98,42 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
     }
 
     /**
-     * 保存聊天记录
+     * 用户退出
      *
-     * @param wsmsg  聊天消息
-     * @param isread 已读标记
+     * @param user   用户
+     * @param reason 原因
      */
-    public void cacheRecord(WsMsg wsmsg, boolean isread) {
-        ChatRecord record = BeanUtil.copyProperties(wsmsg, ChatRecord.class);
-        // 群组以外的语音消息始终未读
-        boolean audio = !wsmsg.isGroup() && Objects.equals(wsmsg.getType(), CommandEnum.AUDIO.getCommand());
-        record.setUnread(audio || !isread);
-        kafkaTemplate.send(Constants.KAFKA_RECORD, JSONUtil.toJsonStr(record));
-        // 目标列表添加发起者uid
-        if (!isread) {
-            redisManager.setUnreadCount(wsmsg.getTarget(), wsmsg.getGuid(), 1);
-        }
+    public void exit(WsUser user, String reason) {
+        SysUserLog log = BeanUtil.copyProperties(user, SysUserLog.class);
+        log.setIp(user.getIp());
+        logService.saveLog(log, LogType.LOGOUT);
+        user.logout(reason);
     }
 
+    /**
+     * @see #sendAll(String, Command, Object)
+     */
+    public void sendAll(String content, Command<?> command) {
+        this.sendAll(content, command, null);
+    }
+
+    /**
+     * 向所有用户发送系统消息
+     *
+     * @param content 消息内容
+     * @param command 消息类型
+     * @param data    附加用户信息
+     */
+    public void sendAll(String content, Command<?> command, Object data) {
+        this.values().forEach(wsuser -> wsuser.send(content, command, data));
+    }
+
+    /**
+     * @see #sendAll(String, Command, Object)
+     */
+    public void sendAll(Command<?> command, Object data) {
+        this.sendAll(null, command, data);
+    }
 
     /**
      * 更新发起人的消息为已读
@@ -183,15 +177,20 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
     }
 
     /**
-     * 用户退出
+     * 保存聊天记录
      *
-     * @param user   用户
-     * @param reason 原因
+     * @param wsmsg  聊天消息
+     * @param isread 已读标记
      */
-    public void exit(WsUser user, String reason) {
-        SysUserLog log = BeanUtil.copyProperties(user, SysUserLog.class);
-        log.setIp(user.getIp());
-        logService.saveLog(log, LogType.LOGOUT);
-        user.logout(reason);
+    public void cacheRecord(WsMsg wsmsg, boolean isread) {
+        ChatRecord record = BeanUtil.copyProperties(wsmsg, ChatRecord.class);
+        // 群组以外的语音消息始终未读
+        boolean audio = !wsmsg.isGroup() && Objects.equals(wsmsg.getType(), CommandEnum.AUDIO.getCommand());
+        record.setUnread(audio || !isread);
+        kafkaTemplate.send(Constants.KAFKA_RECORD, JSONUtil.toJsonStr(record));
+        // 目标列表添加发起者uid
+        if (!isread) {
+            redisManager.setUnreadCount(wsmsg.getTarget(), wsmsg.getGuid(), 1);
+        }
     }
 }

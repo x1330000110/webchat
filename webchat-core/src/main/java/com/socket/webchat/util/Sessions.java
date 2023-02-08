@@ -10,13 +10,6 @@ import java.util.Arrays;
  */
 public class Sessions {
     /**
-     * Get the HttpSession
-     */
-    public static HttpSession get() {
-        return Requests.get().getSession();
-    }
-
-    /**
      * 获取会话储存的对象（强制转换）
      *
      * @param name 属性名
@@ -27,6 +20,13 @@ public class Sessions {
         Object obj = get().getAttribute(name);
         //noinspection unchecked
         return (T) obj;
+    }
+
+    /**
+     * Get the HttpSession
+     */
+    public static HttpSession get() {
+        return Requests.get().getSession();
     }
 
     /**

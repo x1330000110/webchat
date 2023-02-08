@@ -59,7 +59,7 @@ public class WsMsg {
      * 系统消息
      *
      * @param callback 内容
-     * @param command     消息类型
+     * @param command  消息类型
      * @param data     额外数据
      */
     public WsMsg(String callback, Command<?> command, Object data) {
@@ -75,7 +75,7 @@ public class WsMsg {
      * @param guid    发起者
      * @param target  目标
      * @param content 内容
-     * @param command    消息类型
+     * @param command 消息类型
      */
     public WsMsg(String guid, String target, String content, Command<?> command) {
         this.guid = guid;

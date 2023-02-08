@@ -59,23 +59,6 @@ public class CustomRealm extends AuthorizingRealm {
     }
 
     /**
-     * 账号认证
-     */
-    @Override
-    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
-        String guid = (String) token.getPrincipal();
-        LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(guid.contains("@") ? SysUser::getEmail : SysUser::getGuid, guid);
-        SysUser user = sysUserMapper.selectOne(wrapper);
-        // 无效账号
-        if (user == null) {
-            return null;
-        }
-        // 验证密码
-        return new SimpleAuthenticationInfo(user, user.getHash(), super.getName());
-    }
-
-    /**
      * 密码认证（Bcrypt认证）
      */
     @Override
@@ -99,6 +82,33 @@ public class CustomRealm extends AuthorizingRealm {
                 return false;
             }
         });
+    }
+
+    /**
+     * 账号认证
+     */
+    @Override
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
+        String guid = (String) token.getPrincipal();
+        LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(guid.contains("@") ? SysUser::getEmail : SysUser::getGuid, guid);
+        SysUser user = sysUserMapper.selectOne(wrapper);
+        // 无效账号
+        if (user == null) {
+            return null;
+        }
+        // 验证密码
+        return new SimpleAuthenticationInfo(user, user.getHash(), super.getName());
+    }
+
+    /**
+     * 验证登录限制
+     */
+    private void checkLimit(String guid) {
+        long time = redis.getExpired(RedisTree.LOCK.concat(guid));
+        if (time > 0) {
+            throw new AccountException("您已被限制登录，预计剩余" + Wss.universal(time));
+        }
     }
 
     /**
@@ -130,16 +140,6 @@ public class CustomRealm extends AuthorizingRealm {
                 String email = DesensitizedUtil.email(user.getEmail());
                 Assert.isTrue(offsite, email, OffsiteLoginException::new);
             }
-        }
-    }
-
-    /**
-     * 验证登录限制
-     */
-    private void checkLimit(String guid) {
-        long time = redis.getExpired(RedisTree.LOCK.concat(guid));
-        if (time > 0) {
-            throw new AccountException("您已被限制登录，预计剩余" + Wss.universal(time));
         }
     }
 }

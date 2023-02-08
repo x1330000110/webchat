@@ -119,7 +119,7 @@ public class SecureCore {
         session.removeAttribute(key);
         // Get/Generate AES key
         String aeskey = null;
-        if (properties.isSameSessionWithOnlyAesKey()) {
+        if (properties.isSameSessionWithOnlyKey()) {
             aeskey = AES.getAesKey(session);
         }
         if (aeskey == null) {

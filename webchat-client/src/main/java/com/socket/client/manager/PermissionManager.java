@@ -101,6 +101,16 @@ public class PermissionManager implements InitializingBean {
     }
 
     /**
+     * 获取指定用户屏蔽列表
+     *
+     * @param wsuser 用户
+     * @return 屏蔽列表
+     */
+    public List<String> getShield(WsUser wsuser) {
+        return redisManager.getShield(wsuser.getGuid());
+    }
+
+    /**
      * 检查指定用户禁言情况，若用户被禁言将发送一条系统通知
      */
     public void checkMute(WsUser user) {
@@ -135,24 +145,12 @@ public class PermissionManager implements InitializingBean {
         return true;
     }
 
-
     /**
      * 检查指定用户是否被目标屏蔽（优先通过缓存加载）
      */
     public boolean shield(WsUser source, WsUser target) {
         return getShield(source).contains(target.getGuid());
     }
-
-    /**
-     * 获取指定用户屏蔽列表
-     *
-     * @param wsuser 用户
-     * @return 屏蔽列表
-     */
-    public List<String> getShield(WsUser wsuser) {
-        return redisManager.getShield(wsuser.getGuid());
-    }
-
 
     /**
      * 连续发言标记（排除所有者） <br>

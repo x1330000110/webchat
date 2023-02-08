@@ -20,14 +20,14 @@ public enum UserRole implements IEnum<String> {
      */
     USER;
 
-    public String getRole() {
-        return name().toLowerCase();
-    }
-
     @JsonValue
     @Override
     public String toString() {
         return getRole();
+    }
+
+    public String getRole() {
+        return name().toLowerCase();
     }
 
     @Override

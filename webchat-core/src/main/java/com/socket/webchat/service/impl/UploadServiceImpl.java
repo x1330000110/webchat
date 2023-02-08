@@ -64,6 +64,15 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
     }
 
     @Override
+    public String convertText(String mid) {
+        byte[] bytes = lanzouRequest.download(getResourceURL(mid));
+        if (ArrayUtil.isEmpty(bytes)) {
+            return null;
+        }
+        return baiduSpeechRequest.convertText(bytes);
+    }
+
+    @Override
     public String getResourceURL(String mid) {
         // 获取消息文件
         LambdaQueryWrapper<ChatRecordFile> wrapper1 = Wrappers.lambdaQuery();
@@ -111,15 +120,6 @@ public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRec
         Assert.notNull(parse, IllegalArgumentException::new);
         String hash = Wss.generateHash(url.getBytes(StandardCharsets.UTF_8));
         this.save(new ChatRecordFile(condition.getMid(), parse.getKey(), url, hash, null));
-    }
-
-    @Override
-    public String convertText(String mid) {
-        byte[] bytes = lanzouRequest.download(getResourceURL(mid));
-        if (ArrayUtil.isEmpty(bytes)) {
-            return null;
-        }
-        return baiduSpeechRequest.convertText(bytes);
     }
 
     /**

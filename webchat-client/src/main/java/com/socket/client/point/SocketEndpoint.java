@@ -90,6 +90,29 @@ public class SocketEndpoint implements ApplicationContextAware {
         }
     }
 
+    public void parseSysMsg(WsMsg wsmsg) {
+        CommandEnum command = Enums.of(CommandEnum.class, wsmsg.getType());
+        String target = wsmsg.getTarget();
+        switch (command) {
+            case CHANGE:
+                this.onlineChange(wsmsg.getContent());
+                break;
+            case CHOOSE:
+                this.choose(target, wsmsg);
+                break;
+            case ANSWER:
+            case OFFER:
+            case CANDIDATE:
+            case LEAVE:
+            case VIDEO:
+            case AUDIO:
+                this.forwardWebRTC(target, wsmsg);
+                break;
+            default:
+                // ignore
+        }
+    }
+
     public void parseUserMsg(WsMsg wsmsg) {
         // 禁言状态无法发送消息
         Assert.isFalse(permissionManager.isMute(self), "您已被禁言，请稍后再试");
@@ -140,41 +163,6 @@ public class SocketEndpoint implements ApplicationContextAware {
     }
 
     /**
-     * AI接管消息
-     */
-    private void parseAiMessage(WsMsg wsmsg) {
-        boolean sysuid = Constants.SYSTEM_UID.equals(wsmsg.getTarget());
-        boolean text = Objects.equals(wsmsg.getType(), CommandEnum.TEXT.toString());
-        // 判断AI消息
-        if (sysuid && text && !userMap.get(Constants.SYSTEM_UID).isOnline()) {
-            userMap.sendAIMessage(self, wsmsg);
-        }
-    }
-
-    public void parseSysMsg(WsMsg wsmsg) {
-        CommandEnum command = Enums.of(CommandEnum.class, wsmsg.getType());
-        String target = wsmsg.getTarget();
-        switch (command) {
-            case CHANGE:
-                this.onlineChange(wsmsg.getContent());
-                break;
-            case CHOOSE:
-                this.choose(target, wsmsg);
-                break;
-            case ANSWER:
-            case OFFER:
-            case CANDIDATE:
-            case LEAVE:
-            case VIDEO:
-            case AUDIO:
-                this.forwardWebRTC(target, wsmsg);
-                break;
-            default:
-                // ignore
-        }
-    }
-
-    /**
      * 在线状态变动事件
      *
      * @param state 状态
@@ -214,6 +202,18 @@ public class SocketEndpoint implements ApplicationContextAware {
             self.send("对方屏蔽了你", CommandEnum.ERROR);
         }
         target.send(wsmsg);
+    }
+
+    /**
+     * AI接管消息
+     */
+    private void parseAiMessage(WsMsg wsmsg) {
+        boolean sysuid = Constants.SYSTEM_UID.equals(wsmsg.getTarget());
+        boolean text = Objects.equals(wsmsg.getType(), CommandEnum.TEXT.toString());
+        // 判断AI消息
+        if (sysuid && text && !userMap.get(Constants.SYSTEM_UID).isOnline()) {
+            userMap.sendAIMessage(self, wsmsg);
+        }
     }
 
     @Override

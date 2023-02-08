@@ -24,11 +24,6 @@ public interface KeyExchangeListener extends ApplicationListener<KeyEvent>, Http
         onKeyExchange(event.getSession(), event.getKey());
     }
 
-    @Override
-    default void sessionDestroyed(HttpSessionEvent event) {
-        onSessionClosed(event.getSession());
-    }
-
     /**
      * Push AES key when key exchange is successful
      *
@@ -36,6 +31,11 @@ public interface KeyExchangeListener extends ApplicationListener<KeyEvent>, Http
      * @param key     AES KEY
      */
     void onKeyExchange(HttpSession session, String key);
+
+    @Override
+    default void sessionDestroyed(HttpSessionEvent event) {
+        onSessionClosed(event.getSession());
+    }
 
     /**
      * Fired when the session is closed

@@ -70,6 +70,14 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
     }
 
     /**
+     * Check if this request include file
+     */
+    private boolean isFileRequest() {
+        String type = getContentType();
+        return StrUtil.isNotEmpty(type) && type.startsWith(ContentType.MULTIPART.getValue());
+    }
+
+    /**
      * If From Data is empty and Parts is empty, try to get body content
      */
     private JSONObject getBody() throws IOException {
@@ -80,69 +88,6 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
             }
         }
         return new JSONObject();
-    }
-
-    /**
-     * Check if this request include file
-     */
-    private boolean isFileRequest() {
-        String type = getContentType();
-        return StrUtil.isNotEmpty(type) && type.startsWith(ContentType.MULTIPART.getValue());
-    }
-
-    @Override
-    public String getParameter(String name) {
-        String[] arr = params.get(name);
-        return arr == null || arr.length == 0 ? null : arr[0];
-    }
-
-    @Override
-    public Map<String, String[]> getParameterMap() {
-        return Collections.unmodifiableMap(params);
-    }
-
-    @Override
-    public Enumeration<String> getParameterNames() {
-        return Collections.enumeration(params.keySet());
-    }
-
-    @Override
-    public String[] getParameterValues(String name) {
-        return params.get(name);
-    }
-
-    @Override
-    public ServletInputStream getInputStream() {
-        return new ServletInputStream() {
-            private final ByteBuffer buffer = ByteBuffer.wrap(body.toString().getBytes());
-
-            @Override
-            public boolean isFinished() {
-                return buffer.remaining() == 0;
-            }
-
-            @Override
-            public boolean isReady() {
-                return false;
-            }
-
-            @Override
-            public void setReadListener(ReadListener listener) {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public int read() {
-                return isFinished() ? -1 : buffer.get();
-            }
-        };
-    }
-
-    @Override
-    public BufferedReader getReader() {
-        ServletInputStream stream = getInputStream();
-        InputStreamReader isr = new InputStreamReader(stream, StandardCharsets.UTF_8);
-        return new BufferedReader(isr);
     }
 
     /**
@@ -163,6 +108,17 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
     }
 
     /**
+     * Checks whether the specified object is a string or a string array with only one element
+     */
+    private boolean isValid(Object obj) {
+        return obj instanceof String || obj instanceof String[] && ((String[]) obj).length == 1;
+    }    @Override
+    public String getParameter(String name) {
+        String[] arr = params.get(name);
+        return arr == null || arr.length == 0 ? null : arr[0];
+    }
+
+    /**
      * Decrypt FormData
      */
     private void decrypt(String key, String[] values) {
@@ -172,6 +128,11 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
             String[] vals = val.contains(SecureConstant.ARRAY_MARK) ? val.split(SecureConstant.ARRAY_MARK) : values;
             params.put(key, vals);
         }
+    }
+
+    @Override
+    public Map<String, String[]> getParameterMap() {
+        return Collections.unmodifiableMap(params);
     }
 
     /**
@@ -186,11 +147,9 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
         }
     }
 
-    /**
-     * Checks whether the specified object is a string or a string array with only one element
-     */
-    private boolean isValid(Object obj) {
-        return obj instanceof String || obj instanceof String[] && ((String[]) obj).length == 1;
+    @Override
+    public Enumeration<String> getParameterNames() {
+        return Collections.enumeration(params.keySet());
     }
 
     /**
@@ -208,6 +167,40 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
         }
         // Can't find throws exception
         throw new InvalidRequestException(RequsetTemplate.REQUSET_SIGNATURE_NOT_FOUNT);
+    }
+
+    @Override
+    public String[] getParameterValues(String name) {
+        return params.get(name);
+    }
+
+
+
+    @Override
+    public ServletInputStream getInputStream() {
+        return new ServletInputStream() {
+            private final ByteBuffer buffer = ByteBuffer.wrap(body.toString().getBytes());
+
+            @Override
+            public int read() {
+                return isFinished() ? -1 : buffer.get();
+            }
+
+            @Override
+            public boolean isFinished() {
+                return buffer.remaining() == 0;
+            }
+
+            @Override
+            public boolean isReady() {
+                return false;
+            }
+
+            @Override
+            public void setReadListener(ReadListener listener) {
+                throw new UnsupportedOperationException();
+            }
+        };
     }
 
     /**
@@ -256,6 +249,13 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
         return digest.equalsIgnoreCase(signature);
     }
 
+    @Override
+    public BufferedReader getReader() {
+        ServletInputStream stream = getInputStream();
+        InputStreamReader isr = new InputStreamReader(stream, StandardCharsets.UTF_8);
+        return new BufferedReader(isr);
+    }
+
     /**
      * request timestamp
      */
@@ -269,4 +269,6 @@ final class SecureRequestWrapper extends HttpServletRequestWrapper {
     String sign() {
         return signature;
     }
+
+
 }

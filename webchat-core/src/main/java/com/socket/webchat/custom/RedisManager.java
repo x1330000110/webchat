@@ -44,7 +44,7 @@ public class RedisManager {
     /**
      * 临时限制登录
      *
-     * @param guid  目标用户
+     * @param guid 目标用户
      * @param time 时间（单位：秒）
      */
     public void setLock(String guid, long time) {
@@ -80,7 +80,7 @@ public class RedisManager {
     /**
      * 设置未读记录数
      *
-     * @param guid    未读用户信息
+     * @param guid   未读用户信息
      * @param target 未读目标用户
      * @param delta  递增/递减阈值（0清除未读消息）
      */
@@ -94,7 +94,7 @@ public class RedisManager {
     /**
      * 获取指定用户和目标的未读消息数量
      *
-     * @param guid    发起者
+     * @param guid   发起者
      * @param target 目标用户
      * @return 未读消息数量
      */

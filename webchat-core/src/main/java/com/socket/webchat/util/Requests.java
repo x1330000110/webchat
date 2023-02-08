@@ -17,14 +17,6 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class Requests {
     /**
-     * Get the HttpServletRequest
-     */
-    public static HttpServletRequest get() {
-        RequestAttributes requestAttributes = RequestContextHolder.currentRequestAttributes();
-        return ((ServletRequestAttributes) requestAttributes).getRequest();
-    }
-
-    /**
      * 检查指定标记是否存在
      *
      * @param name 属性名
@@ -45,6 +37,14 @@ public class Requests {
         Object obj = get().getAttribute(name);
         //noinspection unchecked
         return (T) obj;
+    }
+
+    /**
+     * Get the HttpServletRequest
+     */
+    public static HttpServletRequest get() {
+        RequestAttributes requestAttributes = RequestContextHolder.currentRequestAttributes();
+        return ((ServletRequestAttributes) requestAttributes).getRequest();
     }
 
     /**
@@ -74,17 +74,17 @@ public class Requests {
     }
 
     /**
-     * 获取当前请求登录平台
-     */
-    public static String getPlatform() {
-        return getPlatform(get());
-    }
-
-    /**
      * 获取客户端的真实IP地址
      */
     public static String getRemoteIP(HttpServletRequest request) {
         return ServletUtil.getClientIP(request);
+    }
+
+    /**
+     * 获取当前请求登录平台
+     */
+    public static String getPlatform() {
+        return getPlatform(get());
     }
 
     /**

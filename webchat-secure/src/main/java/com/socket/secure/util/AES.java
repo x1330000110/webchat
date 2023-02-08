@@ -41,13 +41,6 @@ public class AES {
     }
 
     /**
-     * Get the AES key exchanged in the current session, or null if the key does not exist
-     */
-    public static String getAesKey(HttpSession session) {
-        return (String) session.getAttribute(SecureConstant.AESKEY);
-    }
-
-    /**
      * AES encryption (using the current session's key)
      *
      * @param plaintext plaintext
@@ -56,17 +49,6 @@ public class AES {
      */
     public static String encrypt(String plaintext, HttpSession session) {
         return encrypt(plaintext, getAesKey(session));
-    }
-
-    /**
-     * AES decryption (using the current session's key)
-     *
-     * @param ciphertext ciphertext
-     * @param session    {@linkplain HttpSession}
-     * @return plaintext
-     */
-    public static String decrypt(String ciphertext, HttpSession session) {
-        return decrypt(ciphertext, getAesKey(session));
     }
 
     /**
@@ -83,6 +65,34 @@ public class AES {
         } catch (GeneralSecurityException e) {
             throw new InvalidRequestException(RequsetTemplate.AES_ENCRYPT_ERROR, plaintext);
         }
+    }
+
+    private static Cipher getCipher(int mode, String key) throws GeneralSecurityException {
+        SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
+        StringBuilder sb = new StringBuilder();
+        IntStream.range(0, key.length() / 2).forEach(i -> sb.append(Integer.toString(key.charAt(i), 16)));
+        IvParameterSpec paramSpec = new IvParameterSpec(HexUtil.decodeHex(sb.toString()));
+        Cipher cipher = Cipher.getInstance(ALGORITHM);
+        cipher.init(mode, keySpec, paramSpec);
+        return cipher;
+    }
+
+    /**
+     * AES decryption (using the current session's key)
+     *
+     * @param ciphertext ciphertext
+     * @param session    {@linkplain HttpSession}
+     * @return plaintext
+     */
+    public static String decrypt(String ciphertext, HttpSession session) {
+        return decrypt(ciphertext, getAesKey(session));
+    }
+
+    /**
+     * Get the AES key exchanged in the current session, or null if the key does not exist
+     */
+    public static String getAesKey(HttpSession session) {
+        return (String) session.getAttribute(SecureConstant.AESKEY);
     }
 
     /**
@@ -107,15 +117,5 @@ public class AES {
         } catch (GeneralSecurityException e) {
             throw new InvalidRequestException(RequsetTemplate.AES_DECRYPT_ERROR, ciphertext);
         }
-    }
-
-    private static Cipher getCipher(int mode, String key) throws GeneralSecurityException {
-        SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
-        StringBuilder sb = new StringBuilder();
-        IntStream.range(0, key.length() / 2).forEach(i -> sb.append(Integer.toString(key.charAt(i), 16)));
-        IvParameterSpec paramSpec = new IvParameterSpec(HexUtil.decodeHex(sb.toString()));
-        Cipher cipher = Cipher.getInstance(ALGORITHM);
-        cipher.init(mode, keySpec, paramSpec);
-        return cipher;
     }
 }

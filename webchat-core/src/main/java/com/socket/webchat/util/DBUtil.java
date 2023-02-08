@@ -9,18 +9,18 @@ import cn.hutool.core.util.StrUtil;
  */
 public class DBUtil {
     /**
-     * 获取指定函数式接口命名形式
-     */
-    public static <T> String columnToString(Func1<T, ?> lambda) {
-        return StrUtil.toUnderlineCase(LambdaUtil.getFieldName(lambda));
-    }
-
-    /**
      * mybatis group by max合成字符串
      */
     public static <T> String selectMax(Func1<T, ?> lambda) {
         String column = columnToString(lambda);
         return StrUtil.format("MAX({}) AS {}", column, column);
+    }
+
+    /**
+     * 获取指定函数式接口命名形式
+     */
+    public static <T> String columnToString(Func1<T, ?> lambda) {
+        return StrUtil.toUnderlineCase(LambdaUtil.getFieldName(lambda));
     }
 
     /**

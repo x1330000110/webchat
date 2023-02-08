@@ -22,6 +22,15 @@ public class SettingSupport {
     }
 
     /**
+     * 切换设置
+     *
+     * @param setting 设置
+     */
+    public void switchSetting(Setting setting) {
+        map.put(setting.getKey(), !getSetting(setting));
+    }
+
+    /**
      * 获取设置
      *
      * @param setting 设置
@@ -29,14 +38,5 @@ public class SettingSupport {
      */
     public boolean getSetting(Setting setting) {
         return map.getOrDefault(setting.getKey(), false);
-    }
-
-    /**
-     * 切换设置
-     *
-     * @param setting 设置
-     */
-    public void switchSetting(Setting setting) {
-        map.put(setting.getKey(), !getSetting(setting));
     }
 }

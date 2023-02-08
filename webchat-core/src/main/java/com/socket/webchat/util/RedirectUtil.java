@@ -8,20 +8,6 @@ import java.io.IOException;
 public class RedirectUtil {
 
     /**
-     * 转发快捷操作，调用此方法将不会向下继续执行代码且不返回任何结果
-     *
-     * @param response {@linkplain HttpServletResponse}
-     * @param url      跳转地址
-     */
-    public static void redirect(HttpServletResponse response, String url) {
-        try {
-            response.sendRedirect(url);
-        } catch (IOException ignored) {
-        }
-        throw new RedirectException();
-    }
-
-    /**
      * <code>TRUE</code>判定的转发操作
      *
      * @param bool     转发条件
@@ -33,6 +19,20 @@ public class RedirectUtil {
         if (bool) {
             redirect(response, url);
         }
+    }
+
+    /**
+     * 转发快捷操作，调用此方法将不会向下继续执行代码且不返回任何结果
+     *
+     * @param response {@linkplain HttpServletResponse}
+     * @param url      跳转地址
+     */
+    public static void redirect(HttpServletResponse response, String url) {
+        try {
+            response.sendRedirect(url);
+        } catch (IOException ignored) {
+        }
+        throw new RedirectException();
     }
 
     /**

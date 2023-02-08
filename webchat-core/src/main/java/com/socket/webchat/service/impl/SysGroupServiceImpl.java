@@ -69,6 +69,25 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         return null;
     }
 
+    public boolean removeUser(String gid, String uid) {
+        String stater = ShiroUser.getUserId();
+        LambdaQueryWrapper<SysGroup> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(SysGroup::getGuid, gid);
+        SysGroup group = getFirst(wrapper);
+        // 权限检查
+        Assert.isTrue(group.getOwner().equals(stater), "你不是此群的创建者", IllegalStateException::new);
+        LambdaUpdateWrapper<SysGroupUser> wrapper2 = Wrappers.lambdaUpdate();
+        wrapper2.eq(SysGroupUser::getUid, uid);
+        wrapper2.set(BaseModel::isDeleted, 1);
+        // 推送事件
+        if (SqlHelper.retBool(sysGroupUserMapper.update(null, wrapper2))) {
+            SysGroupUser groupUser = new SysGroupUser(gid, uid);
+            publisher.pushGroupEvent(groupUser, GroupEnum.DELETE);
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public List<String> joinGroup(String gid, String uid, String password) {
         LambdaQueryWrapper<SysGroup> wrapper = Wrappers.lambdaQuery();
@@ -97,25 +116,6 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
             return guids;
         }
         return null;
-    }
-
-    public boolean removeUser(String gid, String uid) {
-        String stater = ShiroUser.getUserId();
-        LambdaQueryWrapper<SysGroup> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(SysGroup::getGuid, gid);
-        SysGroup group = getFirst(wrapper);
-        // 权限检查
-        Assert.isTrue(group.getOwner().equals(stater), "你不是此群的创建者", IllegalStateException::new);
-        LambdaUpdateWrapper<SysGroupUser> wrapper2 = Wrappers.lambdaUpdate();
-        wrapper2.eq(SysGroupUser::getUid, uid);
-        wrapper2.set(BaseModel::isDeleted, 1);
-        // 推送事件
-        if (SqlHelper.retBool(sysGroupUserMapper.update(null, wrapper2))) {
-            SysGroupUser groupUser = new SysGroupUser(gid, uid);
-            publisher.pushGroupEvent(groupUser, GroupEnum.DELETE);
-            return true;
-        }
-        return false;
     }
 
     public boolean dissolveGroup(String gid) {

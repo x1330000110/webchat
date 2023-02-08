@@ -65,19 +65,23 @@ public class RedisClient<V> implements InitializingBean {
         return false;
     }
 
+    public boolean remove(String key) {
+        return Objects.requireNonNull(template.delete(key));
+    }
+
     public long getExpired(String key) {
         Long obj = template.getExpire(key, TimeUnit.SECONDS);
         return obj == null ? -2 : obj;
     }
 
-    public <T> T get(String key) {
-        //noinspection unchecked
-        return (T) operations.get(key);
-    }
-
     public <T> T getOrDefault(String key, T defval) {
         T v = get(key);
         return v == null ? defval : v;
+    }
+
+    public <T> T get(String key) {
+        //noinspection unchecked
+        return (T) operations.get(key);
     }
 
     public long incr(String key, int delta) {
@@ -99,10 +103,6 @@ public class RedisClient<V> implements InitializingBean {
 
     public boolean exist(String key) {
         return Objects.requireNonNull(template.hasKey(key));
-    }
-
-    public boolean remove(String key) {
-        return Objects.requireNonNull(template.delete(key));
     }
 
     public void set(String key, V value) {

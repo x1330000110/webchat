@@ -68,6 +68,26 @@ public class LanzouCloudRequest {
         return text.getStr("is_newd") + "/" + text.getStr("f_id");
     }
 
+    private List<HttpCookie> getCookies() {
+        return ListUtil.of(
+                new HttpCookie("ylogin", properties.getYlogin()),
+                new HttpCookie("phpdisk_info", properties.getPhpdiskInfo())
+        );
+    }
+
+    private Map<String, Object> getForm(Resource resource, FileType type) {
+        Map<String, Object> form = new HashMap<>();
+        form.put("task", 1);
+        form.put("ve", 2);
+        form.put("id", "WU_FILE_" + RandomUtil.randomInt(10));
+        form.put("name", resource.getName());
+        form.put("type", "application/octet-stream");
+        form.put("size", resource.readBytes().length);
+        form.put("folder_id_bb_n", type.getCode());
+        form.put("upload_file", resource);
+        return form;
+    }
+
     /**
      * 下载来自蓝奏云服务器的文件
      *
@@ -98,25 +118,5 @@ public class LanzouCloudRequest {
             return null;
         }
         return json.getJSONObject("data").getStr("download_link");
-    }
-
-    private Map<String, Object> getForm(Resource resource, FileType type) {
-        Map<String, Object> form = new HashMap<>();
-        form.put("task", 1);
-        form.put("ve", 2);
-        form.put("id", "WU_FILE_" + RandomUtil.randomInt(10));
-        form.put("name", resource.getName());
-        form.put("type", "application/octet-stream");
-        form.put("size", resource.readBytes().length);
-        form.put("folder_id_bb_n", type.getCode());
-        form.put("upload_file", resource);
-        return form;
-    }
-
-    private List<HttpCookie> getCookies() {
-        return ListUtil.of(
-                new HttpCookie("ylogin", properties.getYlogin()),
-                new HttpCookie("phpdisk_info", properties.getPhpdiskInfo())
-        );
     }
 }

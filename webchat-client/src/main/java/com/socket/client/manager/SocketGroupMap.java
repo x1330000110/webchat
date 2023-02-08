@@ -26,6 +26,26 @@ public class SocketGroupMap extends ConcurrentHashMap<SysGroup, List<WsUser>> {
     }
 
     /**
+     * 获取指定群组ID成员列表
+     *
+     * @param gid 群组id
+     * @return 成员
+     */
+    public List<WsUser> getGroupUsers(String gid) {
+        return this.get(get(gid));
+    }
+
+    /**
+     * 获取群组对象
+     */
+    public SysGroup get(String gid) {
+        return this.keySet().stream()
+                .filter(e -> e.getGuid().equals(gid))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
      * @see #sendGroup(String, String, Command, Object)
      */
     public void sendGroup(String gid, String content, Command<?> command) {
@@ -42,25 +62,5 @@ public class SocketGroupMap extends ConcurrentHashMap<SysGroup, List<WsUser>> {
      */
     public void sendGroup(String gid, String content, Command<?> command, Object data) {
         getGroupUsers(gid).forEach(wsuser -> wsuser.send(content, command, data));
-    }
-
-    /**
-     * 获取群组对象
-     */
-    public SysGroup get(String gid) {
-        return this.keySet().stream()
-                .filter(e -> e.getGuid().equals(gid))
-                .findFirst()
-                .orElse(null);
-    }
-
-    /**
-     * 获取指定群组ID成员列表
-     *
-     * @param gid 群组id
-     * @return 成员
-     */
-    public List<WsUser> getGroupUsers(String gid) {
-        return this.get(get(gid));
     }
 }

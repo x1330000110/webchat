@@ -15,14 +15,6 @@ public class BaiduSpeechRequest {
     private static final String CONVERT_URL = "https://vop.baidu.com/server_api";
 
     /**
-     * 获得AccessToken
-     */
-    private String getAccessToken() {
-        String body = HttpRequest.get(OAUTH_2).execute().body();
-        return JSONUtil.parseObj(body).getStr("access_token");
-    }
-
-    /**
      * 音频文件转换文本
      *
      * @param bytes 文件数据
@@ -43,5 +35,13 @@ public class BaiduSpeechRequest {
         } catch (NullPointerException e) {
             return null;
         }
+    }
+
+    /**
+     * 获得AccessToken
+     */
+    private String getAccessToken() {
+        String body = HttpRequest.get(OAUTH_2).execute().body();
+        return JSONUtil.parseObj(body).getStr("access_token");
     }
 }

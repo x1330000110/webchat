@@ -99,33 +99,46 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
         return value != null;
     }
 
+    /**
+     * Clean up expired data
+     */
+    private void clearExpiredData() {
+        // clear map
+        ByteBuffer cache = ByteBuffer.allocate(buffer.capacity());
+        internalMap.forEach((sign, time) -> {
+            if (this.isExpired(time, effective)) {
+                internalMap.remove(sign);
+            } else {
+                this.writeBuffer(cache, time, sign);
+            }
+        });
+        // clear buffer
+        synchronized (write) {
+            buffer.clear();
+            buffer.put(cache.array());
+            buffer.position(internalMap.size() * BLOCK_SIZE);
+        }
+    }
+
+    /**
+     * write to buffer
+     */
+    private void writeBuffer(ByteBuffer buffer, long time, String sign) {
+        // write buffer
+        synchronized (write) {
+            buffer.putLong(time);
+            buffer.put(HexUtil.decodeHex(sign));
+        }
+        // refresh disk
+        synchronized (force) {
+            force.notify();
+        }
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
         this.initByteBuffer();
         this.startFileBufferSyncThread();
-    }
-
-    /**
-     * Initialize Memory Timing Mapped File Task
-     */
-    private void startFileBufferSyncThread() {
-        Thread thread = new Thread(() -> {
-            while (true) {
-                synchronized (force) {
-                    try {
-                        force.wait();
-                    } catch (InterruptedException e) {
-                        throw new IllegalStateException(e);
-                    }
-                    synchronized (write) {
-                        buffer.force();
-                        log.debug("Flush disk file");
-                    }
-                }
-            }
-        });
-        thread.setDaemon(true);
-        thread.start();
     }
 
     /**
@@ -161,38 +174,25 @@ public class MappedRepeatValidator implements RepeatValidator, InitializingBean 
     }
 
     /**
-     * Clean up expired data
+     * Initialize Memory Timing Mapped File Task
      */
-    private void clearExpiredData() {
-        // clear map
-        ByteBuffer cache = ByteBuffer.allocate(buffer.capacity());
-        internalMap.forEach((sign, time) -> {
-            if (this.isExpired(time, effective)) {
-                internalMap.remove(sign);
-            } else {
-                this.writeBuffer(cache, time, sign);
+    private void startFileBufferSyncThread() {
+        Thread thread = new Thread(() -> {
+            while (true) {
+                synchronized (force) {
+                    try {
+                        force.wait();
+                    } catch (InterruptedException e) {
+                        throw new IllegalStateException(e);
+                    }
+                    synchronized (write) {
+                        buffer.force();
+                        log.debug("Flush disk file");
+                    }
+                }
             }
         });
-        // clear buffer
-        synchronized (write) {
-            buffer.clear();
-            buffer.put(cache.array());
-            buffer.position(internalMap.size() * BLOCK_SIZE);
-        }
-    }
-
-    /**
-     * write to buffer
-     */
-    private void writeBuffer(ByteBuffer buffer, long time, String sign) {
-        // write buffer
-        synchronized (write) {
-            buffer.putLong(time);
-            buffer.put(HexUtil.decodeHex(sign));
-        }
-        // refresh disk
-        synchronized (force) {
-            force.notify();
-        }
+        thread.setDaemon(true);
+        thread.start();
     }
 }
