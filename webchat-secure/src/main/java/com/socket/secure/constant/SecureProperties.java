@@ -69,7 +69,7 @@ public class SecureProperties {
      * do not enable this configuration under normal circumstances,
      * which may lead to the risk of SESSION_ID forgery attacks)
      */
-    private boolean sameSessionWithOnlyAesKey = false;
+    private boolean sameSessionWithOnlyKey = false;
 
     public int getDisguiseFilesCount() {
         return disguiseFilesCount;
@@ -126,11 +126,11 @@ public class SecureProperties {
         this.verifyRequestRemote = verifyRequestRemote;
     }
 
-    public boolean isSameSessionWithOnlyAesKey() {
-        return sameSessionWithOnlyAesKey;
+    public boolean isSameSessionWithOnlyKey() {
+        return sameSessionWithOnlyKey;
     }
 
-    public void setSameSessionWithOnlyAesKey(boolean sameSessionWithOnlyAesKey) {
-        this.sameSessionWithOnlyAesKey = sameSessionWithOnlyAesKey;
+    public void setSameSessionWithOnlyKey(boolean sameSessionWithOnlyKey) {
+        this.sameSessionWithOnlyKey = sameSessionWithOnlyKey;
     }
 }
