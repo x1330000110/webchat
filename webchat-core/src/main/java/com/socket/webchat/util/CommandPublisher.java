@@ -13,10 +13,10 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 /**
- * 事件推送封装
+ * 命令推送封装
  */
 @Component
-public class Publisher {
+public class CommandPublisher {
     @Autowired
     private ApplicationEventPublisher publisher;
 

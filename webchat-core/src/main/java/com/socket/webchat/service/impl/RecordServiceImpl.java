@@ -22,8 +22,8 @@ import com.socket.webchat.model.ChatRecordOffset;
 import com.socket.webchat.model.command.impl.CommandEnum;
 import com.socket.webchat.model.command.impl.PermissionEnum;
 import com.socket.webchat.service.RecordService;
+import com.socket.webchat.util.CommandPublisher;
 import com.socket.webchat.util.DBUtil;
-import com.socket.webchat.util.Publisher;
 import com.socket.webchat.util.ShiroUser;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +45,7 @@ public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord>
     private final ChatRecordDeletedMapper deletedMapper;
     private final ChatRecordOffsetMapper offsetMapper;
     private final RedisManager redisManager;
-    private final Publisher publisher;
+    private final CommandPublisher publisher;
 
     @KafkaListener(topics = Constants.KAFKA_RECORD)
     public void saveRecord(ConsumerRecord<String, String> data) {

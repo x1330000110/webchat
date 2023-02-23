@@ -21,7 +21,7 @@ import com.socket.webchat.model.enums.Setting;
 import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.service.RecordService;
 import com.socket.webchat.service.SysUserService;
-import com.socket.webchat.util.Publisher;
+import com.socket.webchat.util.CommandPublisher;
 import com.socket.webchat.util.ShiroUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -37,7 +37,7 @@ public class OwnerController {
     private final SysUserService sysUserService;
     private final RecordService recordService;
     private final RedisManager redisManager;
-    private final Publisher publisher;
+    private final CommandPublisher publisher;
 
     @ModelAttribute
     public void checkPermission() {

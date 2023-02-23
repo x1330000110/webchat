@@ -56,7 +56,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final QQRequest qqRequest;
     private final LanzouCloudRequest lanzouRequest;
     private final RedisClient<Object> redis;
-    private final Publisher publisher;
+    private final CommandPublisher publisher;
     private final Email sender;
 
     @Override

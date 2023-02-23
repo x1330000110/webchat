@@ -18,7 +18,7 @@ import com.socket.webchat.model.SysGroupUser;
 import com.socket.webchat.model.command.impl.GroupEnum;
 import com.socket.webchat.service.SysGroupService;
 import com.socket.webchat.util.Bcrypt;
-import com.socket.webchat.util.Publisher;
+import com.socket.webchat.util.CommandPublisher;
 import com.socket.webchat.util.ShiroUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> implements SysGroupService {
     private final SysGroupUserMapper sysGroupUserMapper;
-    private final Publisher publisher;
+    private final CommandPublisher publisher;
 
     public String createGroup(String groupName, String password) {
         String userId = ShiroUser.getUserId();

@@ -5,7 +5,7 @@ import com.socket.secure.util.Assert;
 import com.socket.webchat.custom.RedisManager;
 import com.socket.webchat.model.command.impl.PermissionEnum;
 import com.socket.webchat.model.condition.LimitCondition;
-import com.socket.webchat.util.Publisher;
+import com.socket.webchat.util.CommandPublisher;
 import com.socket.webchat.util.ShiroUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/admin")
 public class AdminController {
     private final RedisManager redisManager;
-    private final Publisher publisher;
+    private final CommandPublisher publisher;
 
     @ModelAttribute
     public void checkPermission() {
