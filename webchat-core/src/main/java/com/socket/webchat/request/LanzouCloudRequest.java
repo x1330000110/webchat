@@ -41,7 +41,7 @@ public class LanzouCloudRequest implements ResourceStorage, InitializingBean {
     private String upload(FileType type, Resource resource) {
         JSONObject args = buildArgs(resource, type);
         String body = HttpRequest.post(UPLOAD_URL)
-                .header(Header.USER_AGENT, ResourceStorage.USER_AGENT)
+                .header(Header.USER_AGENT, USER_AGENT)
                 .cookie(cookies)
                 .form(args)
                 .execute()
@@ -70,7 +70,7 @@ public class LanzouCloudRequest implements ResourceStorage, InitializingBean {
 
     public String getOriginalURL(String lanzouURL) {
         String url = StrUtil.format(DOWNLOAD_URL, lanzouURL);
-        HttpResponse execute = HttpRequest.get(url).header(Header.USER_AGENT, ResourceStorage.USER_AGENT).execute();
+        HttpResponse execute = HttpRequest.get(url).header(Header.USER_AGENT, USER_AGENT).execute();
         String body = execute.body();
         JSONObject json = JSONUtil.parseObj(body);
         if (json.getInt("code") != 200) {
