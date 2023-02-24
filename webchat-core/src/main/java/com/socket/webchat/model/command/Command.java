@@ -8,6 +8,16 @@ import cn.hutool.core.util.StrUtil;
 public interface Command<E extends Enum<E>> {
 
     /**
+     * 检查是否匹配命令
+     *
+     * @param command 命令字符
+     * @return 是否匹配
+     */
+    default boolean match(String command) {
+        return getCommand().equalsIgnoreCase(command);
+    }
+
+    /**
      * 获取对外开放的完整命令名
      */
     default String getCommand() {

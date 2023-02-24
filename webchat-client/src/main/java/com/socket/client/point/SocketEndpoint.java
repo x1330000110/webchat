@@ -208,7 +208,7 @@ public class SocketEndpoint implements ApplicationContextAware {
      */
     private void parseAiMessage(WsMsg wsmsg) {
         boolean sysuid = Constants.SYSTEM_UID.equals(wsmsg.getTarget());
-        boolean text = CommandEnum.TEXT.getCommand().equals(wsmsg.getType());
+        boolean text = CommandEnum.TEXT.match(wsmsg.getType());
         // 判断AI消息
         if (sysuid && text && !userMap.get(Constants.SYSTEM_UID).isOnline()) {
             userMap.sendAIMessage(self, wsmsg);
