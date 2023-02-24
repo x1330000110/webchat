@@ -18,7 +18,7 @@ webchat-client -------> SocketEndpoint ----|                                    
                        |---> message
                        |                      | ------> BaiduSpeech
                        |---> resource --------| 
-------------           |                      | ------> LanzouCloud
+------------           |                      | ------> ResourceStorage
 webchat-core ----------|---> group
 ------------           |                      |---> admin
                        |---> user ------------|
