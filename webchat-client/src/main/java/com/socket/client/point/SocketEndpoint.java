@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -209,7 +208,7 @@ public class SocketEndpoint implements ApplicationContextAware {
      */
     private void parseAiMessage(WsMsg wsmsg) {
         boolean sysuid = Constants.SYSTEM_UID.equals(wsmsg.getTarget());
-        boolean text = Objects.equals(wsmsg.getType(), CommandEnum.TEXT.toString());
+        boolean text = CommandEnum.TEXT.getCommand().equals(wsmsg.getType());
         // 判断AI消息
         if (sysuid && text && !userMap.get(Constants.SYSTEM_UID).isOnline()) {
             userMap.sendAIMessage(self, wsmsg);
