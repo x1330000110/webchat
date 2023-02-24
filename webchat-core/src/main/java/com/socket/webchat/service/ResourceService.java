@@ -9,6 +9,7 @@ import com.socket.webchat.model.enums.FileType;
 import java.io.IOException;
 
 public interface ResourceService extends BaseService<ChatRecordFile> {
+    String MAPPING = "/resource";
 
     /**
      * 获取散列文件实际映射路径
@@ -18,7 +19,7 @@ public interface ResourceService extends BaseService<ChatRecordFile> {
      * @return URL
      */
     default String getMapping(FileType type, String hash) {
-        return StrUtil.format("/resource/{}/{}", type.getKey(), hash);
+        return StrUtil.format("{}/{}/{}", MAPPING, type.getKey(), hash);
     }
 
     /**

@@ -16,8 +16,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+
 @RestController
-@RequestMapping("/resource")
+@RequestMapping(ResourceService.MAPPING)
 @RequiredArgsConstructor
 public class ResourceController {
     private final ResourceService resourceService;
