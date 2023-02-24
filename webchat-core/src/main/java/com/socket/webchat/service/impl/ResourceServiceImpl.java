@@ -93,7 +93,7 @@ public class ResourceServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatR
             if (Wss.checkMessagePermission(record)) {
                 String url = file.getUrl();
                 VideoType parse = Enums.of(VideoType.class, file.getType());
-                // enum非空 ? 解析请求 : 返回URL
+                // Enum非空 ? 解析请求 : 返回URL
                 return parse != null ? parse.parseURL(url) : getOriginalURL(url);
             }
         }
