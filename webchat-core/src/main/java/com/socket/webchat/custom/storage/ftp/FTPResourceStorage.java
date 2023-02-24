@@ -39,7 +39,7 @@ public class FTPResourceStorage implements ResourceStorage {
     }
 
     @Override
-    public String getOriginalURL(String url) {
+    public String getOpenURL(String url) {
         return ROOT + "/" + url;
     }
 

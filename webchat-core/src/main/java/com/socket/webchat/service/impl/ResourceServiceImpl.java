@@ -94,7 +94,7 @@ public class ResourceServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatR
                 String url = file.getUrl();
                 VideoType parse = Enums.of(VideoType.class, file.getType());
                 // Enum非空 ? 解析请求 : 返回URL
-                return parse != null ? parse.parseURL(url) : getOriginalURL(url);
+                return parse != null ? parse.parseURL(url) : getOpenURL(url);
             }
         }
         return null;
@@ -109,7 +109,7 @@ public class ResourceServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatR
         if (file == null) {
             return null;
         }
-        return getOriginalURL(file.getUrl());
+        return getOpenURL(file.getUrl());
     }
 
     @Override
@@ -124,11 +124,11 @@ public class ResourceServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatR
     /**
      * 优先从Redis缓存获取URL
      */
-    private String getOriginalURL(String url) {
+    private String getOpenURL(String url) {
         String key = RedisTree.RESOURCE_URL.concat(url);
         String mapping = client.get(key);
         if (mapping == null) {
-            mapping = resourceStorage.getOriginalURL(url);
+            mapping = resourceStorage.getOpenURL(url);
             if (mapping != null) {
                 client.set(key, mapping, 10, TimeUnit.MINUTES);
             }

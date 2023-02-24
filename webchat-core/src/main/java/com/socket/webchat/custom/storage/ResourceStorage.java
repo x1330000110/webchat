@@ -6,8 +6,6 @@ import com.socket.webchat.model.enums.FileType;
  * 资源储存适配接口
  */
 public interface ResourceStorage {
-    String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36 Edg/106.0.1370.37";
-
     /**
      * 上传指定资源文件
      *
@@ -27,12 +25,10 @@ public interface ResourceStorage {
     byte[] download(String url);
 
     /**
-     * 获取指定URL的原始路径（如果有）
+     * 获取指定URL的外部访问路径
      *
      * @param url 资源地址
      * @return 原始路径
      */
-    default String getOriginalURL(String url) {
-        return url;
-    }
+    String getOpenURL(String url);
 }
