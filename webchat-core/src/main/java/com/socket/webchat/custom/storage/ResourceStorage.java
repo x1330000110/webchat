@@ -1,7 +1,5 @@
 package com.socket.webchat.custom.storage;
 
-import cn.hutool.http.Header;
-import cn.hutool.http.HttpRequest;
 import com.socket.webchat.model.enums.FileType;
 
 /**
@@ -26,12 +24,7 @@ public interface ResourceStorage {
      * @param url 资源地址
      * @return 文件数据
      */
-    default byte[] download(String url) {
-        return HttpRequest.get(url)
-                .header(Header.USER_AGENT, USER_AGENT)
-                .execute()
-                .bodyBytes();
-    }
+    byte[] download(String url);
 
     /**
      * 获取指定URL的原始路径（如果有）

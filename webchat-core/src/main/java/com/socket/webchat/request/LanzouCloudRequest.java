@@ -16,7 +16,6 @@ import com.socket.webchat.model.enums.FileType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.stereotype.Component;
 
 import java.net.HttpCookie;
 import java.util.ArrayList;
@@ -26,7 +25,6 @@ import java.util.List;
  * 蓝奏云API（实验性）
  */
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class LanzouCloudRequest implements ResourceStorage, InitializingBean {
     private static final String DOWNLOAD_URL = "https://api.kit9.cn/api/lanzouyun_netdisc/api.php?link={}";
@@ -36,6 +34,25 @@ public class LanzouCloudRequest implements ResourceStorage, InitializingBean {
 
     public String upload(FileType type, byte[] bytes, String hash) {
         return upload(type, new BytesResource(bytes, hash));
+    }
+
+    @Override
+    public byte[] download(String url) {
+        return HttpRequest.get(url)
+                .header(Header.USER_AGENT, USER_AGENT)
+                .execute()
+                .bodyBytes();
+    }
+
+    public String getOriginalURL(String lanzouURL) {
+        String url = StrUtil.format(DOWNLOAD_URL, lanzouURL);
+        HttpResponse execute = HttpRequest.get(url).header(Header.USER_AGENT, USER_AGENT).execute();
+        String body = execute.body();
+        JSONObject json = JSONUtil.parseObj(body);
+        if (json.getInt("code") != 200) {
+            return null;
+        }
+        return json.getJSONObject("data").getStr("download_link");
     }
 
     private String upload(FileType type, Resource resource) {
@@ -66,17 +83,6 @@ public class LanzouCloudRequest implements ResourceStorage, InitializingBean {
         form.set("size", resource.readBytes().length);
         form.set("id", "WU_FILE_" + RandomUtil.randomInt(10));
         return form;
-    }
-
-    public String getOriginalURL(String lanzouURL) {
-        String url = StrUtil.format(DOWNLOAD_URL, lanzouURL);
-        HttpResponse execute = HttpRequest.get(url).header(Header.USER_AGENT, USER_AGENT).execute();
-        String body = execute.body();
-        JSONObject json = JSONUtil.parseObj(body);
-        if (json.getInt("code") != 200) {
-            return null;
-        }
-        return json.getJSONObject("data").getStr("download_link");
     }
 
     @Override

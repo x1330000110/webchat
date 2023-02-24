@@ -14,6 +14,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.secure.util.Assert;
 import com.socket.webchat.constant.Constants;
+import com.socket.webchat.custom.storage.ResourceStorage;
 import com.socket.webchat.exception.AccountException;
 import com.socket.webchat.exception.UploadException;
 import com.socket.webchat.mapper.SysUserMapper;
@@ -27,8 +28,6 @@ import com.socket.webchat.model.condition.RegisterCondition;
 import com.socket.webchat.model.enums.FileType;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.model.enums.UserRole;
-import com.socket.webchat.request.LanzouCloudRequest;
-import com.socket.webchat.request.QQRequest;
 import com.socket.webchat.service.ResourceService;
 import com.socket.webchat.service.SysGroupService;
 import com.socket.webchat.service.SysUserService;
@@ -53,10 +52,9 @@ import java.util.concurrent.TimeUnit;
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
     private final SysGroupService sysGroupService;
     private final ResourceService resourceService;
-    private final QQRequest qqRequest;
-    private final LanzouCloudRequest lanzouRequest;
-    private final RedisClient<Object> redis;
     private final CommandPublisher publisher;
+    private final RedisClient<Object> redis;
+    private final ResourceStorage storage;
     private final Email sender;
 
     @Override
@@ -193,7 +191,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 图片映射地址
         bytes = bos.toByteArray();
         String hash = Wss.generateHash(bytes);
-        String url = lanzouRequest.upload(FileType.IMAGE, bytes, hash);
+        String url = storage.upload(FileType.IMAGE, bytes, hash);
         String mapping = resourceService.getMapping(FileType.IMAGE, hash);
         // 保存头像
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
