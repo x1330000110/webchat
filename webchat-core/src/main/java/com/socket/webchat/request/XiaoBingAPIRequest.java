@@ -33,7 +33,7 @@ public class XiaoBingAPIRequest {
 
     @PostConstruct
     public void initJavaScriptEngine() throws ScriptException {
-        InputStream stream = getClass().getClassLoader().getResourceAsStream("other/bingEncrypt.js");
+        InputStream stream = getClass().getClassLoader().getResourceAsStream("static/bing.min.js");
         Assert.notNull(stream, "找不到参数加密js文件，无法使用小冰API", IllegalStateException::new);
         JavaScriptEngine instance = JavaScriptEngine.instance();
         instance.eval(new InputStreamReader(stream));

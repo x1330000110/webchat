@@ -18,7 +18,7 @@ import javax.mail.internet.MimeMessage;
 public class Email {
     private final JavaMailSenderImpl mailSender;
     private final MailProperties properties;
-    private final String content = IoUtil.readUtf8(getClass().getClassLoader().getResourceAsStream("other/mail.html"));
+    private final String content = IoUtil.readUtf8(getClass().getClassLoader().getResourceAsStream("static/mail.html"));
 
     /**
      * 向指定mail发送验证码
