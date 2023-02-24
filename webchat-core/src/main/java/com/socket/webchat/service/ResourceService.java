@@ -8,7 +8,7 @@ import com.socket.webchat.model.enums.FileType;
 
 import java.io.IOException;
 
-public interface UploadService extends BaseService<ChatRecordFile> {
+public interface ResourceService extends BaseService<ChatRecordFile> {
 
     /**
      * 获取散列文件实际映射路径

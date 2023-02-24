@@ -19,7 +19,7 @@ import com.socket.webchat.model.condition.UserCondition;
 import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.model.enums.Setting;
 import com.socket.webchat.model.enums.UserRole;
-import com.socket.webchat.service.RecordService;
+import com.socket.webchat.service.ChatRecordService;
 import com.socket.webchat.service.SysUserService;
 import com.socket.webchat.util.CommandPublisher;
 import com.socket.webchat.util.ShiroUser;
@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.*;
 public class OwnerController {
     private final SettingSupport settingSupport;
     private final SysUserService sysUserService;
-    private final RecordService recordService;
+    private final ChatRecordService recordService;
     private final RedisManager redisManager;
     private final CommandPublisher publisher;
 

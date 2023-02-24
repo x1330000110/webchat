@@ -1,4 +1,4 @@
-package com.socket.client.custom;
+package com.socket.client.custom.support;
 
 import cn.hutool.core.thread.ThreadUtil;
 import com.socket.client.WebApplication;

@@ -21,7 +21,7 @@ import com.socket.webchat.model.ChatRecordDeleted;
 import com.socket.webchat.model.ChatRecordOffset;
 import com.socket.webchat.model.command.impl.CommandEnum;
 import com.socket.webchat.model.command.impl.PermissionEnum;
-import com.socket.webchat.service.RecordService;
+import com.socket.webchat.service.ChatRecordService;
 import com.socket.webchat.util.CommandPublisher;
 import com.socket.webchat.util.DBUtil;
 import com.socket.webchat.util.ShiroUser;
@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord> implements RecordService {
+public class ChatRecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRecord> implements ChatRecordService {
     private final ChatRecordDeletedMapper deletedMapper;
     private final ChatRecordOffsetMapper offsetMapper;
     private final RedisManager redisManager;

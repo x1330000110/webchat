@@ -5,7 +5,7 @@ import com.socket.webchat.model.ChatRecord;
 import java.util.List;
 import java.util.Map;
 
-public interface RecordService extends BaseService<ChatRecord> {
+public interface ChatRecordService extends BaseService<ChatRecord> {
     /**
      * 获取最近指定条聊天信息
      *

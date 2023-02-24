@@ -29,9 +29,9 @@ import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.model.enums.UserRole;
 import com.socket.webchat.request.LanzouCloudRequest;
 import com.socket.webchat.request.QQRequest;
+import com.socket.webchat.service.ResourceService;
 import com.socket.webchat.service.SysGroupService;
 import com.socket.webchat.service.SysUserService;
-import com.socket.webchat.service.UploadService;
 import com.socket.webchat.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
     private final SysGroupService sysGroupService;
-    private final UploadService uploadService;
+    private final ResourceService resourceService;
     private final QQRequest qqRequest;
     private final LanzouCloudRequest lanzouRequest;
     private final RedisClient<Object> redis;
@@ -194,14 +194,14 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         bytes = bos.toByteArray();
         String hash = Wss.generateHash(bytes);
         String url = lanzouRequest.upload(FileType.IMAGE, bytes, hash);
-        String mapping = uploadService.getMapping(FileType.IMAGE, hash);
+        String mapping = resourceService.getMapping(FileType.IMAGE, hash);
         // 保存头像
         LambdaUpdateWrapper<SysUser> wrapper = Wrappers.lambdaUpdate();
         wrapper.eq(SysUser::getGuid, ShiroUser.getUserId());
         wrapper.set(SysUser::getHeadimgurl, mapping);
         Assert.isTrue(super.update(wrapper), "修改失败", IllegalStateException::new);
         // 保存文件映射
-        uploadService.save(new ChatRecordFile(null, FileType.IMAGE.getKey(), url, hash, (long) bytes.length));
+        resourceService.save(new ChatRecordFile(null, FileType.IMAGE.getKey(), url, hash, (long) bytes.length));
         // 推送变动事件
         publisher.pushUserEvent(mapping, UserEnum.HEADIMG);
         return mapping;

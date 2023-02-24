@@ -1,4 +1,4 @@
-package com.socket.client.custom;
+package com.socket.client.custom.filter;
 
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.util.Requests;

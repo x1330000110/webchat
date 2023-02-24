@@ -17,7 +17,7 @@ import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.request.BaiduSpeechRequest;
 import com.socket.webchat.request.LanzouCloudRequest;
 import com.socket.webchat.request.bean.VideoType;
-import com.socket.webchat.service.UploadService;
+import com.socket.webchat.service.ResourceService;
 import com.socket.webchat.util.Enums;
 import com.socket.webchat.util.RedisClient;
 import com.socket.webchat.util.Wss;
@@ -31,12 +31,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 文件上传服务
+ * 文件储存服务实现
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UploadServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRecordFile> implements UploadService {
+public class ResourceServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRecordFile> implements ResourceService {
     private final BaiduSpeechRequest baiduSpeechRequest;
     private final ChatRecordMapper chatRecordMapper;
     private final LanzouCloudRequest lanzouRequest;

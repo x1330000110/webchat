@@ -17,7 +17,7 @@ import com.socket.webchat.model.command.Command;
 import com.socket.webchat.model.command.impl.CommandEnum;
 import com.socket.webchat.model.enums.LogType;
 import com.socket.webchat.request.XiaoBingAPIRequest;
-import com.socket.webchat.service.RecordService;
+import com.socket.webchat.service.ChatRecordService;
 import com.socket.webchat.service.SysUserLogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +42,7 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final XiaoBingAPIRequest xiaoBingAPIRequest;
     private final SysUserLogService logService;
-    private final RecordService recordService;
+    private final ChatRecordService recordService;
     private final SysUserMapper userMapper;
     private final RedisManager redisManager;
 

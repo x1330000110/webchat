@@ -1,4 +1,4 @@
-package com.socket.client.custom;
+package com.socket.client.custom.ibatis;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import lombok.extern.slf4j.Slf4j;

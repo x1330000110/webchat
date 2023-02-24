@@ -6,7 +6,7 @@ import com.socket.secure.util.AES;
 import com.socket.webchat.model.ChatRecord;
 import com.socket.webchat.model.condition.MessageCondition;
 import com.socket.webchat.model.enums.HttpStatus;
-import com.socket.webchat.service.RecordService;
+import com.socket.webchat.service.ChatRecordService;
 import com.socket.webchat.util.ShiroUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @RequestMapping("/message")
 public class MessageController {
-    private final RecordService recordService;
+    private final ChatRecordService recordService;
 
     @Encrypted
     @PostMapping("/clear")

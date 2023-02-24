@@ -1,4 +1,4 @@
-package com.socket.client.support;
+package com.socket.client.custom.support;
 
 import cn.hutool.extra.pinyin.PinyinUtil;
 import org.springframework.stereotype.Component;

@@ -1,11 +1,11 @@
 package com.socket.client.manager;
 
 import cn.hutool.core.util.StrUtil;
+import com.socket.client.custom.support.KeywordSupport;
 import com.socket.client.model.GroupPreview;
 import com.socket.client.model.UserPreview;
 import com.socket.client.model.WsMsg;
 import com.socket.client.model.WsUser;
-import com.socket.client.support.KeywordSupport;
 import com.socket.webchat.constant.Constants;
 import com.socket.webchat.custom.RedisManager;
 import com.socket.webchat.mapper.SysGroupMapper;
@@ -13,7 +13,7 @@ import com.socket.webchat.mapper.SysGroupUserMapper;
 import com.socket.webchat.mapper.SysUserMapper;
 import com.socket.webchat.model.*;
 import com.socket.webchat.model.command.impl.PermissionEnum;
-import com.socket.webchat.service.RecordService;
+import com.socket.webchat.service.ChatRecordService;
 import com.socket.webchat.service.SysUserLogService;
 import com.socket.webchat.util.Wss;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +39,7 @@ public class PermissionManager implements InitializingBean {
     private final SysGroupUserMapper sysGroupUserMapper;
     private final SysUserLogService sysUserLogService;
     private final SysGroupMapper sysGroupMapper;
-    private final RecordService recordService;
+    private final ChatRecordService recordService;
     private final SysUserMapper sysUserMapper;
 
     private final RedisManager redisManager;
