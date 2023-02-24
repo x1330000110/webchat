@@ -1,6 +1,5 @@
 package com.socket.webchat.controller;
 
-import cn.hutool.core.util.StrUtil;
 import com.socket.secure.util.Assert;
 import com.socket.webchat.model.condition.FileCondition;
 import com.socket.webchat.model.condition.URLCondition;
@@ -25,14 +24,14 @@ public class ResourceController {
 
     @PostMapping("/audio")
     public HttpStatus uploadAudio(FileCondition condition) throws IOException {
-        resourceService.upload(condition, FileType.AUDIO);
-        return HttpStatus.SUCCESS.body();
+        String path = resourceService.upload(condition, FileType.AUDIO);
+        return HttpStatus.SUCCESS.body(path);
     }
 
     @PostMapping("/image")
     public HttpStatus uploadImage(FileCondition condition) throws IOException {
         String path = resourceService.upload(condition, FileType.IMAGE);
-        return HttpStatus.SUCCESS.body(StrUtil.isEmpty(path) ? null : path);
+        return HttpStatus.SUCCESS.body(path);
     }
 
     @PostMapping("/blob")

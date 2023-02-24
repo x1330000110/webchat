@@ -39,10 +39,11 @@ public class LanzouCloudRequest implements ResourceStorage, InitializingBean {
     }
 
     private String upload(FileType type, Resource resource) {
+        JSONObject args = buildArgs(resource, type);
         String body = HttpRequest.post(UPLOAD_URL)
                 .header(Header.USER_AGENT, ResourceStorage.USER_AGENT)
                 .cookie(cookies)
-                .form(buildArgs(resource, type))
+                .form(args)
                 .execute()
                 .body();
         // 解析结果
