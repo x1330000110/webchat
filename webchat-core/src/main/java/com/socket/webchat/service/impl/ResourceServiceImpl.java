@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.secure.util.Assert;
+import com.socket.webchat.custom.storage.ResourceStorage;
 import com.socket.webchat.exception.UploadException;
 import com.socket.webchat.mapper.ChatRecordFileMapper;
 import com.socket.webchat.mapper.ChatRecordMapper;
@@ -15,7 +16,6 @@ import com.socket.webchat.model.condition.URLCondition;
 import com.socket.webchat.model.enums.FileType;
 import com.socket.webchat.model.enums.RedisTree;
 import com.socket.webchat.request.BaiduSpeechRequest;
-import com.socket.webchat.request.LanzouCloudRequest;
 import com.socket.webchat.request.bean.VideoType;
 import com.socket.webchat.service.ResourceService;
 import com.socket.webchat.util.Enums;
@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 public class ResourceServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatRecordFile> implements ResourceService {
     private final BaiduSpeechRequest baiduSpeechRequest;
     private final ChatRecordMapper chatRecordMapper;
-    private final LanzouCloudRequest lanzouRequest;
+    private final ResourceStorage resourceStorage;
     private final RedisClient<String> client;
 
     @Override
@@ -58,14 +58,14 @@ public class ResourceServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatR
         wrapper.eq(ChatRecordFile::getType, type.getKey());
         ChatRecordFile file = getFirst(wrapper);
         // 文件存在则关联mid，不存在获取url后关联
-        String url = file != null ? file.getUrl() : lanzouRequest.upload(type, bytes, hash);
+        String url = file != null ? file.getUrl() : resourceStorage.upload(type, bytes, hash);
         this.save(new ChatRecordFile(condition.getMid(), type.getKey(), url, hash, size));
         return getMapping(type, hash);
     }
 
     @Override
     public String convertText(String mid) {
-        byte[] bytes = lanzouRequest.download(getResourceURL(mid));
+        byte[] bytes = resourceStorage.download(mid);
         if (ArrayUtil.isEmpty(bytes)) {
             return null;
         }
@@ -129,7 +129,7 @@ public class ResourceServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatR
         String key = RedisTree.LANZOU_URL.concat(url);
         String mapping = client.get(key);
         if (mapping == null) {
-            mapping = lanzouRequest.getResourceURL(url);
+            mapping = resourceStorage.getOriginalURL(url);
             if (mapping != null) {
                 client.set(key, mapping, 10, TimeUnit.MINUTES);
             }
