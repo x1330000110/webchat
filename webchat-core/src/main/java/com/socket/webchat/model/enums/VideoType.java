@@ -1,4 +1,4 @@
-package com.socket.webchat.request.bean;
+package com.socket.webchat.model.enums;
 
 import com.socket.webchat.request.VideoParseRequest;
 import com.socket.webchat.util.Enums;

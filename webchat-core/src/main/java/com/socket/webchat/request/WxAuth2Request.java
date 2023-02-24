@@ -6,6 +6,7 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.socket.secure.util.Assert;
 import com.socket.webchat.constant.properties.WxProperties;
+import com.socket.webchat.request.anno.WeChatRedirect;
 import com.socket.webchat.request.bean.WxUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

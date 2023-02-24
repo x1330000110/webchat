@@ -35,9 +35,9 @@ public enum RedisTree {
      */
     SETTING,
     /**
-     * lanzou云请求缓存
+     * 资源URL缓存
      */
-    LANZOU_URL,
+    RESOURCE_URL,
     /**
      * 禁言标记
      */

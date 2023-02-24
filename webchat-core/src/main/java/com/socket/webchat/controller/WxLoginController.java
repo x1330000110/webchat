@@ -7,7 +7,7 @@ import com.socket.webchat.constant.properties.WxProperties;
 import com.socket.webchat.model.SysUser;
 import com.socket.webchat.model.enums.HttpStatus;
 import com.socket.webchat.model.enums.RedisTree;
-import com.socket.webchat.request.WeChatRedirect;
+import com.socket.webchat.request.anno.WeChatRedirect;
 import com.socket.webchat.service.WxloginService;
 import com.socket.webchat.util.RedirectUtil;
 import com.socket.webchat.util.RedisClient;

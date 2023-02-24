@@ -30,7 +30,7 @@ public class Enums {
     }
 
     /**
-     * 获取Enum标准KEY以字符串的表现形式
+     * 获取Enum标准KEY字符串的表现形式
      */
     public static <E extends Enum<E>> String key(E item) {
         return StrUtil.toCamelCase(item.name().toLowerCase());

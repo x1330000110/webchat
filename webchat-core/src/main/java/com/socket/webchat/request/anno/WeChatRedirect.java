@@ -1,4 +1,4 @@
-package com.socket.webchat.request;
+package com.socket.webchat.request.anno;
 
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.stereotype.Controller;

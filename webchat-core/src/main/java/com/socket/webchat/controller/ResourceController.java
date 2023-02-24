@@ -6,7 +6,7 @@ import com.socket.webchat.model.condition.FileCondition;
 import com.socket.webchat.model.condition.URLCondition;
 import com.socket.webchat.model.enums.FileType;
 import com.socket.webchat.model.enums.HttpStatus;
-import com.socket.webchat.request.bean.VideoType;
+import com.socket.webchat.model.enums.VideoType;
 import com.socket.webchat.service.ResourceService;
 import com.socket.webchat.util.Enums;
 import lombok.RequiredArgsConstructor;

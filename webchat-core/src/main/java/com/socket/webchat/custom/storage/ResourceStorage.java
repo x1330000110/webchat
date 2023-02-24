@@ -21,20 +21,20 @@ public interface ResourceStorage {
     String upload(FileType type, byte[] bytes, String hash);
 
     /**
-     * 获取指定资源文件数据
+     * 下载指定资源文件
      *
      * @param url 资源地址
      * @return 文件数据
      */
     default byte[] download(String url) {
-        return HttpRequest.get(getOriginalURL(url))
-                .header(Header.USER_AGENT, USER_AGENT).
-                execute()
+        return HttpRequest.get(url)
+                .header(Header.USER_AGENT, USER_AGENT)
+                .execute()
                 .bodyBytes();
     }
 
     /**
-     * 获取指定URL的原始路径（如果有必要）
+     * 获取指定URL的原始路径（如果有）
      *
      * @param url 资源地址
      * @return 原始路径
