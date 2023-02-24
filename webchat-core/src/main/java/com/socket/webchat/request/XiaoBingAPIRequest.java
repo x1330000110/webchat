@@ -10,13 +10,13 @@ import cn.hutool.script.JavaScriptEngine;
 import com.socket.secure.util.Assert;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
 import org.springframework.util.concurrent.ListenableFuture;
 
-import javax.annotation.PostConstruct;
-import javax.script.ScriptException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
@@ -27,18 +27,9 @@ import java.io.InputStreamReader;
  */
 @Slf4j
 @Component
-public class XiaoBingAPIRequest {
+public class XiaoBingAPIRequest implements InitializingBean {
     private static final String UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36 Edg/103.0.1264.77";
     private JavaScriptEngine instance;
-
-    @PostConstruct
-    public void initJavaScriptEngine() throws ScriptException {
-        InputStream stream = getClass().getClassLoader().getResourceAsStream("static/bing.min.js");
-        Assert.notNull(stream, "找不到参数加密js文件，无法使用小冰API", IllegalStateException::new);
-        JavaScriptEngine instance = JavaScriptEngine.instance();
-        instance.eval(new InputStreamReader(stream));
-        this.instance = instance;
-    }
 
     /**
      * 发起小冰对话
@@ -65,5 +56,14 @@ public class XiaoBingAPIRequest {
     @SneakyThrows
     private String getEncryptString(String keyword) {
         return (String) instance.eval(StrUtil.format("a('{}','3d9d5f16-5df0-43d7-902e-19274eecdc41',256)", keyword));
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        InputStream stream = getClass().getClassLoader().getResourceAsStream("static/bing.min.js");
+        Assert.notNull(stream, "找不到BING参数加密文件，无法使用小冰API。", BeanCreationException::new);
+        JavaScriptEngine instance = JavaScriptEngine.instance();
+        instance.eval(new InputStreamReader(stream));
+        this.instance = instance;
     }
 }
