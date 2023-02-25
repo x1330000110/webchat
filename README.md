@@ -18,9 +18,9 @@ webchat-client -------> SocketEndpoint ----|                                    
                        |---> message
                        |                      | ------> BaiduSpeech
                        |---> resource --------| 
-------------           |                      | ------> ResourceStorage
-webchat-core ----------|---> group
-------------           |                      |---> admin
+--------------         |                      | ------> ResourceStorage
+webchat-server --------|---> group
+--------------         |                      |---> admin
                        |---> user ------------|
                        |                      |---> owner
                        |                                       | ------> wechat
@@ -43,12 +43,12 @@ webchat-secure --------|                                        | ----> ExpiredV
 
 必要的依赖信息
 
-* MySQL 5.7
-* Redis 6.2
-* Kafka 3.1
-* 系统邮箱
+* MySQL
+* Redis
+* Kafka
+* 系统邮箱账号
 * 微信公众号
-* FTP/LanzouYun（或自己重写资源储存方式）
+* FTP/Lanzou（或自己重写资源储存方式）
 
 #### 现支持的功能
 
