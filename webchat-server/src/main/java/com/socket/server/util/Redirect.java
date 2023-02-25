@@ -5,7 +5,7 @@ import com.socket.core.exception.RedirectException;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-public class Redirects {
+public class Redirect {
 
     /**
      * <code>TRUE</code>判定的转发操作
