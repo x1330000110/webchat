@@ -1,9 +1,9 @@
 package com.socket.client.manager;
 
-import com.socket.client.model.WsMsg;
-import com.socket.client.model.WsUser;
-import com.socket.webchat.model.SysGroup;
-import com.socket.webchat.model.command.Command;
+import com.socket.core.model.command.Command;
+import com.socket.core.model.po.SysGroup;
+import com.socket.core.model.ws.WsMsg;
+import com.socket.core.model.ws.WsUser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

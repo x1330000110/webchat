@@ -1,10 +1,10 @@
 package com.socket.client.command.group.impl;
 
 import com.socket.client.command.group.GroupChangeHandler;
-import com.socket.client.model.WsUser;
-import com.socket.webchat.model.SysGroup;
-import com.socket.webchat.model.SysGroupUser;
-import com.socket.webchat.model.command.impl.GroupEnum;
+import com.socket.core.model.command.impl.GroupEnum;
+import com.socket.core.model.po.SysGroup;
+import com.socket.core.model.po.SysGroupUser;
+import com.socket.core.model.ws.WsUser;
 import org.springframework.stereotype.Component;
 
 /**

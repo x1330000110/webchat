@@ -5,20 +5,21 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.socket.client.model.WsMsg;
-import com.socket.client.model.WsUser;
-import com.socket.webchat.constant.Constants;
-import com.socket.webchat.custom.RedisManager;
-import com.socket.webchat.mapper.SysUserMapper;
-import com.socket.webchat.model.ChatRecord;
-import com.socket.webchat.model.SysUser;
-import com.socket.webchat.model.SysUserLog;
-import com.socket.webchat.model.command.Command;
-import com.socket.webchat.model.command.impl.CommandEnum;
-import com.socket.webchat.model.enums.LogType;
-import com.socket.webchat.request.XiaoBingAPIRequest;
-import com.socket.webchat.service.ChatRecordService;
-import com.socket.webchat.service.SysUserLogService;
+import com.socket.client.request.BingAPIRequest;
+import com.socket.core.constant.Constants;
+import com.socket.core.constant.Topics;
+import com.socket.core.custom.RedisManager;
+import com.socket.core.mapper.SysUserMapper;
+import com.socket.core.model.command.Command;
+import com.socket.core.model.command.impl.CommandEnum;
+import com.socket.core.model.enums.LogType;
+import com.socket.core.model.po.ChatRecord;
+import com.socket.core.model.po.SysUser;
+import com.socket.core.model.po.SysUserLog;
+import com.socket.core.model.ws.WsMsg;
+import com.socket.core.model.ws.WsUser;
+import com.socket.core.service.ChatRecordService;
+import com.socket.core.service.SysUserLogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.subject.Subject;
@@ -28,7 +29,6 @@ import org.springframework.stereotype.Component;
 import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,9 +40,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
     private final KafkaTemplate<String, String> kafkaTemplate;
-    private final XiaoBingAPIRequest xiaoBingAPIRequest;
-    private final SysUserLogService logService;
-    private final ChatRecordService recordService;
+    private final BingAPIRequest bingAPIRequest;
+    private final SysUserLogService sysUserLogService;
+    private final ChatRecordService chatRecordService;
     private final SysUserMapper userMapper;
     private final RedisManager redisManager;
 
@@ -74,7 +74,7 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
         // 记录登录信息
         SysUserLog userLog = BeanUtil.copyProperties(user, SysUserLog.class);
         userLog.setIp(user.getIp());
-        logService.saveLog(userLog, LogType.LOGIN);
+        sysUserLogService.saveLog(userLog, LogType.LOGIN);
         return user;
     }
 
@@ -106,7 +106,7 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
     public void exit(WsUser user, String reason) {
         SysUserLog log = BeanUtil.copyProperties(user, SysUserLog.class);
         log.setIp(user.getIp());
-        logService.saveLog(log, LogType.LOGOUT);
+        sysUserLogService.saveLog(log, LogType.LOGOUT);
         user.logout(reason);
     }
 
@@ -143,7 +143,7 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
      * @param audio  是否包括语音消息
      */
     public void readAllMessage(String self, String target, boolean audio) {
-        recordService.readAllMessage(self, target, audio);
+        chatRecordService.readAllMessage(self, target, audio);
         redisManager.setUnreadCount(self, target, 0);
     }
 
@@ -166,7 +166,7 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
      * @param wsmsg  消息
      */
     public void sendAIMessage(WsUser target, WsMsg wsmsg) {
-        xiaoBingAPIRequest.dialogue(wsmsg.getContent()).addCallback(result -> {
+        bingAPIRequest.dialogue(wsmsg.getContent()).addCallback(result -> {
             if (result != null) {
                 // AI消息
                 WsMsg aimsg = new WsMsg(Constants.SYSTEM_UID, wsmsg.getGuid(), result, CommandEnum.TEXT);
@@ -185,9 +185,9 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
     public void cacheRecord(WsMsg wsmsg, boolean isread) {
         ChatRecord record = BeanUtil.copyProperties(wsmsg, ChatRecord.class);
         // 群组以外的语音消息始终未读
-        boolean audio = !wsmsg.isGroup() && Objects.equals(wsmsg.getType(), CommandEnum.AUDIO.getCommand());
+        boolean audio = !wsmsg.isGroup() && wsmsg.getType() == CommandEnum.AUDIO;
         record.setUnread(audio || !isread);
-        kafkaTemplate.send(Constants.KAFKA_RECORD, JSONUtil.toJsonStr(record));
+        kafkaTemplate.send(Topics.MESSAGE, JSONUtil.toJsonStr(record));
         // 目标列表添加发起者uid
         if (!isread) {
             redisManager.setUnreadCount(wsmsg.getTarget(), wsmsg.getGuid(), 1);

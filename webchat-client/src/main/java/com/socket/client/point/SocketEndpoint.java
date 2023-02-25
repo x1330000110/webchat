@@ -1,21 +1,19 @@
 package com.socket.client.point;
 
 import com.socket.client.config.SocketConfig;
-import com.socket.client.exception.SocketException;
 import com.socket.client.manager.PermissionManager;
 import com.socket.client.manager.SocketGroupMap;
 import com.socket.client.manager.SocketUserMap;
-import com.socket.client.model.WsMsg;
-import com.socket.client.model.WsUser;
-import com.socket.client.model.enums.OnlineState;
-import com.socket.client.util.Assert;
+import com.socket.core.constant.Constants;
+import com.socket.core.custom.support.SettingSupport;
+import com.socket.core.model.base.BaseUser;
+import com.socket.core.model.command.impl.CommandEnum;
+import com.socket.core.model.enums.OnlineState;
+import com.socket.core.model.enums.Setting;
+import com.socket.core.model.ws.WsMsg;
+import com.socket.core.model.ws.WsUser;
+import com.socket.core.util.Enums;
 import com.socket.secure.exception.InvalidRequestException;
-import com.socket.webchat.constant.Constants;
-import com.socket.webchat.custom.support.SettingSupport;
-import com.socket.webchat.model.BaseUser;
-import com.socket.webchat.model.command.impl.CommandEnum;
-import com.socket.webchat.model.enums.Setting;
-import com.socket.webchat.util.Enums;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -46,7 +44,7 @@ public class SocketEndpoint implements ApplicationContextAware {
         Optional.ofNullable(userMap.join(session, config.getUserProperties())).ifPresent(user -> {
             // 推送所有用户数据
             List<BaseUser> previews = permissionManager.getUserPreviews(user);
-            user.send(CommandEnum.INIT.getCommand(), CommandEnum.INIT, previews);
+            user.send(CommandEnum.INIT.name(), CommandEnum.INIT, previews);
             // 向其他人发送加入通知
             userMap.sendAll(CommandEnum.JOIN, user);
             // 检查禁言
@@ -70,10 +68,6 @@ public class SocketEndpoint implements ApplicationContextAware {
             log.warn("安全验证失败：{}", e.getMessage());
             return;
         }
-        if (e instanceof SocketException) {
-            log.warn("非法操作拦截：{}", e.getMessage());
-            return;
-        }
         e.printStackTrace();
     }
 
@@ -90,9 +84,8 @@ public class SocketEndpoint implements ApplicationContextAware {
     }
 
     public void parseSysMsg(WsMsg wsmsg) {
-        CommandEnum command = Enums.of(CommandEnum.class, wsmsg.getType());
         String target = wsmsg.getTarget();
-        switch (command) {
+        switch ((CommandEnum) wsmsg.getType()) {
             case CHANGE:
                 this.onlineChange(wsmsg.getContent());
                 break;
@@ -112,53 +105,24 @@ public class SocketEndpoint implements ApplicationContextAware {
         }
     }
 
-    public void parseUserMsg(WsMsg wsmsg) {
-        // 禁言状态无法发送消息
-        Assert.isFalse(permissionManager.isMute(self), "您已被禁言，请稍后再试");
-        // 所有者全员禁言检查
-        if (settingSupport.getSetting(Setting.ALL_MUTE) && !self.isOwner()) {
-            self.reject("所有者开启了全员禁言", wsmsg);
-            return;
-        }
-        // 检查目标是否存在
-        String tuid = wsmsg.getTarget();
-        if (permissionManager.notHas(tuid)) {
-            self.reject("目标用户/群组不存在", wsmsg);
-            return;
-        }
-        // 消息检查
-        boolean sensitive = settingSupport.getSetting(Setting.SENSITIVE_WORDS);
-        if (!permissionManager.verifyMessage(self, wsmsg, sensitive)) {
-            return;
-        }
-        // 发言标记
-        permissionManager.operateMark(self);
-        // 群组消息
-        if (wsmsg.isGroup()) {
-            groupMap.sendGroup(wsmsg);
-            userMap.cacheRecord(wsmsg, true);
-            return;
-        }
-        // 你屏蔽了目标
+    /**
+     * WebRTC消息处理
+     */
+    private void forwardWebRTC(String tuid, WsMsg wsmsg) {
         WsUser target = userMap.get(tuid);
-        Assert.isFalse(permissionManager.shield(self, target), "意外的错误，你在屏蔽对方时发送了消息");
-        try {
-            // 目标屏蔽了你
-            if (permissionManager.shield(target, self)) {
-                self.reject("消息未送达，您已被目标用户屏蔽", wsmsg);
-                return;
-            }
-            // 发送至目标
-            target.send(wsmsg);
-            self.send(wsmsg);
-            // AI消息智能回复
-            if (settingSupport.getSetting(Setting.AI_MESSAGE)) {
-                this.parseAiMessage(wsmsg);
-            }
-        } finally {
-            // 已读条件：消息未送达，目标是群组，目标正在选择你
-            userMap.cacheRecord(wsmsg, wsmsg.isReject() || wsmsg.isGroup() || target.chooseTarget(self));
+        // 目标用户空 忽略
+        if (target == null) {
+            return;
         }
+        // 屏蔽检查
+        if (permissionManager.shield(self, target)) {
+            self.reject("您已屏蔽目标用户", wsmsg);
+            return;
+        }
+        if (permissionManager.shield(target, self)) {
+            self.send("对方屏蔽了你", CommandEnum.ERROR);
+        }
+        target.send(wsmsg);
     }
 
     /**
@@ -186,21 +150,59 @@ public class SocketEndpoint implements ApplicationContextAware {
         }
     }
 
-    /**
-     * WebRTC消息处理
-     */
-    private void forwardWebRTC(String tuid, WsMsg wsmsg) {
-        WsUser target = userMap.get(tuid);
-        // 目标用户空 忽略
-        if (target == null) {
+    public void parseUserMsg(WsMsg wsmsg) {
+        // 禁言状态无法发送消息
+        if (permissionManager.isMute(self)) {
+            self.reject("您已被禁言，请稍后再试", wsmsg);
             return;
         }
-        // 屏蔽检查
-        Assert.isFalse(permissionManager.shield(self, target), "屏蔽目标时无法发起通话请求");
-        if (permissionManager.shield(target, self)) {
-            self.send("对方屏蔽了你", CommandEnum.ERROR);
+        // 所有者全员禁言检查
+        if (settingSupport.getSetting(Setting.ALL_MUTE) && !self.isOwner()) {
+            self.reject("所有者开启了全员禁言", wsmsg);
+            return;
         }
-        target.send(wsmsg);
+        // 检查目标是否存在
+        String tuid = wsmsg.getTarget();
+        if (permissionManager.notHas(tuid)) {
+            self.reject("目标用户/群组不存在", wsmsg);
+            return;
+        }
+        // 消息检查
+        boolean sensitive = settingSupport.getSetting(Setting.SENSITIVE_WORDS);
+        if (!permissionManager.verifyMessage(self, wsmsg, sensitive)) {
+            return;
+        }
+        // 发言标记
+        permissionManager.operateMark(self);
+        // 群组消息
+        if (wsmsg.isGroup()) {
+            groupMap.sendGroup(wsmsg);
+            userMap.cacheRecord(wsmsg, true);
+            return;
+        }
+        // 你屏蔽了目标
+        WsUser target = userMap.get(tuid);
+        if (permissionManager.shield(self, target)) {
+            self.reject("您已屏蔽目标用户", wsmsg);
+            return;
+        }
+        try {
+            // 目标屏蔽了你
+            if (permissionManager.shield(target, self)) {
+                self.reject("消息未送达，您已被目标用户屏蔽", wsmsg);
+                return;
+            }
+            // 发送至目标
+            target.send(wsmsg);
+            self.send(wsmsg);
+            // AI消息智能回复
+            if (settingSupport.getSetting(Setting.AI_MESSAGE)) {
+                this.parseAiMessage(wsmsg);
+            }
+        } finally {
+            // 已读条件：消息未送达，目标是群组，目标正在选择你
+            userMap.cacheRecord(wsmsg, wsmsg.isReject() || wsmsg.isGroup() || target.chooseTarget(self));
+        }
     }
 
     /**
@@ -208,7 +210,7 @@ public class SocketEndpoint implements ApplicationContextAware {
      */
     private void parseAiMessage(WsMsg wsmsg) {
         boolean sysuid = Constants.SYSTEM_UID.equals(wsmsg.getTarget());
-        boolean text = CommandEnum.TEXT.match(wsmsg.getType());
+        boolean text = CommandEnum.TEXT == wsmsg.getType();
         // 判断AI消息
         if (sysuid && text && !userMap.get(Constants.SYSTEM_UID).isOnline()) {
             userMap.sendAIMessage(self, wsmsg);

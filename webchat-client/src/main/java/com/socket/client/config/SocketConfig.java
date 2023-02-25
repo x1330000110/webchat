@@ -1,6 +1,6 @@
 package com.socket.client.config;
 
-import com.socket.webchat.constant.Constants;
+import com.socket.core.constant.Constants;
 import org.apache.shiro.SecurityUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

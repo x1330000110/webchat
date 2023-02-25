@@ -1,21 +1,22 @@
 package com.socket.client.manager;
 
 import cn.hutool.core.util.StrUtil;
-import com.socket.client.custom.support.KeywordSupport;
-import com.socket.client.model.GroupPreview;
-import com.socket.client.model.UserPreview;
-import com.socket.client.model.WsMsg;
-import com.socket.client.model.WsUser;
-import com.socket.webchat.constant.Constants;
-import com.socket.webchat.custom.RedisManager;
-import com.socket.webchat.mapper.SysGroupMapper;
-import com.socket.webchat.mapper.SysGroupUserMapper;
-import com.socket.webchat.mapper.SysUserMapper;
-import com.socket.webchat.model.*;
-import com.socket.webchat.model.command.impl.PermissionEnum;
-import com.socket.webchat.service.ChatRecordService;
-import com.socket.webchat.service.SysUserLogService;
-import com.socket.webchat.util.Wss;
+import com.socket.client.custom.KeywordSupport;
+import com.socket.core.constant.Constants;
+import com.socket.core.custom.RedisManager;
+import com.socket.core.mapper.SysGroupMapper;
+import com.socket.core.mapper.SysGroupUserMapper;
+import com.socket.core.mapper.SysUserMapper;
+import com.socket.core.model.base.BaseUser;
+import com.socket.core.model.command.impl.PermissionEnum;
+import com.socket.core.model.po.*;
+import com.socket.core.model.ws.GroupPreview;
+import com.socket.core.model.ws.UserPreview;
+import com.socket.core.model.ws.WsMsg;
+import com.socket.core.model.ws.WsUser;
+import com.socket.core.service.ChatRecordService;
+import com.socket.core.service.SysUserLogService;
+import com.socket.core.util.Wss;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
@@ -39,7 +40,7 @@ public class PermissionManager implements InitializingBean {
     private final SysGroupUserMapper sysGroupUserMapper;
     private final SysUserLogService sysUserLogService;
     private final SysGroupMapper sysGroupMapper;
-    private final ChatRecordService recordService;
+    private final ChatRecordService chatRecordService;
     private final SysUserMapper sysUserMapper;
 
     private final RedisManager redisManager;
@@ -56,7 +57,7 @@ public class PermissionManager implements InitializingBean {
         // 消息发起者
         String suid = self.getGuid();
         // 与此用户关联的最新未读消息
-        Map<String, ChatRecord> unreadMessages = recordService.getLatestUnreadMessages(suid);
+        Map<String, ChatRecord> unreadMessages = chatRecordService.getLatestUnreadMessages(suid);
         // 登录记录
         Map<String, SysUserLog> logs = sysUserLogService.getLatestUserLogs();
         // 链接数据

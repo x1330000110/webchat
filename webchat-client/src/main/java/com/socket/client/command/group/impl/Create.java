@@ -1,8 +1,8 @@
 package com.socket.client.command.group.impl;
 
 import com.socket.client.command.group.GroupChangeHandler;
-import com.socket.webchat.model.SysGroup;
-import com.socket.webchat.model.SysGroupUser;
+import com.socket.core.model.po.SysGroup;
+import com.socket.core.model.po.SysGroupUser;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
