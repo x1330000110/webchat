@@ -15,8 +15,9 @@ WebScoket消息发送，重要API接口已被加密，有关HTTP数据加密/验
 webchat-client -------> SocketEndpoint ----|                                                    |
 --------------                             |----> SettingSupport                                | -----> PermissCommandParser
 
-                       |---> message
-                       |                      | ------> BaiduSpeech
+       ⇑
+ [webchat-core]        |---> message
+       ⇓               |                      | ------> BaiduSpeech
                        |---> resource --------| 
 --------------         |                      | ------> ResourceStorage
 webchat-server --------|---> group
