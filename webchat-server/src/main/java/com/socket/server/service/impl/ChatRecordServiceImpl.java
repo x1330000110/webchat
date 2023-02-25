@@ -25,7 +25,7 @@ import com.socket.core.util.DbUtil;
 import com.socket.core.util.ShiroUser;
 import com.socket.core.util.Wss;
 import com.socket.secure.util.Assert;
-import com.socket.server.publisher.CommandPublisher;
+import com.socket.server.custom.publisher.CommandPublisher;
 import com.socket.server.service.ChatRecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

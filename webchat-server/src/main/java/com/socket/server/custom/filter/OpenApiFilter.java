@@ -1,7 +1,7 @@
-package com.socket.server.filter;
+package com.socket.server.custom.filter;
 
 import com.socket.core.constant.Constants;
-import com.socket.server.filter.anno.OpenApi;
+import com.socket.server.custom.filter.anno.OpenApi;
 import lombok.RequiredArgsConstructor;
 import org.apache.shiro.web.util.WebUtils;
 import org.springframework.stereotype.Component;

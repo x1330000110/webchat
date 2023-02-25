@@ -1,10 +1,10 @@
 package com.socket.server.config;
 
+import com.socket.server.custom.storage.ResourceStorage;
+import com.socket.server.custom.storage.impl.FTPResourceStorage;
 import com.socket.server.properties.FTPProperties;
 import com.socket.server.properties.LanzouProperties;
 import com.socket.server.request.LanzouCloudRequest;
-import com.socket.server.storage.ResourceStorage;
-import com.socket.server.storage.impl.FTPResourceStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

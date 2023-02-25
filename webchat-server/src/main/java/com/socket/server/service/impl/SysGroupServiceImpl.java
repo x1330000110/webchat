@@ -18,7 +18,7 @@ import com.socket.core.model.po.SysGroupUser;
 import com.socket.core.util.Bcrypt;
 import com.socket.core.util.ShiroUser;
 import com.socket.secure.util.Assert;
-import com.socket.server.publisher.CommandPublisher;
+import com.socket.server.custom.publisher.CommandPublisher;
 import com.socket.server.service.SysGroupService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

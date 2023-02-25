@@ -20,7 +20,7 @@ import com.socket.core.util.ShiroUser;
 import com.socket.secure.exception.InvalidRequestException;
 import com.socket.secure.filter.anno.Encrypted;
 import com.socket.secure.util.Assert;
-import com.socket.server.publisher.CommandPublisher;
+import com.socket.server.custom.publisher.CommandPublisher;
 import com.socket.server.service.ChatRecordService;
 import com.socket.server.service.SysUserService;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package com.socket.server.filter.anno;
+package com.socket.server.custom.filter.anno;
 
 import java.lang.annotation.*;
 

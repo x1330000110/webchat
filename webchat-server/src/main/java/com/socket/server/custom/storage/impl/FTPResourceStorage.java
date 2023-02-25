@@ -1,12 +1,12 @@
-package com.socket.server.storage.impl;
+package com.socket.server.custom.storage.impl;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.ftp.Ftp;
 import cn.hutool.extra.ftp.FtpMode;
 import com.socket.core.model.enums.FileType;
+import com.socket.server.custom.storage.ResourceStorage;
 import com.socket.server.properties.FTPProperties;
-import com.socket.server.storage.ResourceStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
