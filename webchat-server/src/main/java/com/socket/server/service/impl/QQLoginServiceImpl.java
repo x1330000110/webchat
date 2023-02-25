@@ -9,7 +9,7 @@ import com.socket.core.model.condition.LoginCondition;
 import com.socket.core.model.condition.RegisterCondition;
 import com.socket.core.model.enums.HttpStatus;
 import com.socket.core.model.po.SysUser;
-import com.socket.server.request.QQRequest;
+import com.socket.server.request.QQAuthRequest;
 import com.socket.server.request.vo.QQAuthReq;
 import com.socket.server.request.vo.QQAuthResp;
 import com.socket.server.request.vo.QQUser;
@@ -24,14 +24,14 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class QQLoginServiceImpl implements QQLoginService {
     private final SysUserService sysUserService;
-    private final QQRequest qqRequest;
+    private final QQAuthRequest qqAuthRequest;
 
     public QQAuthReq getLoginAuth() {
-        return qqRequest.getAuth();
+        return qqAuthRequest.getAuth();
     }
 
     public HttpStatus state(String qrsig) {
-        QQAuthResp verify = qqRequest.verifyAuth(qrsig);
+        QQAuthResp verify = qqAuthRequest.verifyAuth(qrsig);
         String state = verify.getState();
         if ("未失效".equals(state) || "认证中".equals(state)) {
             return HttpStatus.WAITTING.body("等待访问");
@@ -52,7 +52,7 @@ public class QQLoginServiceImpl implements QQLoginService {
             // 注册
             RegisterCondition condition = new RegisterCondition();
             // 获取qq信息
-            QQUser info = qqRequest.getInfo(uin.replace("o", ""));
+            QQUser info = qqAuthRequest.getInfo(uin.replace("o", ""));
             if (info != null) {
                 if (!info.getName().isEmpty()) {
                     condition.setName(StrUtil.sub(info.getName().trim(), 0, 6));
