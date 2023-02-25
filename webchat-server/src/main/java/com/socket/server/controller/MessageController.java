@@ -7,6 +7,7 @@ import com.socket.core.model.po.ChatRecord;
 import com.socket.core.util.ShiroUser;
 import com.socket.secure.filter.anno.Encrypted;
 import com.socket.secure.util.AES;
+import com.socket.server.filter.anno.OpenApi;
 import com.socket.server.service.ChatRecordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -66,6 +67,7 @@ public class MessageController {
         return HttpStatus.SUCCESS.body(collect);
     }
 
+    @OpenApi
     @GetMapping("/latest")
     public HttpStatus getLatest() {
         String userId = ShiroUser.getUserId();
