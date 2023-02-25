@@ -57,7 +57,7 @@ public class PermissionManager implements InitializingBean {
         // 与此用户关联的最新未读消息
         Map<String, ChatRecord> latest = chatRecordApi.getLatest().getData();
         // 登录记录
-        Map<String, SysUserLog> logs = sysUserLogApi.getLatestUserLogs().getData();
+        Map<String, SysUserLog> logs = sysUserLogApi.getLatest().getData();
         // 链接数据
         List<BaseUser> previews = new ArrayList<>();
         for (SocketUser user : userManager.values()) {
