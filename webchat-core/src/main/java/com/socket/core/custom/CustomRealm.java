@@ -42,7 +42,7 @@ import java.util.Optional;
 public class CustomRealm extends AuthorizingRealm {
     private final SysUserLogMapper sysUserLogMapper;
     private final SysUserMapper sysUserMapper;
-    private final IPAddrRequest ipRequest;
+    private final IPAddrRequest ipAddrRequest;
     private final RedisClient<?> redis;
 
     /**
@@ -134,7 +134,7 @@ public class CustomRealm extends AuthorizingRealm {
             String remoteIP = Requests.getRemoteIP();
             if (!Objects.equals(log.getIp(), remoteIP)) {
                 // IP所属是否相同
-                boolean offsite = Objects.equals(log.getProvince(), ipRequest.getProvince(remoteIP));
+                boolean offsite = Objects.equals(log.getProvince(), ipAddrRequest.getProvince(remoteIP));
                 // 返回的异常为脱敏的绑定邮箱信息
                 String email = DesensitizedUtil.email(user.getEmail());
                 Assert.isTrue(offsite, email, OffsiteLoginException::new);

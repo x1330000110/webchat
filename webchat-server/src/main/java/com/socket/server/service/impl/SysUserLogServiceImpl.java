@@ -20,12 +20,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SysUserLogServiceImpl extends ServiceImpl<SysUserLogMapper, SysUserLog> implements SysUserLogService {
     private final SysUserLogMapper sysUserLogMapper;
-    private final IPAddrRequest ipRequest;
+    private final IPAddrRequest ipAddrRequest;
 
     @Override
     public void saveLog(SysUserLog log, LogType type) {
         Optional.ofNullable(type).ifPresent(e -> log.setType(Enums.key(e)));
-        log.setProvince(ipRequest.getProvince(log.getIp()));
+        log.setProvince(ipAddrRequest.getProvince(log.getIp()));
         log.setCreateTime(null);
         log.setUpdateTime(null);
         save(log);
