@@ -5,7 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.socket.client.custom.BingAPIRequest;
+import com.socket.client.custom.XiaoBingRequest;
 import com.socket.client.open.ChatRecordApi;
 import com.socket.client.open.SysUserLogApi;
 import com.socket.core.constant.Constants;
@@ -42,7 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class UserManager extends ConcurrentHashMap<String, SocketUser> {
     private final KafkaTemplate<String, String> kafkaTemplate;
-    private final BingAPIRequest bingAPIRequest;
+    private final XiaoBingRequest xiaoBingRequest;
     private final RedisManager redisManager;
     private final SysUserLogApi sysUserLogApi;
     private final ChatRecordApi chatRecordApi;
@@ -173,7 +173,7 @@ public class UserManager extends ConcurrentHashMap<String, SocketUser> {
      * @param message 消息
      */
     public void sendAIMessage(SocketUser target, SocketMessage message) {
-        bingAPIRequest.dialogue(message.getContent()).addCallback(result -> {
+        xiaoBingRequest.dialogue(message.getContent()).addCallback(result -> {
             if (result != null) {
                 // AI消息
                 SocketMessage aimsg = new SocketMessage(Constants.SYSTEM_UID, message.getGuid(), result, CommandEnum.TEXT);

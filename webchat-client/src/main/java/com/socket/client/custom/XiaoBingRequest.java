@@ -27,7 +27,7 @@ import java.io.InputStreamReader;
  */
 @Slf4j
 @Component
-public class BingAPIRequest implements InitializingBean {
+public class XiaoBingRequest implements InitializingBean {
     private static final String UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36 Edg/103.0.1264.77";
     private JavaScriptEngine instance;
 
