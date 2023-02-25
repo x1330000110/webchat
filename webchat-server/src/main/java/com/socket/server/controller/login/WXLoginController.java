@@ -3,10 +3,9 @@ package com.socket.server.controller.login;
 import cn.hutool.core.codec.Base64;
 import cn.hutool.http.ContentType;
 import com.socket.core.constant.Constants;
+import com.socket.core.custom.RedisManager;
 import com.socket.core.model.enums.HttpStatus;
-import com.socket.core.model.enums.RedisTree;
 import com.socket.core.model.po.SysUser;
-import com.socket.core.util.RedisClient;
 import com.socket.server.properties.WxProperties;
 import com.socket.server.request.anno.WeChatRedirect;
 import com.socket.server.service.WxloginService;
@@ -23,7 +22,7 @@ import java.nio.charset.StandardCharsets;
 public class WXLoginController {
     private final WxloginService wxloginService;
     private final WxProperties properties;
-    private final RedisClient<?> redis;
+    private final RedisManager redis;
 
     @PostMapping("/state/{uuid}")
     public HttpStatus state(@PathVariable String uuid) {
@@ -54,7 +53,7 @@ public class WXLoginController {
         // 永久限制登录
         Redirect.redirectIf(user.isDeleted(), response, url + "/status/failed.html?key=lock");
         // 临时限制登录
-        long time = redis.getExpired(RedisTree.LOCK.concat(user.getGuid()));
+        long time = redis.getLockTime(user.getGuid());
         Redirect.redirectIf(time > 0, response, url + "/status/failed.html?key=lock&time=" + time);
         // 手机扫码登录处理
         Redirect.redirectIf(!wxMobile, response, url + "/status/success.html");
