@@ -53,6 +53,7 @@ public class SecureCore {
         // Generate rsa keys
         KeyPair keyPair = RSA.generateKeyPair();
         byte[] pubkey = keyPair.getPublic().getEncoded();
+        String signature = generator.generatePublicKeySignature(pubkey);
         String digest = Hmac.SHA1.digestHex(request, Base64.encode(pubkey));
         String base64Prikey = Base64.encode(keyPair.getPrivate().getEncoded());
         // Hmac sha1 save the corresponding private key
@@ -66,7 +67,7 @@ public class SecureCore {
             for (int i = 0; i <= count; i++) {
                 boolean hit = i == random;
                 byte[] bytes = hit ? pubkey : Randoms.randomBytes(pubkey.length);
-                String name = hit ? generator.generatePublicKeySignature(bytes) : Randoms.randomHex(96);
+                String name = hit ? signature : Randoms.randomHex(signature.length());
                 ZipEntry entry = new ZipEntry(name);
                 // Signature of the file name
                 String sign = generator.generateFileNameSignature(name);
