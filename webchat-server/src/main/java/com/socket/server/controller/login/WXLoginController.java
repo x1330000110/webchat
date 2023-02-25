@@ -27,7 +27,10 @@ public class WXLoginController {
     @PostMapping("/state/{uuid}")
     public HttpStatus state(@PathVariable String uuid) {
         boolean state = wxloginService.login(uuid);
-        return HttpStatus.of(state, "登录成功", "等待访问");
+        if (state) {
+            return HttpStatus.SUCCESS.message("登录成功");
+        }
+        return HttpStatus.WAITTING.message("等待访问");
     }
 
     @GetMapping("/qrcode/{uuid}")
