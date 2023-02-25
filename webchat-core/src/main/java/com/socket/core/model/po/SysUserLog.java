@@ -1,7 +1,6 @@
 package com.socket.core.model.po;
 
 import com.socket.core.model.base.BaseModel;
-import com.socket.core.model.enums.LogType;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -28,7 +27,7 @@ public class SysUserLog extends BaseModel {
     /**
      * 日志类型
      */
-    private LogType type;
+    private String type;
     /**
      * 登录平台
      */

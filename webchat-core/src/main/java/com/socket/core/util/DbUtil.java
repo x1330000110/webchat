@@ -7,7 +7,7 @@ import cn.hutool.core.util.StrUtil;
 /**
  * mybatis plus扩展工具类
  */
-public class DBUtil {
+public class DbUtil {
     /**
      * mybatis group by max合成字符串
      */

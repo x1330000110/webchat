@@ -1,7 +1,9 @@
-package com.socket.client.manager;
+package com.socket.client.core;
 
 import cn.hutool.core.util.StrUtil;
 import com.socket.client.custom.KeywordSupport;
+import com.socket.client.open.ChatRecordApi;
+import com.socket.client.open.SysUserLogApi;
 import com.socket.core.constant.Constants;
 import com.socket.core.custom.RedisManager;
 import com.socket.core.mapper.SysGroupMapper;
@@ -14,8 +16,6 @@ import com.socket.core.model.ws.GroupPreview;
 import com.socket.core.model.ws.UserPreview;
 import com.socket.core.model.ws.WsMsg;
 import com.socket.core.model.ws.WsUser;
-import com.socket.core.service.ChatRecordService;
-import com.socket.core.service.SysUserLogService;
 import com.socket.core.util.Wss;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,9 +38,9 @@ public class PermissionManager implements InitializingBean {
     private final KeywordSupport keywordSupport;
 
     private final SysGroupUserMapper sysGroupUserMapper;
-    private final SysUserLogService sysUserLogService;
+    private final SysUserLogApi sysUserLogService;
     private final SysGroupMapper sysGroupMapper;
-    private final ChatRecordService chatRecordService;
+    private final ChatRecordApi chatRecordService;
     private final SysUserMapper sysUserMapper;
 
     private final RedisManager redisManager;
@@ -57,9 +57,9 @@ public class PermissionManager implements InitializingBean {
         // 消息发起者
         String suid = self.getGuid();
         // 与此用户关联的最新未读消息
-        Map<String, ChatRecord> unreadMessages = chatRecordService.getLatestUnreadMessages(suid);
+        Map<String, ChatRecord> unreadMessages = chatRecordService.getLatest().getData();
         // 登录记录
-        Map<String, SysUserLog> logs = sysUserLogService.getLatestUserLogs();
+        Map<String, SysUserLog> logs = sysUserLogService.getLatestUserLogs().getData();
         // 链接数据
         List<BaseUser> previews = new ArrayList<>();
         for (WsUser user : userMap.values()) {

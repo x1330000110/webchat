@@ -4,15 +4,16 @@ import cn.hutool.json.JSONUtil;
 import com.socket.core.model.condition.MessageCondition;
 import com.socket.core.model.enums.HttpStatus;
 import com.socket.core.model.po.ChatRecord;
-import com.socket.core.service.ChatRecordService;
 import com.socket.core.util.ShiroUser;
 import com.socket.secure.filter.anno.Encrypted;
 import com.socket.secure.util.AES;
+import com.socket.server.service.ChatRecordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -34,7 +35,8 @@ public class MessageController {
         if (condition.getMid() != null) {
             chatRecordService.readMessage(condition.getMid(), condition.getTarget());
         } else {
-            chatRecordService.readAllMessage(ShiroUser.getUserId(), condition.getTarget(), true);
+            boolean audio = Boolean.TRUE.equals(condition.getAudio());
+            chatRecordService.readAllMessage(ShiroUser.getUserId(), condition.getTarget(), audio);
         }
         return HttpStatus.SUCCESS.message("操作成功");
     }
@@ -53,7 +55,7 @@ public class MessageController {
         return HttpStatus.state(state, "操作");
     }
 
-    @GetMapping("")
+    @GetMapping("/")
     public HttpStatus records(String mid, String target, HttpSession session) {
         List<ChatRecord> list = chatRecordService.getRecords(mid, target);
         // 加密消息
@@ -62,5 +64,12 @@ public class MessageController {
                 .map(json -> AES.encrypt(json, session))
                 .collect(Collectors.toList());
         return HttpStatus.SUCCESS.body(collect);
+    }
+
+    @GetMapping("/latest")
+    public HttpStatus getLatest() {
+        String userId = ShiroUser.getUserId();
+        Map<String, ChatRecord> map = chatRecordService.getLatestUnreadMessages(userId);
+        return HttpStatus.SUCCESS.body(map);
     }
 }

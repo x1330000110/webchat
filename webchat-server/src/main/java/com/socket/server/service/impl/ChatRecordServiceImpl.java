@@ -1,4 +1,4 @@
-package com.socket.core.service.impl;
+package com.socket.server.service.impl;
 
 import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
@@ -22,11 +22,11 @@ import com.socket.core.model.command.impl.PermissionEnum;
 import com.socket.core.model.po.ChatRecord;
 import com.socket.core.model.po.ChatRecordDeleted;
 import com.socket.core.model.po.ChatRecordOffset;
-import com.socket.core.service.ChatRecordService;
-import com.socket.core.util.DBUtil;
+import com.socket.core.util.DbUtil;
 import com.socket.core.util.ShiroUser;
 import com.socket.core.util.Wss;
 import com.socket.secure.util.Assert;
+import com.socket.server.service.ChatRecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -168,7 +168,7 @@ public class ChatRecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRec
     public void removeAllMessage(String target) {
         String guid = ShiroUser.getUserId();
         QueryWrapper<ChatRecord> wrapper = Wrappers.query();
-        wrapper.select(DBUtil.selectMax(BaseModel::getId));
+        wrapper.select(DbUtil.selectMax(BaseModel::getId));
         LambdaQueryWrapper<ChatRecord> lambda = wrapper.lambda();
         // 群组特殊条件
         if (Wss.isGroup(target)) {

@@ -1,7 +1,7 @@
 package com.socket.client.command.user;
 
 import com.socket.client.command.CommandHandler;
-import com.socket.client.manager.SocketUserMap;
+import com.socket.client.core.SocketUserMap;
 import com.socket.core.model.command.topic.UserChangeTopic;
 import com.socket.core.model.ws.WsUser;
 import org.springframework.beans.factory.annotation.Autowired;

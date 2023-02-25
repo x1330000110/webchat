@@ -1,16 +1,18 @@
-package com.socket.core.service.impl;
+package com.socket.server.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.core.mapper.SysUserLogMapper;
 import com.socket.core.model.enums.LogType;
 import com.socket.core.model.po.SysUserLog;
 import com.socket.core.request.IPRequest;
-import com.socket.core.service.SysUserLogService;
+import com.socket.core.util.Enums;
+import com.socket.server.service.SysUserLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -22,9 +24,8 @@ public class SysUserLogServiceImpl extends ServiceImpl<SysUserLogMapper, SysUser
 
     @Override
     public void saveLog(SysUserLog log, LogType type) {
-        String ip = log.getIp();
-        log.setType(type);
-        log.setProvince(ipRequest.getProvince(ip));
+        Optional.ofNullable(type).ifPresent(e -> log.setType(Enums.key(e)));
+        log.setProvince(ipRequest.getProvince(log.getIp()));
         log.setCreateTime(null);
         log.setUpdateTime(null);
         save(log);

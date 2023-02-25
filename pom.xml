@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.2</version>
+        <version>2.2.5.RELEASE</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -36,7 +36,7 @@
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-web</artifactId>
-                <version>2.7.2</version>
+                <version>2.2.5.RELEASE</version>
             </dependency>
 
             <dependency>
@@ -109,7 +109,25 @@
             <dependency>
                 <groupId>org.springframework.kafka</groupId>
                 <artifactId>spring-kafka</artifactId>
-                <version>2.9.0</version>
+                <version>2.3.2.RELEASE</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-openfeign</artifactId>
+                <version>2.2.5.RELEASE</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+                <version>2.2.5.RELEASE</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+                <version>2.2.5.RELEASE</version>
             </dependency>
 
             <dependency>
@@ -120,4 +138,11 @@
 
         </dependencies>
     </dependencyManagement>
+
+    <repositories>
+        <repository>
+            <id>aliyun-releases</id>
+            <url>https://maven.aliyun.com/nexus/content/repositories/central/</url>
+        </repository>
+    </repositories>
 </project>

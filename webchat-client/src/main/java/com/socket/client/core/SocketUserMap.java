@@ -1,10 +1,12 @@
-package com.socket.client.manager;
+package com.socket.client.core;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.socket.client.open.ChatRecordApi;
+import com.socket.client.open.SysUserLogApi;
 import com.socket.client.request.BingAPIRequest;
 import com.socket.core.constant.Constants;
 import com.socket.core.constant.Topics;
@@ -12,14 +14,14 @@ import com.socket.core.custom.RedisManager;
 import com.socket.core.mapper.SysUserMapper;
 import com.socket.core.model.command.Command;
 import com.socket.core.model.command.impl.CommandEnum;
+import com.socket.core.model.condition.MessageCondition;
 import com.socket.core.model.enums.LogType;
 import com.socket.core.model.po.ChatRecord;
 import com.socket.core.model.po.SysUser;
 import com.socket.core.model.po.SysUserLog;
 import com.socket.core.model.ws.WsMsg;
 import com.socket.core.model.ws.WsUser;
-import com.socket.core.service.ChatRecordService;
-import com.socket.core.service.SysUserLogService;
+import com.socket.core.util.Enums;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.subject.Subject;
@@ -41,8 +43,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final BingAPIRequest bingAPIRequest;
-    private final SysUserLogService sysUserLogService;
-    private final ChatRecordService chatRecordService;
+    private final SysUserLogApi sysUserLogService;
+    private final ChatRecordApi chatRecordService;
     private final SysUserMapper userMapper;
     private final RedisManager redisManager;
 
@@ -74,7 +76,8 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
         // 记录登录信息
         SysUserLog userLog = BeanUtil.copyProperties(user, SysUserLog.class);
         userLog.setIp(user.getIp());
-        sysUserLogService.saveLog(userLog, LogType.LOGIN);
+        userLog.setType(Enums.key(LogType.LOGIN));
+        sysUserLogService.saveLog(userLog);
         return user;
     }
 
@@ -106,7 +109,8 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
     public void exit(WsUser user, String reason) {
         SysUserLog log = BeanUtil.copyProperties(user, SysUserLog.class);
         log.setIp(user.getIp());
-        sysUserLogService.saveLog(log, LogType.LOGOUT);
+        log.setType(Enums.key(LogType.LOGOUT));
+        sysUserLogService.saveLog(log);
         user.logout(reason);
     }
 
@@ -143,7 +147,11 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
      * @param audio  是否包括语音消息
      */
     public void readAllMessage(String self, String target, boolean audio) {
-        chatRecordService.readAllMessage(self, target, audio);
+        MessageCondition condition = new MessageCondition();
+        condition.setGuid(self);
+        condition.setTarget(target);
+        condition.setAudio(audio);
+        chatRecordService.readAllMessage(condition);
         redisManager.setUnreadCount(self, target, 0);
     }
 

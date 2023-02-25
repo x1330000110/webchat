@@ -1,4 +1,4 @@
-package com.socket.core.service;
+package com.socket.server.service;
 
 import com.baomidou.mybatisplus.core.conditions.AbstractWrapper;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;

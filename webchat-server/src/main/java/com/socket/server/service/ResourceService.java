@@ -5,7 +5,6 @@ import com.socket.core.model.condition.FileCondition;
 import com.socket.core.model.condition.URLCondition;
 import com.socket.core.model.enums.FileType;
 import com.socket.core.model.po.ChatRecordFile;
-import com.socket.core.service.BaseService;
 
 import java.io.IOException;
 

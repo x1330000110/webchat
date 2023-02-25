@@ -1,4 +1,4 @@
-package com.socket.client.manager;
+package com.socket.client.core;
 
 import com.socket.core.model.command.Command;
 import com.socket.core.model.po.SysGroup;

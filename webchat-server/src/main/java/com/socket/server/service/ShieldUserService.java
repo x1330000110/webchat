@@ -1,7 +1,6 @@
 package com.socket.server.service;
 
 import com.socket.core.model.po.ShieldUser;
-import com.socket.core.service.BaseService;
 
 public interface ShieldUserService extends BaseService<ShieldUser> {
 

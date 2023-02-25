@@ -1,4 +1,4 @@
-package com.socket.core.service;
+package com.socket.server.service;
 
 import com.socket.core.model.po.ChatRecord;
 
@@ -56,7 +56,7 @@ public interface ChatRecordService extends BaseService<ChatRecord> {
     void readAllMessage(String guid, String target, boolean audio);
 
     /**
-     * 获取发送到此用户的所有人的最新消息，返回的ChatRecord#uid都不相同
+     * 获取发送到此用户的所有人的最新消息
      *
      * @param guid 用户uid
      * @return 关联未读消息表

@@ -2,7 +2,7 @@ package com.socket.client.custom;
 
 import cn.hutool.core.thread.ThreadUtil;
 import com.socket.client.ClientApplication;
-import com.socket.client.manager.SocketUserMap;
+import com.socket.client.core.SocketUserMap;
 import com.socket.core.custom.support.SettingSupport;
 import com.socket.core.model.command.impl.CommandEnum;
 import com.socket.core.model.enums.Setting;

@@ -45,6 +45,8 @@ public class ShiroConfig {
         definitionMap.put("/admin/**", "user");
         definitionMap.put("/owner/**", "user");
         definitionMap.put("/group/**", "user");
+        // 排除远程调用
+        definitionMap.put("/message/latest", "anon");
         return bean;
     }
 

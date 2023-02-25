@@ -25,7 +25,6 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import org.springframework.web.util.ServletRequestPathUtils;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
@@ -101,7 +100,7 @@ public final class SecureRequestFilter implements Filter {
      */
     private HandlerMethod getHandlerMethod(HttpServletRequest request) {
         try {
-            ServletRequestPathUtils.parseAndCache(request);
+            // ServletRequestPathUtils.parseAndCache(request);
             HandlerExecutionChain chain = mapping.getHandler(request);
             if (chain != null) {
                 return (HandlerMethod) chain.getHandler();
@@ -109,7 +108,7 @@ public final class SecureRequestFilter implements Filter {
         } catch (Exception e) {
             // ignore
         } finally {
-            ServletRequestPathUtils.clearParsedRequestPath(request);
+            // ServletRequestPathUtils.clearParsedRequestPath(request);
         }
         return null;
     }

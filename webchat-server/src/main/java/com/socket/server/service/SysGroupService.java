@@ -1,7 +1,6 @@
 package com.socket.server.service;
 
 import com.socket.core.model.po.SysGroup;
-import com.socket.core.service.BaseService;
 
 import java.util.List;
 

@@ -1,9 +1,9 @@
 package com.socket.client.point;
 
 import com.socket.client.config.SocketConfig;
-import com.socket.client.manager.PermissionManager;
-import com.socket.client.manager.SocketGroupMap;
-import com.socket.client.manager.SocketUserMap;
+import com.socket.client.core.PermissionManager;
+import com.socket.client.core.SocketGroupMap;
+import com.socket.client.core.SocketUserMap;
 import com.socket.core.constant.Constants;
 import com.socket.core.custom.support.SettingSupport;
 import com.socket.core.model.base.BaseUser;
@@ -105,51 +105,6 @@ public class SocketEndpoint implements ApplicationContextAware {
         }
     }
 
-    /**
-     * WebRTC消息处理
-     */
-    private void forwardWebRTC(String tuid, WsMsg wsmsg) {
-        WsUser target = userMap.get(tuid);
-        // 目标用户空 忽略
-        if (target == null) {
-            return;
-        }
-        // 屏蔽检查
-        if (permissionManager.shield(self, target)) {
-            self.reject("您已屏蔽目标用户", wsmsg);
-            return;
-        }
-        if (permissionManager.shield(target, self)) {
-            self.send("对方屏蔽了你", CommandEnum.ERROR);
-        }
-        target.send(wsmsg);
-    }
-
-    /**
-     * 在线状态变动事件
-     *
-     * @param state 状态
-     */
-    private void onlineChange(String state) {
-        self.setOnline(Enums.of(OnlineState.class, state));
-        userMap.sendAll(state, CommandEnum.CHANGE, self);
-    }
-
-    /**
-     * 用户列表选择变动,相关消息设为已读（群组消息默认已读）
-     */
-    private void choose(String tuid, WsMsg wsmsg) {
-        if (permissionManager.notHas(tuid)) {
-            self.send("目标用户/群组不存在", CommandEnum.WARNING);
-            return;
-        }
-        String suid = self.getGuid();
-        self.setChoose(tuid);
-        if (!wsmsg.isGroup() && userMap.getUnreadCount(suid, tuid) > 0) {
-            userMap.readAllMessage(suid, tuid, false);
-        }
-    }
-
     public void parseUserMsg(WsMsg wsmsg) {
         // 禁言状态无法发送消息
         if (permissionManager.isMute(self)) {
@@ -203,6 +158,51 @@ public class SocketEndpoint implements ApplicationContextAware {
             // 已读条件：消息未送达，目标是群组，目标正在选择你
             userMap.cacheRecord(wsmsg, wsmsg.isReject() || wsmsg.isGroup() || target.chooseTarget(self));
         }
+    }
+
+    /**
+     * 在线状态变动事件
+     *
+     * @param state 状态
+     */
+    private void onlineChange(String state) {
+        self.setOnline(Enums.of(OnlineState.class, state));
+        userMap.sendAll(state, CommandEnum.CHANGE, self);
+    }
+
+    /**
+     * 用户列表选择变动,相关消息设为已读（群组消息默认已读）
+     */
+    private void choose(String tuid, WsMsg wsmsg) {
+        if (permissionManager.notHas(tuid)) {
+            self.send("目标用户/群组不存在", CommandEnum.WARNING);
+            return;
+        }
+        String suid = self.getGuid();
+        self.setChoose(tuid);
+        if (!wsmsg.isGroup() && userMap.getUnreadCount(suid, tuid) > 0) {
+            userMap.readAllMessage(suid, tuid, false);
+        }
+    }
+
+    /**
+     * WebRTC消息处理
+     */
+    private void forwardWebRTC(String tuid, WsMsg wsmsg) {
+        WsUser target = userMap.get(tuid);
+        // 目标用户空 忽略
+        if (target == null) {
+            return;
+        }
+        // 屏蔽检查
+        if (permissionManager.shield(self, target)) {
+            self.reject("您已屏蔽目标用户", wsmsg);
+            return;
+        }
+        if (permissionManager.shield(target, self)) {
+            self.send("对方屏蔽了你", CommandEnum.ERROR);
+        }
+        target.send(wsmsg);
     }
 
     /**

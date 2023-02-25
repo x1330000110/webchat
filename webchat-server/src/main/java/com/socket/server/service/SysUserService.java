@@ -6,7 +6,6 @@ import com.socket.core.model.condition.PasswordCondition;
 import com.socket.core.model.condition.RegisterCondition;
 import com.socket.core.model.enums.UserRole;
 import com.socket.core.model.po.SysUser;
-import com.socket.core.service.BaseService;
 
 public interface SysUserService extends BaseService<SysUser> {
     /**

@@ -19,4 +19,8 @@ public class MessageCondition {
      * 消息mid
      */
     private String mid;
+    /**
+     * 是否包含语音消息
+     */
+    private Boolean audio;
 }

@@ -2,6 +2,7 @@ package com.socket.core.exception;
 
 import cn.hutool.http.HttpException;
 import cn.hutool.json.JSONException;
+import com.netflix.client.ClientException;
 import com.socket.core.model.enums.HttpStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authc.IncorrectCredentialsException;
@@ -55,6 +56,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthorizationException.class)
     public HttpStatus isAuthorizationException(Exception e) {
         return HttpStatus.FAILURE.message("权限不足");
+    }
+
+    @ExceptionHandler(ClientException.class)
+    public HttpStatus isClientException(ClientException e) {
+        log.error("服务不可用：{}", e.getMessage());
+        return HttpStatus.UNKNOWN.message("服务不可用，请稍后再试");
     }
 
     @ExceptionHandler({NumberFormatException.class,

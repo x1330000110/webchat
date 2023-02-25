@@ -1,4 +1,4 @@
-package com.socket.core.service;
+package com.socket.server.service;
 
 import com.socket.core.model.enums.LogType;
 import com.socket.core.model.po.SysUserLog;
