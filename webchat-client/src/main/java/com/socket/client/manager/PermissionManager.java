@@ -40,10 +40,10 @@ public class PermissionManager implements InitializingBean {
     private final UserManager userManager;
     private final KeywordSupport keywordSupport;
     private final SysGroupUserMapper sysGroupUserMapper;
-    private final SysUserLogApi sysUserLogService;
     private final SysGroupMapper sysGroupMapper;
-    private final ChatRecordApi chatRecordService;
     private final SysUserMapper sysUserMapper;
+    private final SysUserLogApi sysUserLogApi;
+    private final ChatRecordApi chatRecordApi;
 
 
     /**
@@ -55,9 +55,9 @@ public class PermissionManager implements InitializingBean {
         // 消息发起者
         String suid = self.getGuid();
         // 与此用户关联的最新未读消息
-        Map<String, ChatRecord> unreadMessages = chatRecordService.getLatest().getData();
+        Map<String, ChatRecord> unreadMessages = chatRecordApi.getLatest().getData();
         // 登录记录
-        Map<String, SysUserLog> logs = sysUserLogService.getLatestUserLogs().getData();
+        Map<String, SysUserLog> logs = sysUserLogApi.getLatestUserLogs().getData();
         // 链接数据
         List<BaseUser> previews = new ArrayList<>();
         for (SocketUser user : userManager.values()) {

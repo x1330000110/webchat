@@ -43,10 +43,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UserManager extends ConcurrentHashMap<String, SocketUser> {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final BingAPIRequest bingAPIRequest;
-    private final SysUserLogApi sysUserLogService;
-    private final ChatRecordApi chatRecordService;
-    private final SysUserMapper userMapper;
     private final RedisManager redisManager;
+    private final SysUserLogApi sysUserLogApi;
+    private final ChatRecordApi chatRecordApi;
+    private final SysUserMapper userMapper;
 
     /**
      * 加入用户
@@ -77,7 +77,7 @@ public class UserManager extends ConcurrentHashMap<String, SocketUser> {
         SysUserLog userLog = BeanUtil.copyProperties(user, SysUserLog.class);
         userLog.setIp(user.getIp());
         userLog.setType(Enums.key(LogType.LOGIN));
-        sysUserLogService.saveLog(userLog);
+        sysUserLogApi.saveLog(userLog);
         return user;
     }
 
@@ -110,7 +110,7 @@ public class UserManager extends ConcurrentHashMap<String, SocketUser> {
         SysUserLog log = BeanUtil.copyProperties(user, SysUserLog.class);
         log.setIp(user.getIp());
         log.setType(Enums.key(LogType.LOGOUT));
-        sysUserLogService.saveLog(log);
+        sysUserLogApi.saveLog(log);
         user.logout(reason);
     }
 
@@ -151,7 +151,7 @@ public class UserManager extends ConcurrentHashMap<String, SocketUser> {
         condition.setGuid(self);
         condition.setTarget(target);
         condition.setAudio(audio);
-        chatRecordService.readAllMessage(condition);
+        chatRecordApi.readAllMessage(condition);
         redisManager.setUnreadCount(self, target, 0);
     }
 
