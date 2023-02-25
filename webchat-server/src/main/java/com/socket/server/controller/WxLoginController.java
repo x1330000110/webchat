@@ -7,10 +7,10 @@ import com.socket.core.constant.Constants;
 import com.socket.core.model.enums.HttpStatus;
 import com.socket.core.model.enums.RedisTree;
 import com.socket.core.model.po.SysUser;
-import com.socket.core.util.RedirectUtil;
 import com.socket.core.util.RedisClient;
 import com.socket.server.request.anno.WeChatRedirect;
 import com.socket.server.service.WxloginService;
+import com.socket.server.util.RedirectUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

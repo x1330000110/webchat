@@ -1,7 +1,7 @@
 package com.socket.server.controller;
 
 import com.socket.core.model.enums.HttpStatus;
-import com.socket.core.model.request.QQAuthReq;
+import com.socket.server.request.vo.QQAuthReq;
 import com.socket.server.service.impl.QQLoginServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

@@ -1,4 +1,4 @@
-package com.socket.core.util;
+package com.socket.server.util;
 
 import com.socket.core.exception.RedirectException;
 

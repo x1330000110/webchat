@@ -1,7 +1,7 @@
 package com.socket.server.service;
 
 import com.socket.core.model.enums.HttpStatus;
-import com.socket.core.model.request.QQAuthReq;
+import com.socket.server.request.vo.QQAuthReq;
 
 public interface QQLoginService {
 

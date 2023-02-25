@@ -5,9 +5,9 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONException;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.socket.core.model.request.QQAuthReq;
-import com.socket.core.model.request.QQAuthResp;
-import com.socket.core.model.request.QQUser;
+import com.socket.server.request.vo.QQAuthReq;
+import com.socket.server.request.vo.QQAuthResp;
+import com.socket.server.request.vo.QQUser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

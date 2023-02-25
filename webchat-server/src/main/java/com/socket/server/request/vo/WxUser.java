@@ -1,4 +1,4 @@
-package com.socket.core.model.request;
+package com.socket.server.request.vo;
 
 import lombok.Data;
 
