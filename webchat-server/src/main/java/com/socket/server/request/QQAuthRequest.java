@@ -18,7 +18,7 @@ import java.util.Arrays;
  */
 @Slf4j
 @Component
-public class QQRequest {
+public class QQAuthRequest {
     private static final String QQ_USER = "https://apibug.cn/api/qq/?apiKey=6db8a3a57cb4a5c723843946e1a0c651&qq={}";
     private static final String QQ_AUTH = "https://apibug.cn/api/qqlogin/?type=get&apiKey=fef9621137e76881ebb027bc18cff025";
     private static final String QQ_AUTH_VERIFY = "https://apibug.cn/api/qqlogin/?type=result&apiKey=fef9621137e76881ebb027bc18cff025&qrsig={}";
