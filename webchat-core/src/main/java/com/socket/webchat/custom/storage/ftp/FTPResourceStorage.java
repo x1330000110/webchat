@@ -7,14 +7,17 @@ import cn.hutool.extra.ftp.FtpMode;
 import com.socket.webchat.custom.storage.ResourceStorage;
 import com.socket.webchat.model.enums.FileType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 /**
  * FTP文件资源映射与储存实现 <br>
  * （有关FTP映射文件到nginx请参阅 <a href="https://www.jianshu.com/p/e36e49c248e8">URL</a>）
  */
+@Slf4j
 @RequiredArgsConstructor
 public class FTPResourceStorage implements ResourceStorage {
     private static final String ROOT = "/chatfile";
@@ -22,19 +25,30 @@ public class FTPResourceStorage implements ResourceStorage {
 
     @Override
     public String upload(FileType type, byte[] bytes, String hash) {
-        Ftp session = getFtpSession();
-        String path = ROOT + "/" + type.getKey();
-        session.upload(path, hash, new ByteArrayInputStream(bytes));
-        return path + "/" + hash;
+        String dist = ROOT + "/" + type.getKey();
+        String path = dist + "/" + hash;
+        try (Ftp session = getFtpSession()) {
+            if (session.exist(path) || session.upload(dist, hash, new ByteArrayInputStream(bytes))) {
+                return path;
+            }
+        } catch (IOException e) {
+            log.warn("FTP文件上传错误：{}", e.getMessage());
+        }
+        throw new IllegalStateException("FTP文件上传失败：" + path);
     }
 
     @Override
     public byte[] download(String url) {
-        Ftp session = getFtpSession();
-        final String name = FileUtil.getName(url);
-        final String dir = StrUtil.removeSuffix(url, name);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        session.download(dir, name, out);
+        try (Ftp session = getFtpSession()) {
+            if (session.existFile(url)) {
+                String name = FileUtil.getName(url);
+                String dir = StrUtil.removeSuffix(url, name);
+                session.download(dir, name, out);
+            }
+        } catch (IOException e) {
+            log.debug("FTP下载文件错误：{}", e.getMessage());
+        }
         return out.toByteArray();
     }
 
