@@ -55,7 +55,7 @@ public class PermissionManager implements InitializingBean {
         // 消息发起者
         String suid = self.getGuid();
         // 与此用户关联的最新未读消息
-        Map<String, ChatRecord> unreadMessages = chatRecordApi.getLatest().getData();
+        Map<String, ChatRecord> latest = chatRecordApi.getLatest().getData();
         // 登录记录
         Map<String, SysUserLog> logs = sysUserLogApi.getLatestUserLogs().getData();
         // 链接数据
@@ -72,7 +72,7 @@ public class PermissionManager implements InitializingBean {
             // 检查未读消息
             int count = redisManager.getUnreadCount(suid, target);
             if (count > 0) {
-                ChatRecord unread = unreadMessages.get(target);
+                ChatRecord unread = latest.get(target);
                 if (unread != null) {
                     preview.setPreview(unread);
                     preview.setLastTime(unread.getCreateTime().getTime());

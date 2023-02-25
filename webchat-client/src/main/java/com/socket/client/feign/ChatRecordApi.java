@@ -20,7 +20,7 @@ public interface ChatRecordApi {
     void readAllMessage(MessageCondition condition);
 
     /**
-     * 获取发送到此用户的所有人的最新消息
+     * 获取发送到当前用户关联的所有人的最新消息
      */
     @GetMapping(value = "/latest")
     FeignResponse<Map<String, ChatRecord>> getLatest();
