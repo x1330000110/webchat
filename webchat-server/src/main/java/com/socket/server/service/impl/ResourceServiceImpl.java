@@ -104,7 +104,7 @@ public class ResourceServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatR
     public String getResourceURL(FileType type, String hash) {
         LambdaQueryWrapper<ChatRecordFile> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(ChatRecordFile::getType, type.getKey());
-        wrapper.eq(ChatRecordFile::getHash, hash);
+        wrapper.likeRight(ChatRecordFile::getHash, hash);
         ChatRecordFile file = getFirst(wrapper);
         if (file == null) {
             return null;

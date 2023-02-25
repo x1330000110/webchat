@@ -1,4 +1,4 @@
-package com.socket.server.controller;
+package com.socket.server.controller.user;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;

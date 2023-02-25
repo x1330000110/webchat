@@ -1,4 +1,4 @@
-package com.socket.server.controller;
+package com.socket.server.controller.login;
 
 import cn.hutool.core.codec.Base64;
 import cn.hutool.http.ContentType;
@@ -19,8 +19,8 @@ import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/wechat")
-public class WxLoginController {
+@RequestMapping("/wxlogin")
+public class WXLoginController {
     private final WxloginService wxloginService;
     private final WxProperties properties;
     private final RedisClient<?> redis;

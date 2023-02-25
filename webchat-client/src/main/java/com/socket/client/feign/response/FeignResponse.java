@@ -1,4 +1,4 @@
-package com.socket.client.open.resp;
+package com.socket.client.feign.response;
 
 import lombok.Data;
 
@@ -6,7 +6,7 @@ import lombok.Data;
  * 与{@link com.socket.core.model.enums.HttpStatus}保持一致
  */
 @Data
-public class FeignResp<T> {
+public class FeignResponse<T> {
     /**
      * 状态码
      */

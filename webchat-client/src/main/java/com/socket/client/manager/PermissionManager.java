@@ -2,8 +2,8 @@ package com.socket.client.manager;
 
 import cn.hutool.core.util.StrUtil;
 import com.socket.client.custom.KeywordSupport;
-import com.socket.client.open.ChatRecordApi;
-import com.socket.client.open.SysUserLogApi;
+import com.socket.client.feign.ChatRecordApi;
+import com.socket.client.feign.SysUserLogApi;
 import com.socket.core.constant.Constants;
 import com.socket.core.custom.RedisManager;
 import com.socket.core.mapper.SysGroupMapper;

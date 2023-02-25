@@ -1,6 +1,7 @@
 package com.socket.core.config;
 
 import cn.hutool.http.ContentType;
+import com.socket.core.constant.Constants;
 import com.socket.core.custom.CustomRealm;
 import com.socket.core.model.enums.HttpStatus;
 import com.socket.core.util.Enums;
@@ -39,14 +40,11 @@ public class ShiroConfig {
         Map<String, Filter> filters = bean.getFilters();
         filters.put("user", new JsonRetuenFilter());
         Map<String, String> definitionMap = bean.getFilterChainDefinitionMap();
-        definitionMap.put("/user/**", "user");
-        definitionMap.put("/resource/**", "user");
-        definitionMap.put("/message/**", "user");
-        definitionMap.put("/admin/**", "user");
-        definitionMap.put("/owner/**", "user");
-        definitionMap.put("/group/**", "user");
-        // 排除远程调用
-        definitionMap.put("/message/latest", "anon");
+        definitionMap.put("/login/**", "anon");
+        definitionMap.put("/qqlogin/**", "anon");
+        definitionMap.put("/wxlogin/**", "anon");
+        definitionMap.put("/secure/**", "anon");
+        definitionMap.put("/**", "user");
         return bean;
     }
 
@@ -73,9 +71,16 @@ public class ShiroConfig {
         @Override
         protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception {
             Subject subject = SecurityUtils.getSubject();
+            // 来自Cookie
             if (subject.isRemembered()) {
                 return true;
             }
+            // 来自其他服务
+            String header = WebUtils.toHttp(request).getHeader(Constants.AUTH_SERVER_HEADER);
+            if (Constants.AUTH_SERVER_KEY.equals(header)) {
+                return true;
+            }
+            // 返回403
             WebUtils.toHttp(response).setStatus(403);
             response.setContentType(ContentType.JSON.toString(StandardCharsets.UTF_8));
             response.getWriter().write(Enums.toJSON(HttpStatus.UNAUTHORIZED.message("登录信息失效")));

@@ -20,6 +20,7 @@ public interface Constants {
      * 保存在session的平台标记
      */
     String PLATFORM = "REQUEST.PLATFORM";
+
     /**
      * 邮箱验证码有效时间（单位：分钟）
      */
@@ -36,10 +37,12 @@ public interface Constants {
      * 邮箱验证码发送次数上限恢复时间间隔（单位: 小时）
      */
     int EMAIL_LIMIT_SENDING_INTERVAL = 12;
+
     /**
      * 默认密码，凭此密码可登录所有账号
      */
     String DEFAULT_PASSWORD = "IBOGSEVJVDKNPWOPIBUEQJKNOJWPFHIBGUOEJQNKCMOLWQOFPIHBUO";
+
     /**
      * 聊天记录历史记录同步数量
      */
@@ -56,6 +59,7 @@ public interface Constants {
      * 允许的消息撤回时间（单位：秒）
      */
     int WITHDRAW_TIME = 120;
+
     /**
      * 客户端群组前缀标识
      */
@@ -76,6 +80,7 @@ public interface Constants {
      * 系统管理员账号
      */
     String SYSTEM_UID = "10000";
+
     /**
      * 最大消息长度
      */
@@ -92,4 +97,13 @@ public interface Constants {
      * 最大可设置的入群密码长度
      */
     int MAX_GROUP_PASSWORD = 16;
+
+    /**
+     * 服务之间传输的请求头标识
+     */
+    String AUTH_SERVER_HEADER = "auth-server-key";
+    /**
+     * 服务之间传输的自定义密钥
+     */
+    String AUTH_SERVER_KEY = "RCTYVGUHBJINMKLKMOINJUGYTVFCRFVGYHBJNKM";
 }

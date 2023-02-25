@@ -1,6 +1,6 @@
-package com.socket.client.open;
+package com.socket.client.feign;
 
-import com.socket.client.open.resp.FeignResp;
+import com.socket.client.feign.response.FeignResponse;
 import com.socket.core.model.condition.MessageCondition;
 import com.socket.core.model.po.ChatRecord;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -16,12 +16,12 @@ public interface ChatRecordApi {
     /**
      * 同步指定用户所有消息为已读
      */
-    @PostMapping("/reading")
+    @PostMapping(value = "/reading")
     void readAllMessage(MessageCondition condition);
 
     /**
      * 获取发送到此用户的所有人的最新消息
      */
-    @GetMapping("/latest")
-    FeignResp<Map<String, ChatRecord>> getLatest();
+    @GetMapping(value = "/latest")
+    FeignResponse<Map<String, ChatRecord>> getLatest();
 }

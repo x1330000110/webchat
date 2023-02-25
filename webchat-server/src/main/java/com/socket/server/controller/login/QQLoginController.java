@@ -1,4 +1,4 @@
-package com.socket.server.controller;
+package com.socket.server.controller.login;
 
 import com.socket.core.model.enums.HttpStatus;
 import com.socket.server.request.vo.QQAuthReq;
@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/qq")
+@RequestMapping("/qqlogin")
 public class QQLoginController {
     private final QQLoginServiceImpl qqLoginService;
 

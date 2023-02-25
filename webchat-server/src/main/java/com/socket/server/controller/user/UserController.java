@@ -1,4 +1,4 @@
-package com.socket.server.controller;
+package com.socket.server.controller.user;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.socket.core.model.Announce;

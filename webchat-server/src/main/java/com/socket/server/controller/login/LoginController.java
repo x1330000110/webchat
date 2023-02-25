@@ -1,4 +1,4 @@
-package com.socket.server.controller;
+package com.socket.server.controller.login;
 
 import cn.hutool.core.util.StrUtil;
 import com.socket.core.model.condition.EmailCondition;
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @Encrypted
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("/login")
 public class LoginController {
     private final SysUserService sysUserService;
 

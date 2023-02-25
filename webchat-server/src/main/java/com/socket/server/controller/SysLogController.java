@@ -8,14 +8,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-
 @RestController
-@RequestMapping("/open/log")
+@RequestMapping("/log")
 @RequiredArgsConstructor
 public class SysLogController {
     private final SysUserLogService sysUserLogService;
 
-    @GetMapping("/getAll")
+    @GetMapping("/getLatest")
     public HttpStatus getLatestUserLogs() {
         Map<String, SysUserLog> map = sysUserLogService.getLatestUserLogs();
         return HttpStatus.SUCCESS.body(map);

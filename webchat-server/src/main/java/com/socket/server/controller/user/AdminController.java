@@ -1,4 +1,4 @@
-package com.socket.server.controller;
+package com.socket.server.controller.user;
 
 import com.socket.core.custom.RedisManager;
 import com.socket.core.model.command.impl.PermissionEnum;
