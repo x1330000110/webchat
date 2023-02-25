@@ -1,7 +1,7 @@
 package com.socket.server.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.socket.core.custom.IPRequest;
+import com.socket.core.custom.IPAddrRequest;
 import com.socket.core.mapper.SysUserLogMapper;
 import com.socket.core.model.enums.LogType;
 import com.socket.core.model.po.SysUserLog;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SysUserLogServiceImpl extends ServiceImpl<SysUserLogMapper, SysUserLog> implements SysUserLogService {
     private final SysUserLogMapper sysUserLogMapper;
-    private final IPRequest ipRequest;
+    private final IPAddrRequest ipRequest;
 
     @Override
     public void saveLog(SysUserLog log, LogType type) {

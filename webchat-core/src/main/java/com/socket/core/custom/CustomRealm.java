@@ -42,7 +42,7 @@ import java.util.Optional;
 public class CustomRealm extends AuthorizingRealm {
     private final SysUserLogMapper sysUserLogMapper;
     private final SysUserMapper sysUserMapper;
-    private final IPRequest ipRequest;
+    private final IPAddrRequest ipRequest;
     private final RedisClient<?> redis;
 
     /**

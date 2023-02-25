@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
  * IP地址查询
  */
 @Component
-public class IPRequest {
+public class IPAddrRequest {
     private static final String URL = "https://ip.useragentinfo.com/json?ip={}";
 
     /**
