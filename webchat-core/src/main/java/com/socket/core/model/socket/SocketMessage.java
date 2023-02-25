@@ -1,4 +1,4 @@
-package com.socket.core.model.ws;
+package com.socket.core.model.socket;
 
 import cn.hutool.crypto.digest.MD5;
 import com.socket.core.model.command.Command;
@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-public class WsMsg {
+public class SocketMessage {
     /**
      * 是否为系统消息
      */
@@ -51,7 +51,7 @@ public class WsMsg {
      * @param callback 内容
      * @param command  消息类型
      */
-    public WsMsg(String callback, Command<?> command) {
+    public SocketMessage(String callback, Command<?> command) {
         this(callback, command, null);
     }
 
@@ -62,7 +62,7 @@ public class WsMsg {
      * @param command  消息类型
      * @param data     额外数据
      */
-    public WsMsg(String callback, Command<?> command, Object data) {
+    public SocketMessage(String callback, Command<?> command, Object data) {
         this.sysmsg = true;
         this.content = callback;
         this.type = command;
@@ -77,7 +77,7 @@ public class WsMsg {
      * @param content 内容
      * @param command 消息类型
      */
-    public WsMsg(String guid, String target, String content, Command<?> command) {
+    public SocketMessage(String guid, String target, String content, Command<?> command) {
         this.guid = guid;
         this.target = target;
         this.content = content;

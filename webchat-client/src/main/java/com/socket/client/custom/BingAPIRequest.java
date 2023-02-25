@@ -1,4 +1,4 @@
-package com.socket.client.request;
+package com.socket.client.custom;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpRequest;

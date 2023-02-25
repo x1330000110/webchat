@@ -1,9 +1,9 @@
 package com.socket.client.command.user;
 
 import com.socket.client.command.CommandHandler;
-import com.socket.client.core.SocketUserMap;
+import com.socket.client.manager.UserManager;
 import com.socket.core.model.command.topic.UserChangeTopic;
-import com.socket.core.model.ws.WsUser;
+import com.socket.core.model.socket.SocketUser;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -11,11 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public abstract class UserChangeHandler implements CommandHandler<UserChangeTopic> {
     @Autowired
-    protected SocketUserMap userMap;
+    protected UserManager userManager;
 
     public void invoke(UserChangeTopic event) {
-        this.invoke(userMap.get(event.getTarget()), event.getParam());
+        this.invoke(userManager.get(event.getTarget()), event.getParam());
     }
 
-    public abstract void invoke(WsUser target, String param);
+    public abstract void invoke(SocketUser target, String param);
 }

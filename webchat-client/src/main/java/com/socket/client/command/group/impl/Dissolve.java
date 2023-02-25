@@ -15,9 +15,9 @@ public class Dissolve extends GroupChangeHandler {
     @Override
     public void invoke(SysGroupUser user, SysGroup group) {
         String guid = group.getGuid();
-        SysGroup find = groupMap.get(guid);
+        SysGroup find = groupManager.get(guid);
         String tips = StrUtil.format("群 {} 已被创建者解散", find.getName());
-        groupMap.sendGroup(guid, tips, GroupEnum.DISSOLVE, guid);
-        groupMap.remove(find);
+        groupManager.sendGroup(guid, tips, GroupEnum.DISSOLVE, guid);
+        groupManager.remove(find);
     }
 }

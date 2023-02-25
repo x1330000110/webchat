@@ -2,8 +2,8 @@ package com.socket.client.custom;
 
 import cn.hutool.core.thread.ThreadUtil;
 import com.socket.client.ClientApplication;
-import com.socket.client.core.SocketUserMap;
-import com.socket.core.custom.support.SettingSupport;
+import com.socket.client.manager.UserManager;
+import com.socket.core.custom.SettingSupport;
 import com.socket.core.model.command.impl.CommandEnum;
 import com.socket.core.model.enums.Setting;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 public class RestartMonitor {
     private ConfigurableApplicationContext context;
     private SettingSupport settingSupport;
-    private SocketUserMap userMap;
+    private UserManager userManager;
 
     @Scheduled(cron = "0/10 * * * * ?")
     public void restartMonitor() {
@@ -34,7 +34,7 @@ public class RestartMonitor {
             ApplicationArguments args = context.getBean(ApplicationArguments.class);
             new Thread(() -> {
                 log.warn("服务器将在10秒后重启...");
-                userMap.sendAll("服务器将在10秒后重启", CommandEnum.DANGER);
+                userManager.sendAll("服务器将在10秒后重启", CommandEnum.DANGER);
                 ThreadUtil.sleep(10, TimeUnit.SECONDS);
                 context.close();
                 context = SpringApplication.run(ClientApplication.class, args.getSourceArgs());
@@ -53,7 +53,7 @@ public class RestartMonitor {
     }
 
     @Autowired
-    public void setUserMap(SocketUserMap userMap) {
-        this.userMap = userMap;
+    public void setUserManager(UserManager userManager) {
+        this.userManager = userManager;
     }
 }

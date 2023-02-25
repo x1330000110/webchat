@@ -1,13 +1,13 @@
-package com.socket.client.core;
+package com.socket.client.manager;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.socket.client.custom.BingAPIRequest;
 import com.socket.client.open.ChatRecordApi;
 import com.socket.client.open.SysUserLogApi;
-import com.socket.client.request.BingAPIRequest;
 import com.socket.core.constant.Constants;
 import com.socket.core.constant.Topics;
 import com.socket.core.custom.RedisManager;
@@ -19,8 +19,8 @@ import com.socket.core.model.enums.LogType;
 import com.socket.core.model.po.ChatRecord;
 import com.socket.core.model.po.SysUser;
 import com.socket.core.model.po.SysUserLog;
-import com.socket.core.model.ws.WsMsg;
-import com.socket.core.model.ws.WsUser;
+import com.socket.core.model.socket.SocketMessage;
+import com.socket.core.model.socket.SocketUser;
 import com.socket.core.util.Enums;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
+public class UserManager extends ConcurrentHashMap<String, SocketUser> {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final BingAPIRequest bingAPIRequest;
     private final SysUserLogApi sysUserLogService;
@@ -55,11 +55,11 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
      * @param properties 配置信息
      * @return 已加入的用户对象
      */
-    public WsUser join(Session session, Map<String, Object> properties) {
+    public SocketUser join(Session session, Map<String, Object> properties) {
         // 查找用户
         Subject subject = (Subject) properties.get(Constants.SUBJECT);
         SysUser principal = (SysUser) subject.getPrincipal();
-        WsUser user = get(principal.getGuid());
+        SocketUser user = get(principal.getGuid());
         HttpSession hs = (HttpSession) properties.get(Constants.HTTP_SESSION);
         // 检查重复登录
         if (user.isOnline() && user.differentSession(hs)) {
@@ -85,18 +85,18 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
      * 通过uid获取用户（不存在时通过数据库获取）
      *
      * @param uid 用户uid
-     * @return {@link WsUser}
+     * @return {@link SocketUser}
      */
-    public WsUser get(String uid) {
+    public SocketUser get(String uid) {
         return Optional.ofNullable(this.get((Object) uid)).orElseGet(() -> {
             // 从数据库查询
             LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
             wrapper.eq(SysUser::getGuid, uid);
             SysUser find = userMapper.selectOne(wrapper);
-            WsUser wsuser = Optional.ofNullable(find).map(WsUser::new).orElse(null);
+            SocketUser user = Optional.ofNullable(find).map(SocketUser::new).orElse(null);
             // 写入缓存
-            Optional.ofNullable(wsuser).ifPresent(e -> this.put(uid, e));
-            return wsuser;
+            Optional.ofNullable(user).ifPresent(e -> this.put(uid, e));
+            return user;
         });
     }
 
@@ -106,7 +106,7 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
      * @param user   用户
      * @param reason 原因
      */
-    public void exit(WsUser user, String reason) {
+    public void exit(SocketUser user, String reason) {
         SysUserLog log = BeanUtil.copyProperties(user, SysUserLog.class);
         log.setIp(user.getIp());
         log.setType(Enums.key(LogType.LOGOUT));
@@ -129,7 +129,7 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
      * @param data    附加用户信息
      */
     public void sendAll(String content, Command<?> command, Object data) {
-        this.values().forEach(wsuser -> wsuser.send(content, command, data));
+        this.values().forEach(user -> user.send(content, command, data));
     }
 
     /**
@@ -155,7 +155,6 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
         redisManager.setUnreadCount(self, target, 0);
     }
 
-
     /**
      * 获取指定用户的未读消息数量
      *
@@ -170,14 +169,14 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
     /**
      * 发送AI消息
      *
-     * @param target 发送目标
-     * @param wsmsg  消息
+     * @param target  发送目标
+     * @param message 消息
      */
-    public void sendAIMessage(WsUser target, WsMsg wsmsg) {
-        bingAPIRequest.dialogue(wsmsg.getContent()).addCallback(result -> {
+    public void sendAIMessage(SocketUser target, SocketMessage message) {
+        bingAPIRequest.dialogue(message.getContent()).addCallback(result -> {
             if (result != null) {
                 // AI消息
-                WsMsg aimsg = new WsMsg(Constants.SYSTEM_UID, wsmsg.getGuid(), result, CommandEnum.TEXT);
+                SocketMessage aimsg = new SocketMessage(Constants.SYSTEM_UID, message.getGuid(), result, CommandEnum.TEXT);
                 target.send(aimsg);
                 cacheRecord(aimsg, true);
             }
@@ -187,18 +186,18 @@ public class SocketUserMap extends ConcurrentHashMap<String, WsUser> {
     /**
      * 保存聊天记录
      *
-     * @param wsmsg  聊天消息
-     * @param isread 已读标记
+     * @param message 聊天消息
+     * @param isread  已读标记
      */
-    public void cacheRecord(WsMsg wsmsg, boolean isread) {
-        ChatRecord record = BeanUtil.copyProperties(wsmsg, ChatRecord.class);
+    public void cacheRecord(SocketMessage message, boolean isread) {
+        ChatRecord record = BeanUtil.copyProperties(message, ChatRecord.class);
         // 群组以外的语音消息始终未读
-        boolean audio = !wsmsg.isGroup() && wsmsg.getType() == CommandEnum.AUDIO;
+        boolean audio = !message.isGroup() && message.getType() == CommandEnum.AUDIO;
         record.setUnread(audio || !isread);
         kafkaTemplate.send(Topics.MESSAGE, JSONUtil.toJsonStr(record));
         // 目标列表添加发起者uid
         if (!isread) {
-            redisManager.setUnreadCount(wsmsg.getTarget(), wsmsg.getGuid(), 1);
+            redisManager.setUnreadCount(message.getTarget(), message.getGuid(), 1);
         }
     }
 }

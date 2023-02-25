@@ -1,8 +1,8 @@
 package com.socket.client.command.group;
 
 import com.socket.client.command.CommandHandler;
-import com.socket.client.core.SocketGroupMap;
-import com.socket.client.core.SocketUserMap;
+import com.socket.client.manager.GroupManager;
+import com.socket.client.manager.UserManager;
 import com.socket.core.model.command.topic.GroupChangeTopic;
 import com.socket.core.model.po.SysGroup;
 import com.socket.core.model.po.SysGroupUser;
@@ -13,9 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public abstract class GroupChangeHandler implements CommandHandler<GroupChangeTopic> {
     @Autowired
-    protected SocketGroupMap groupMap;
+    protected GroupManager groupManager;
     @Autowired
-    protected SocketUserMap userMap;
+    protected UserManager userManager;
 
     public void invoke(GroupChangeTopic event) {
         this.invoke(event.getUser(), event.getGroup());

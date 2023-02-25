@@ -1,4 +1,4 @@
-package com.socket.core.custom.support;
+package com.socket.core.custom;
 
 import com.socket.core.model.enums.RedisTree;
 import com.socket.core.model.enums.Setting;

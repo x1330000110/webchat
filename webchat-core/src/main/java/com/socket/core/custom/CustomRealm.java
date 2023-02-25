@@ -13,7 +13,6 @@ import com.socket.core.model.base.BaseModel;
 import com.socket.core.model.enums.RedisTree;
 import com.socket.core.model.po.SysUser;
 import com.socket.core.model.po.SysUserLog;
-import com.socket.core.request.IPRequest;
 import com.socket.core.util.Bcrypt;
 import com.socket.core.util.RedisClient;
 import com.socket.core.util.Requests;

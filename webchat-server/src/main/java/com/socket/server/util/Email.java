@@ -19,7 +19,7 @@ import java.io.InputStream;
 
 @Component
 @RequiredArgsConstructor
-public class EmailUtil implements InitializingBean {
+public class Email implements InitializingBean {
     private final JavaMailSenderImpl mailSender;
     private final MailProperties properties;
     private String content;

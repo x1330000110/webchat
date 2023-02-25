@@ -1,4 +1,4 @@
-package com.socket.core.custom.storage;
+package com.socket.server.storage;
 
 import com.socket.core.model.enums.FileType;
 

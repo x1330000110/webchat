@@ -1,4 +1,4 @@
-package com.socket.core.model.ws;
+package com.socket.core.model.socket;
 
 import cn.hutool.core.annotation.PropIgnore;
 import cn.hutool.core.bean.BeanUtil;
@@ -37,7 +37,7 @@ import static javax.websocket.CloseReason.CloseCodes;
  */
 @Slf4j
 @NoArgsConstructor
-public class WsUser extends SysUser {
+public class SocketUser extends SysUser {
     /**
      * WebSocket Session
      */
@@ -78,7 +78,7 @@ public class WsUser extends SysUser {
      *
      * @param sysUser 用户信息
      */
-    public WsUser(SysUser sysUser) {
+    public SocketUser(SysUser sysUser) {
         BeanUtil.copyProperties(sysUser, this);
     }
 
@@ -88,28 +88,30 @@ public class WsUser extends SysUser {
      * @param target 用户信息
      * @return 选择返回true
      */
-    public boolean chooseTarget(WsUser target) {
+    public boolean chooseTarget(SocketUser target) {
         return Objects.equals(target.getGuid(), choose);
     }
 
     /**
      * 解密消息
      */
-    public WsMsg decrypt(String message) {
-        JSONObject json = JSONUtil.parseObj(AES.decrypt(message, hs));
-        WsMsg wsmsg = json.toBean(WsMsg.class, true);
-        wsmsg.setType(Enums.of(CommandEnum.class, json.getStr("type")));
-        wsmsg.setGuid(getGuid());
-        return wsmsg;
+    public SocketMessage decrypt(String str) {
+        JSONObject json = JSONUtil.parseObj(AES.decrypt(str, hs));
+        SocketMessage message = json.toBean(SocketMessage.class, true);
+        message.setType(Enums.of(CommandEnum.class, json.getStr("type")));
+        message.setGuid(getGuid());
+        return message;
     }
 
     /**
-     * 将消息发送至目标用户（目标不在线调用此方法没有任何效果）
+     * 发送回调通知
      *
-     * @param wsmsg 消息
+     * @param callback 回调消息
+     * @param command  消息类型
+     * @param data     额外数据
      */
-    public void send(WsMsg wsmsg) {
-        this.send(wsmsg, true);
+    public void send(String callback, Command<?> command, Object data) {
+        this.send(new SocketMessage(callback, command, data), false);
     }
 
     /**
@@ -122,21 +124,10 @@ public class WsUser extends SysUser {
         this.send(callback, command, null);
     }
 
-    /**
-     * 发送回调通知
-     *
-     * @param callback 回调消息
-     * @param command  消息类型
-     * @param data     额外数据
-     */
-    public void send(String callback, Command<?> command, Object data) {
-        this.send(new WsMsg(callback, command, data), false);
-    }
-
     @SneakyThrows(IOException.class)
-    private void send(WsMsg wsmsg, boolean async) {
+    private void send(SocketMessage message, boolean async) {
         if (isOnline()) {
-            Supplier<String> supplier = () -> AES.encrypt(JSONUtil.toJsonStr(wsmsg), hs);
+            Supplier<String> supplier = () -> AES.encrypt(JSONUtil.toJsonStr(message), hs);
             List<Session> collect = wss.stream().filter(Session::isOpen).collect(Collectors.toList());
             for (Session session : collect) {
                 if (async) {
@@ -146,6 +137,18 @@ public class WsUser extends SysUser {
                 }
             }
         }
+    }
+
+    /**
+     * 发送拒绝消息
+     *
+     * @param reason  原因
+     * @param message 消息
+     */
+    public void reject(String reason, SocketMessage message) {
+        this.send(reason, CommandEnum.WARNING);
+        message.setReject(true);
+        this.send(message);
     }
 
     /**
@@ -212,15 +215,12 @@ public class WsUser extends SysUser {
     }
 
     /**
-     * 发送拒绝消息
+     * 将消息发送至目标用户（目标不在线调用此方法没有任何效果）
      *
-     * @param reason 原因
-     * @param wsmsg  消息
+     * @param message 消息
      */
-    public void reject(String reason, WsMsg wsmsg) {
-        this.send(reason, CommandEnum.WARNING);
-        wsmsg.setReject(true);
-        this.send(wsmsg);
+    public void send(SocketMessage message) {
+        this.send(message, true);
     }
 
     /**

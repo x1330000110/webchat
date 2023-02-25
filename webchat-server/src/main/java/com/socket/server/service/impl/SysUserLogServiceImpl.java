@@ -1,10 +1,10 @@
 package com.socket.server.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.socket.core.custom.IPRequest;
 import com.socket.core.mapper.SysUserLogMapper;
 import com.socket.core.model.enums.LogType;
 import com.socket.core.model.po.SysUserLog;
-import com.socket.core.request.IPRequest;
 import com.socket.core.util.Enums;
 import com.socket.server.service.SysUserLogService;
 import lombok.RequiredArgsConstructor;

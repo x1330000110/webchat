@@ -2,15 +2,15 @@ package com.socket.server.controller;
 
 import cn.hutool.core.codec.Base64;
 import cn.hutool.http.ContentType;
-import com.socket.core.config.properties.WxProperties;
 import com.socket.core.constant.Constants;
 import com.socket.core.model.enums.HttpStatus;
 import com.socket.core.model.enums.RedisTree;
 import com.socket.core.model.po.SysUser;
 import com.socket.core.util.RedisClient;
+import com.socket.server.properties.WxProperties;
 import com.socket.server.request.anno.WeChatRedirect;
 import com.socket.server.service.WxloginService;
-import com.socket.server.util.RedirectUtil;
+import com.socket.server.util.Redirects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,16 +50,16 @@ public class WxLoginController {
         SysUser user = wxloginService.authorize(code, state);
         boolean wxMobile = state.endsWith(Constants.WX_MOBILE);
         // 二维码过期
-        RedirectUtil.redirectIfNull(user, response, url + "/status/failed.html?key=expired");
+        Redirects.redirectIfNull(user, response, url + "/status/failed.html?key=expired");
         // 永久限制登录
-        RedirectUtil.redirectIf(user.isDeleted(), response, url + "/status/failed.html?key=lock");
+        Redirects.redirectIf(user.isDeleted(), response, url + "/status/failed.html?key=lock");
         // 临时限制登录
         long time = redis.getExpired(RedisTree.LOCK.concat(user.getGuid()));
-        RedirectUtil.redirectIf(time > 0, response, url + "/status/failed.html?key=lock&time=" + time);
+        Redirects.redirectIf(time > 0, response, url + "/status/failed.html?key=lock&time=" + time);
         // 手机扫码登录处理
-        RedirectUtil.redirectIf(!wxMobile, response, url + "/status/success.html");
+        Redirects.redirectIf(!wxMobile, response, url + "/status/success.html");
         // 扫码登录
         wxloginService.login(state);
-        RedirectUtil.redirect(response, url);
+        Redirects.redirect(response, url);
     }
 }

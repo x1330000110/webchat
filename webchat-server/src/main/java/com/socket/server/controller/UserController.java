@@ -1,7 +1,6 @@
 package com.socket.server.controller;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.socket.core.custom.publisher.CommandPublisher;
 import com.socket.core.model.Announce;
 import com.socket.core.model.command.impl.PermissionEnum;
 import com.socket.core.model.condition.EmailCondition;
@@ -11,6 +10,7 @@ import com.socket.core.model.enums.RedisTree;
 import com.socket.core.model.po.SysUser;
 import com.socket.core.util.RedisClient;
 import com.socket.secure.filter.anno.Encrypted;
+import com.socket.server.publisher.CommandPublisher;
 import com.socket.server.service.ShieldUserService;
 import com.socket.server.service.SysUserService;
 import lombok.RequiredArgsConstructor;

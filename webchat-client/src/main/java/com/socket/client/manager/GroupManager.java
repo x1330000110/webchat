@@ -1,9 +1,9 @@
-package com.socket.client.core;
+package com.socket.client.manager;
 
 import com.socket.core.model.command.Command;
 import com.socket.core.model.po.SysGroup;
-import com.socket.core.model.ws.WsMsg;
-import com.socket.core.model.ws.WsUser;
+import com.socket.core.model.socket.SocketMessage;
+import com.socket.core.model.socket.SocketUser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -15,14 +15,14 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 @Component
-public class SocketGroupMap extends ConcurrentHashMap<SysGroup, List<WsUser>> {
+public class GroupManager extends ConcurrentHashMap<SysGroup, List<SocketUser>> {
     /**
      * 向群组发送消息<br>
      *
-     * @param wsmsg 消息
+     * @param message 消息
      */
-    public void sendGroup(WsMsg wsmsg) {
-        getGroupUsers(wsmsg.getTarget()).forEach(target -> target.send(wsmsg));
+    public void sendGroup(SocketMessage message) {
+        getGroupUsers(message.getTarget()).forEach(target -> target.send(message));
     }
 
     /**
@@ -31,7 +31,7 @@ public class SocketGroupMap extends ConcurrentHashMap<SysGroup, List<WsUser>> {
      * @param gid 群组id
      * @return 成员
      */
-    public List<WsUser> getGroupUsers(String gid) {
+    public List<SocketUser> getGroupUsers(String gid) {
         return this.get(get(gid));
     }
 
@@ -61,6 +61,6 @@ public class SocketGroupMap extends ConcurrentHashMap<SysGroup, List<WsUser>> {
      * @param data    额外数据
      */
     public void sendGroup(String gid, String content, Command<?> command, Object data) {
-        getGroupUsers(gid).forEach(wsuser -> wsuser.send(content, command, data));
+        getGroupUsers(gid).forEach(user -> user.send(content, command, data));
     }
 }

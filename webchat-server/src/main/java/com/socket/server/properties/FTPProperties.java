@@ -1,4 +1,4 @@
-package com.socket.core.config.properties;
+package com.socket.server.properties;
 
 import cn.hutool.extra.ftp.FtpConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;

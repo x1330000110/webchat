@@ -1,4 +1,4 @@
-package com.socket.core.request;
+package com.socket.server.request;
 
 import cn.hutool.core.io.resource.BytesResource;
 import cn.hutool.core.io.resource.Resource;
@@ -9,10 +9,10 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.socket.core.config.properties.LanzouProperties;
-import com.socket.core.custom.storage.ResourceStorage;
 import com.socket.core.model.enums.FileType;
 import com.socket.secure.util.Assert;
+import com.socket.server.properties.LanzouProperties;
+import com.socket.server.storage.ResourceStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;

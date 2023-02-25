@@ -1,4 +1,4 @@
-package com.socket.core.custom;
+package com.socket.server.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;

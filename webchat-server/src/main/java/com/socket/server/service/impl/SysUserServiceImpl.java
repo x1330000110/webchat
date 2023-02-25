@@ -13,8 +13,6 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.core.constant.Constants;
-import com.socket.core.custom.publisher.CommandPublisher;
-import com.socket.core.custom.storage.ResourceStorage;
 import com.socket.core.exception.AccountException;
 import com.socket.core.exception.UploadException;
 import com.socket.core.mapper.SysUserMapper;
@@ -30,10 +28,12 @@ import com.socket.core.model.po.ChatRecordFile;
 import com.socket.core.model.po.SysUser;
 import com.socket.core.util.*;
 import com.socket.secure.util.Assert;
+import com.socket.server.publisher.CommandPublisher;
 import com.socket.server.service.ResourceService;
 import com.socket.server.service.SysGroupService;
 import com.socket.server.service.SysUserService;
-import com.socket.server.util.EmailUtil;
+import com.socket.server.storage.ResourceStorage;
+import com.socket.server.util.Email;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
@@ -57,7 +57,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final CommandPublisher publisher;
     private final RedisClient<Object> redis;
     private final ResourceStorage storage;
-    private final EmailUtil sender;
+    private final Email sender;
 
     @Override
     public void login(LoginCondition condition) {

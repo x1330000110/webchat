@@ -1,4 +1,4 @@
-package com.socket.core.custom.publisher;
+package com.socket.server.publisher;
 
 import cn.hutool.json.JSONUtil;
 import com.socket.core.constant.Topics;

@@ -1,4 +1,4 @@
-package com.socket.core.config.properties;
+package com.socket.server.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
