@@ -9,11 +9,11 @@ WebScoket消息发送，重要API接口已被加密，有关HTTP数据加密/验
 #### 层级结构
 
 ```
-                                                                                                | -----> GroupCommandParser
-                                                                                                |
+                                           |----> UserManager                                   | -----> GroupCommandParser
+                                           |                                                    |
 --------------                             |----> PermissionManager ------> CommandParser ------| -----> UserCommandParser
 webchat-client -------> SocketEndpoint ----|                                                    |
---------------                             |----> SettingSupport                                | -----> PermissCommandParser
+--------------                             |----> GroupManager                                  | -----> PermissCommandParser
 
        ⇑
  [webchat-core]        |---> message
@@ -28,21 +28,20 @@ webchat-server --------|---> group
                        |---> login ----------> shiro ----------|
                                                                | ------> QQ
 
-                                        | -----> RSA
+                                        | -----> CamouflagePublicKey
                        | ---> core -----|
---------------         |                | -----> AES
-webchat-secure --------|                                        | ----> ExpiredValidator
---------------         |                                        |                               | -----> MappedRepeatValidator
-                       | ---> filter --------> validator -------| ----> RepeatValidator --------|
-                                                                |                               | -----> RedisRepeatValidator
-                                                                | ----> SignatureValidator
+--------------         |                | -----> SignatureGenerator                             | -----> CheckExpired
+webchat-secure --------|                                                                        |
+--------------         |                                        | ----> RepeatValidator --------| -----> MappedRepeatValidator
+                       | ---> Validator ----> RequestWapper-----|                               |
+                                                                | ----> SignatureValidator      | -----> RedisRepeatValidator
 ```
 
 基于JDK1.8
 
 * 后端：Spring Boot、Mybatis Plus、Shiro、MySQL、Redis、Kafka、WebSocket、Nacos、Openfeign
 
-必要的依赖信息
+#### 必要的依赖信息
 
 * MySQL 5.7.1
 * Redis 7.0.4
@@ -51,6 +50,14 @@ webchat-secure --------|                                        | ----> ExpiredV
 * 系统邮箱账号
 * 微信公众号
 * FTP/Lanzou（或自己重写资源储存方式）
+
+#### 通用能力说明
+
+* @WeChatRedirect - 微信登录重定向标记，标记此注解的方法将对外开放[GET]请求并允许跨域，通过WxAuth2Request扫描控制器标记的注解，动态配置微信授权地址
+* @Encrypted - 内置的API请求加密模块标记，用于标记在重要的控制器类或方法上，将进行一系列安全验证以及解密操作，失败则返回400错误
+* @OpenApi - 对服务开放的请求标记，标记在控制器必须提供请求头的指定密钥才能访问，密钥仅存在服务端，所以用户无法访问标记的API并返回404错误
+* ResourceStorage - 通用资源储存接口，默认实现了两种（Lanzou，FTP），可根据业务需求手动实现储存方式（如FastDFS），Spring会优先装配自定义的实现Bean
+* CommandHandler - 系统命令处理接口，通过命令枚举和类名匹配的方式动态执行命令，后续扩展命令仅需添加枚举和对应实现类即可实现系统命令的执行和操作
 
 #### 现支持的功能
 
