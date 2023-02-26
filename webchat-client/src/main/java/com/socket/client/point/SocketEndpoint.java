@@ -42,6 +42,7 @@ public class SocketEndpoint implements ApplicationContextAware {
     public void onOpen(Session session, EndpointConfig config) {
         // 加入聊天室
         Optional.ofNullable(userManager.join(session, config.getUserProperties())).ifPresent(user -> {
+            log.info("===> 用户加入聊天室：{}", user.getGuid());
             // 推送所有用户数据
             List<BaseUser> previews = permissionManager.getUserPreviews(user);
             user.send(CommandEnum.INIT.name(), CommandEnum.INIT, previews);
@@ -56,6 +57,7 @@ public class SocketEndpoint implements ApplicationContextAware {
     @OnClose
     public void onClose() {
         Optional.ofNullable(self).ifPresent(user -> {
+            log.info("<=== 用户退出聊天室：{}", user.getGuid());
             userManager.exit(user, null);
             // 退出通知
             userManager.sendAll(CommandEnum.EXIT, user);
@@ -159,18 +161,6 @@ public class SocketEndpoint implements ApplicationContextAware {
     }
 
     /**
-     * AI接管消息
-     */
-    private void parseAiMessage(SocketMessage message) {
-        boolean sysuid = Constants.SYSTEM_UID.equals(message.getTarget());
-        boolean text = CommandEnum.TEXT == message.getType();
-        // 判断AI消息
-        if (sysuid && text && !userManager.get(Constants.SYSTEM_UID).isOnline()) {
-            userManager.sendAIMessage(self, message);
-        }
-    }
-
-    /**
      * 在线状态变动事件
      *
      * @param state 状态
@@ -213,6 +203,18 @@ public class SocketEndpoint implements ApplicationContextAware {
             self.send("对方屏蔽了你", CommandEnum.ERROR);
         }
         target.send(message);
+    }
+
+    /**
+     * AI接管消息
+     */
+    private void parseAiMessage(SocketMessage message) {
+        boolean sysuid = Constants.SYSTEM_UID.equals(message.getTarget());
+        boolean text = CommandEnum.TEXT == message.getType();
+        // 判断AI消息
+        if (sysuid && text && !userManager.get(Constants.SYSTEM_UID).isOnline()) {
+            userManager.sendAIMessage(self, message);
+        }
     }
 
     @Override
