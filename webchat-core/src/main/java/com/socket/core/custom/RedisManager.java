@@ -3,7 +3,7 @@ package com.socket.core.custom;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.socket.core.constant.Constants;
+import com.socket.core.constant.ChatProperties;
 import com.socket.core.mapper.ShieldUserMapper;
 import com.socket.core.model.Announce;
 import com.socket.core.model.enums.RedisTree;
@@ -28,6 +28,7 @@ public class RedisManager {
     private final ShieldUserMapper shieldUserMapper;
     private final RedisClient<Integer> permission;
     private final RedisClient<Object> announce;
+    private final ChatProperties properties;
     private final RedisClient<String> shield;
 
     /**
@@ -134,7 +135,7 @@ public class RedisManager {
             List<ShieldUser> users = shieldUserMapper.selectList(wrapper);
             List<String> collect = users.stream().map(ShieldUser::getTarget).collect(Collectors.toList());
             redisList.addAll(collect);
-            redisList.expire(Constants.SHIELD_CACHE_TIME, TimeUnit.HOURS);
+            redisList.expire(properties.getShieldCacheTime(), TimeUnit.HOURS);
         }
         return redisList;
     }

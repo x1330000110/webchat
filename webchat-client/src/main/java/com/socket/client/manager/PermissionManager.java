@@ -4,7 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import com.socket.client.custom.KeywordSupport;
 import com.socket.client.feign.ChatRecordApi;
 import com.socket.client.feign.SysUserLogApi;
-import com.socket.core.constant.Constants;
+import com.socket.core.constant.ChatProperties;
 import com.socket.core.custom.RedisManager;
 import com.socket.core.mapper.SysGroupMapper;
 import com.socket.core.mapper.SysGroupUserMapper;
@@ -35,10 +35,11 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class PermissionManager implements InitializingBean {
+    private final KeywordSupport keywordSupport;
+    private final ChatProperties properties;
     private final RedisManager redisManager;
     private final GroupManager groupManager;
     private final UserManager userManager;
-    private final KeywordSupport keywordSupport;
     private final SysGroupUserMapper sysGroupUserMapper;
     private final SysGroupMapper sysGroupMapper;
     private final SysUserMapper sysUserMapper;
@@ -132,7 +133,7 @@ public class PermissionManager implements InitializingBean {
         if (content == null) {
             return true;
         }
-        content = StrUtil.sub(content, 0, Constants.MAX_MESSAGE_LENGTH);
+        content = StrUtil.sub(content, 0, properties.getMaxMessageLength());
         // 违规字符检查的代替方案
         content = content.replace("<", "&lt;");
         content = content.replace(">", "&gt;");
@@ -157,8 +158,8 @@ public class PermissionManager implements InitializingBean {
      */
     public void operateMark(SocketUser user) {
         if (!user.isOwner()) {
-            long time = TimeUnit.HOURS.toSeconds(Constants.FREQUENT_SPEECHES_MUTE_TIME);
-            if (redisManager.incrSpeak(user.getGuid()) > Constants.FREQUENT_SPEECH_THRESHOLD) {
+            long time = TimeUnit.HOURS.toSeconds(properties.getFrequentSpeechMuteTime());
+            if (redisManager.incrSpeak(user.getGuid()) > properties.getFrequentSpeechThreshold()) {
                 redisManager.setMute(user.getGuid(), time);
                 // b结尾 特殊的刷屏标记
                 user.send(time + "b", PermissionEnum.MUTE, user);

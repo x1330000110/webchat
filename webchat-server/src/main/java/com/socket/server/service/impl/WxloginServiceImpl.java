@@ -6,6 +6,7 @@ import cn.hutool.extra.qrcode.QrCodeUtil;
 import cn.hutool.extra.qrcode.QrConfig;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.socket.core.constant.ChatProperties;
 import com.socket.core.constant.Constants;
 import com.socket.core.exception.AccountException;
 import com.socket.core.model.base.BaseUser;
@@ -17,7 +18,6 @@ import com.socket.core.util.RedisClient;
 import com.socket.secure.util.Assert;
 import com.socket.server.request.WxAuth2Request;
 import com.socket.server.request.vo.WxUser;
-import com.socket.server.service.SysGroupService;
 import com.socket.server.service.SysUserService;
 import com.socket.server.service.WxloginService;
 import lombok.RequiredArgsConstructor;
@@ -36,9 +36,9 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class WxloginServiceImpl implements WxloginService {
-    private final SysGroupService sysGroupService;
-    private final WxAuth2Request wxAuth2Request;
     private final SysUserService sysUserService;
+    private final WxAuth2Request wxAuth2Request;
+    private final ChatProperties properties;
     private final RedisClient<String> redis;
 
     @Override
@@ -62,7 +62,7 @@ public class WxloginServiceImpl implements WxloginService {
                 return sysUserService._register(condition).getGuid();
             });
             // 设置用户UID到Redis
-            return redis.setIfPresent(key, guid, Constants.QR_CODE_EXPIRATION_TIME) ? user : null;
+            return redis.setIfPresent(key, guid, properties.getQrCodeExpirationTime()) ? user : null;
         }
         return null;
     }
@@ -94,7 +94,7 @@ public class WxloginServiceImpl implements WxloginService {
 
     @Override
     public String getWxFastUrl(String uuid) {
-        redis.set(RedisTree.WXUUID.concat(uuid), StrUtil.EMPTY, Constants.QR_CODE_EXPIRATION_TIME);
+        redis.set(RedisTree.WXUUID.concat(uuid), StrUtil.EMPTY, properties.getQrCodeExpirationTime());
         return wxAuth2Request.getWxLoginURL(uuid);
     }
 }

@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
+import com.socket.core.constant.ChatProperties;
 import com.socket.core.constant.Constants;
 import com.socket.core.mapper.SysGroupMapper;
 import com.socket.core.mapper.SysGroupUserMapper;
@@ -33,16 +34,17 @@ import java.util.stream.Collectors;
 public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> implements SysGroupService {
     private final SysGroupUserMapper sysGroupUserMapper;
     private final CommandPublisher publisher;
+    private final ChatProperties properties;
 
     public String createGroup(String groupName, String password) {
         String userId = ShiroUser.getUserId();
         // 创建检查
-        boolean expression = StrUtil.isEmpty(password) || password.length() <= Constants.MAX_GROUP_PASSWORD;
+        boolean expression = StrUtil.isEmpty(password) || password.length() <= properties.getMaxGroupPassword();
         Assert.isTrue(expression, "密码长度不合法", IllegalStateException::new);
         LambdaQueryWrapper<SysGroup> check = Wrappers.lambdaQuery();
         check.eq(SysGroup::getOwner, userId);
         int count = count(check);
-        Assert.isTrue(count <= Constants.MAX_CREATE_GROUP_NUM, "群组创建已达上限", IllegalStateException::new);
+        Assert.isTrue(count <= properties.getMaxCreateGroupNum(), "群组创建已达上限", IllegalStateException::new);
         // 必要的组名检查
         Assert.isFalse(StrUtil.isEmpty(groupName), "空的群组名称", IllegalStateException::new);
         Assert.isTrue(StrUtil.length(groupName) <= 8, "无效的群组名称", IllegalStateException::new);

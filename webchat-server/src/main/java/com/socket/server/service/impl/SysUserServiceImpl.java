@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.socket.core.constant.ChatProperties;
 import com.socket.core.constant.Constants;
 import com.socket.core.exception.AccountException;
 import com.socket.core.exception.UploadException;
@@ -56,6 +57,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final ResourceService resourceService;
     private final CommandPublisher publisher;
     private final RedisClient<Object> redis;
+    private final ChatProperties properties;
     private final ResourceStorage storage;
     private final Email sender;
 
@@ -122,16 +124,16 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 检查重复发送间隔
         String etk = RedisTree.EMAIL_TEMP.concat(email);
         Assert.isFalse(redis.exist(etk), "验证码发送过于频繁", IllegalStateException::new);
-        redis.set(etk, -1, Constants.EMAIL_SENDING_INTERVAL);
+        redis.set(etk, -1, properties.getEmailSendingInterval());
         // 检查发送次数上限
         String elk = RedisTree.EMAIL_LIMIT.concat(email);
-        long count = redis.incr(elk, 1, Constants.EMAIL_LIMIT_SENDING_INTERVAL, TimeUnit.HOURS);
+        long count = redis.incr(elk, 1, properties.getEmailLimitSendingInterval(), TimeUnit.HOURS);
         Assert.isTrue(count <= 3, "该账号验证码每日发送次数已达上限", IllegalStateException::new);
         // 发送邮件
         String code = sender.send(email);
         // 保存到redis 10分钟
         etk = RedisTree.EMAIL.concat(email);
-        redis.set(etk, code, Constants.EMAIL_CODE_VALID_TIME, TimeUnit.MINUTES);
+        redis.set(etk, code, properties.getEmailCodeValidTime(), TimeUnit.MINUTES);
         return DesensitizedUtil.email(email);
     }
 

@@ -3,7 +3,7 @@ package com.socket.server.util;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
-import com.socket.core.constant.Constants;
+import com.socket.core.constant.ChatProperties;
 import com.socket.secure.util.Assert;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -21,7 +21,8 @@ import java.io.InputStream;
 @RequiredArgsConstructor
 public class Email implements InitializingBean {
     private final JavaMailSenderImpl mailSender;
-    private final MailProperties properties;
+    private final MailProperties mailProperties;
+    private final ChatProperties chatProperties;
     private String content;
 
     /**
@@ -36,8 +37,8 @@ public class Email implements InitializingBean {
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
         String code = RandomUtil.randomNumbers(6);
         helper.setSubject("验证码");
-        helper.setFrom(StrUtil.format("WebChat认证邮件<{}>", properties.getUsername()));
-        final int time = Constants.EMAIL_CODE_VALID_TIME;
+        helper.setFrom(StrUtil.format("WebChat认证邮件<{}>", mailProperties.getUsername()));
+        final int time = chatProperties.getEmailCodeValidTime();
         helper.setText(StrUtil.format(content, code, time, code, time), true);
         helper.setTo(mail);
         mailSender.send(message);

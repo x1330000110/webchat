@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.socket.core.constant.Constants;
+import com.socket.core.constant.ChatProperties;
 import com.socket.core.constant.Topics;
 import com.socket.core.custom.RedisManager;
 import com.socket.core.mapper.ChatRecordDeletedMapper;
@@ -46,6 +46,7 @@ public class ChatRecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRec
     private final ChatRecordDeletedMapper deletedMapper;
     private final ChatRecordOffsetMapper offsetMapper;
     private final CommandPublisher publisher;
+    private final ChatProperties properties;
     private final RedisManager redisManager;
 
     @KafkaListener(topics = Topics.MESSAGE, groupId = "MESSAGE")
@@ -115,7 +116,7 @@ public class ChatRecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRec
 
         // 限制结果
         wrapper.orderByDesc(ChatRecord::getCreateTime);
-        wrapper.last(StrUtil.format("LIMIT {}", Constants.SYNC_RECORDS_NUMS));
+        wrapper.last(StrUtil.format("LIMIT {}", properties.getSyncRecordsNums()));
         return list(wrapper);
     }
 
@@ -128,7 +129,7 @@ public class ChatRecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRec
         Assert.notNull(record, "服务器消息同步中，请稍后再试", IllegalStateException::new);
         // 消息未送达或未超过规定撤回时间
         long second = DateUtil.between(record.getCreateTime(), new Date(), DateUnit.SECOND);
-        if (record.isReject() || second <= Constants.WITHDRAW_TIME) {
+        if (record.isReject() || second <= properties.getWithdrawTime()) {
             wrapper.set(BaseModel::isDeleted, 1);
             update(wrapper);
             // 若消息未读 计数器-1
