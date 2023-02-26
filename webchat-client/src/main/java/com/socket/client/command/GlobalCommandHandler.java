@@ -33,7 +33,7 @@ public class GlobalCommandHandler {
     /**
      * 群组事件
      */
-    @KafkaListener(topics = Topics.GROUP_CHANGE_COMMAND, groupId = "GROUP")
+    @KafkaListener(topics = Topics.GROUP_COMMAND, groupId = "GROUP")
     public void onGroupChange(ConsumerRecord<String, String> data) {
         String serial = data.value();
         log.info("收到MQ消息：{}", serial);
@@ -45,7 +45,7 @@ public class GlobalCommandHandler {
     /**
      * 用户事件
      */
-    @KafkaListener(topics = Topics.USER_CHANGE_COMMAND, groupId = "USER")
+    @KafkaListener(topics = Topics.USER_COMMAND, groupId = "USER")
     public void onUserChange(ConsumerRecord<String, String> data) {
         String serial = data.value();
         log.info("收到MQ消息：{}", serial);

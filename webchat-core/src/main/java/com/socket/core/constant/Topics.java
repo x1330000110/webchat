@@ -11,11 +11,11 @@ public interface Topics {
     /**
      * 用户信息同步缓存
      */
-    String USER_CHANGE_COMMAND = "USER_CHANGE_COMMAND";
+    String USER_COMMAND = "USER_COMMAND";
     /**
      * 群组命令
      */
-    String GROUP_CHANGE_COMMAND = "GROUP_CHANGE_COMMAND";
+    String GROUP_COMMAND = "GROUP_COMMAND";
     /**
      * 权限命令
      */

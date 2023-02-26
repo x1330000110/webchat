@@ -28,14 +28,14 @@ public class CommandPublisher {
         GroupChangeTopic topic = new GroupChangeTopic(group, command);
         String serial = JSONUtil.toJsonStr(topic);
         log.info("发送MQ消息：{}", serial);
-        template.send(Topics.GROUP_CHANGE_COMMAND, serial);
+        template.send(Topics.GROUP_COMMAND, serial);
     }
 
     public void pushGroupEvent(SysGroupUser user, GroupEnum command) {
         GroupChangeTopic topic = new GroupChangeTopic(user, command);
         String serial = JSONUtil.toJsonStr(topic);
         log.info("发送MQ消息：{}", serial);
-        template.send(Topics.GROUP_CHANGE_COMMAND, serial);
+        template.send(Topics.GROUP_COMMAND, serial);
     }
 
     public void pushPermissionEvent(String target, Object data, PermissionEnum command) {
@@ -63,13 +63,13 @@ public class CommandPublisher {
         UserChangeTopic topic = new UserChangeTopic(data, command);
         String serial = JSONUtil.toJsonStr(topic);
         log.info("发送MQ消息：{}", serial);
-        template.send(Topics.USER_CHANGE_COMMAND, serial);
+        template.send(Topics.USER_COMMAND, serial);
     }
 
     public void pushUserEvent(String target, String data, UserEnum command) {
         UserChangeTopic topic = new UserChangeTopic(target, data, command);
         String serial = JSONUtil.toJsonStr(topic);
         log.info("发送MQ消息：{}", serial);
-        template.send(Topics.USER_CHANGE_COMMAND, serial);
+        template.send(Topics.USER_COMMAND, serial);
     }
 }
