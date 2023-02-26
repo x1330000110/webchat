@@ -2,7 +2,6 @@ package com.socket.server.request;
 
 import cn.hutool.core.io.resource.BytesResource;
 import cn.hutool.core.io.resource.Resource;
-import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.Header;
 import cn.hutool.http.HttpRequest;
@@ -15,7 +14,6 @@ import com.socket.server.custom.storage.ResourceStorage;
 import com.socket.server.properties.LanzouProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.net.HttpCookie;
 import java.util.ArrayList;
@@ -26,12 +24,11 @@ import java.util.List;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class LanzouCloudRequest implements ResourceStorage, InitializingBean {
+public class LanzouCloudRequest implements ResourceStorage {
     private static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36 Edg/106.0.1370.37";
     private static final String DOWNLOAD_URL = "https://api.kit9.cn/api/lanzouyun_netdisc/api.php?link={}";
     private static final String UPLOAD_URL = "https://pc.woozooo.com/fileup.php";
     private final LanzouProperties properties;
-    private List<HttpCookie> cookies;
 
     public String upload(FileType type, byte[] bytes, String hash) {
         return upload(type, new BytesResource(bytes, hash));
@@ -59,11 +56,10 @@ public class LanzouCloudRequest implements ResourceStorage, InitializingBean {
     }
 
     private String upload(FileType type, Resource resource) {
-        JSONObject args = buildArgs(resource, type);
         String body = HttpRequest.post(UPLOAD_URL)
                 .header(Header.USER_AGENT, USER_AGENT)
-                .cookie(cookies)
-                .form(args)
+                .cookie(getCookies())
+                .form(buildArgs(resource, type))
                 .execute()
                 .body();
         // 解析结果
@@ -75,6 +71,13 @@ public class LanzouCloudRequest implements ResourceStorage, InitializingBean {
         return text.getStr("is_newd") + "/" + text.getStr("f_id");
     }
 
+    private List<HttpCookie> getCookies() {
+        List<HttpCookie> list = new ArrayList<>();
+        list.add(new HttpCookie("ylogin", properties.getYlogin()));
+        list.add(new HttpCookie("phpdisk_info", properties.getPhpdiskInfo()));
+        return list;
+    }
+
     private JSONObject buildArgs(Resource resource, FileType type) {
         JSONObject form = new JSONObject();
         form.set("ve", 2);
@@ -84,15 +87,7 @@ public class LanzouCloudRequest implements ResourceStorage, InitializingBean {
         form.set("folder_id_bb_n", type.getCode());
         form.set("type", "application/octet-stream");
         form.set("size", resource.readBytes().length);
-        form.set("id", "WU_FILE_" + RandomUtil.randomInt(10));
+        form.set("id", "WU_FILE_0");
         return form;
-    }
-
-    @Override
-    public void afterPropertiesSet() {
-        List<HttpCookie> list = new ArrayList<>();
-        list.add(new HttpCookie("ylogin", properties.getYlogin()));
-        list.add(new HttpCookie("phpdisk_info", properties.getPhpdiskInfo()));
-        this.cookies = list;
     }
 }

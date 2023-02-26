@@ -35,8 +35,6 @@ public class StorageConfig {
     @ConditionalOnProperty(prefix = "lanzou.config", name = "phpdisk-info")
     public ResourceStorage lanzouCloudRequest() {
         log.info("装载资源储存服务：{}", LanzouCloudRequest.class.getName());
-        LanzouCloudRequest request = new LanzouCloudRequest(properties);
-        request.afterPropertiesSet();
-        return request;
+        return new LanzouCloudRequest(properties);
     }
 }
