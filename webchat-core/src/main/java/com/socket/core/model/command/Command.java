@@ -21,7 +21,7 @@ public interface Command<E extends Command<E> & EnumItem<E>> extends EnumItem<E>
      * 获取命令枚举对应实现类名
      */
     default String getName() {
-        return StrUtil.toCamelCase((name().toLowerCase()));
+        return StrUtil.toCamelCase(name().toLowerCase());
     }
 
     String name();
