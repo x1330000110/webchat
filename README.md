@@ -40,13 +40,14 @@ webchat-secure --------|                                        | ----> ExpiredV
 
 基于JDK1.8
 
-* 后端：Spring Boot、Mybatis Plus、Shiro、MySQL、Redis、Kafka、WebSocket
+* 后端：Spring Boot、Mybatis Plus、Shiro、MySQL、Redis、Kafka、WebSocket、Nacos、Openfeign
 
 必要的依赖信息
 
-* MySQL
-* Redis
-* Kafka
+* MySQL 5.7.1
+* Redis 7.0.4
+* Kafka 2.3.2
+* Nacos 2.2.0
 * 系统邮箱账号
 * 微信公众号
 * FTP/Lanzou（或自己重写资源储存方式）
