@@ -6,11 +6,13 @@ import com.socket.core.model.AuthUser;
 import com.socket.core.model.enums.RedisTree;
 import com.socket.core.util.RedisClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
  * Token用户与缓存
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class TokenUserManager {
@@ -28,6 +30,7 @@ public class TokenUserManager {
         String token = RandomUtil.randomString(RandomUtil.BASE_CHAR_NUMBER.substring(0, 16), 16);
         AuthUser user = new AuthUser(uid, key);
         client.set(RedisTree.AUTH.concat(token), BeanUtil.beanToMap(user), expired);
+        log.info("生成Token: {} UID: {}", token, uid);
         return token;
     }
 

@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
 import org.yeauty.annotation.*;
 import org.yeauty.pojo.Session;
 
@@ -26,6 +27,7 @@ import java.util.List;
  * Socket端点处理类
  */
 @Slf4j
+@Component
 @ServerEndpoint(value = "/ws/room", port = "${server.port}")
 public class SocketEndpoint implements ApplicationContextAware {
     private static final String TOKEN = "Sec-WebSocket-Protocol";
@@ -47,22 +49,26 @@ public class SocketEndpoint implements ApplicationContextAware {
 
     @OnOpen
     public void onOpen(Session session) {
-        log.info("===> 用户加入聊天室：{}", self.getGuid());
-        // 推送所有用户数据
-        List<BaseUser> previews = permissionManager.getUserPreviews(self);
-        self.send(CommandEnum.INIT.name(), CommandEnum.INIT, previews);
-        // 向其他人发送加入通知
-        userManager.sendAll(CommandEnum.JOIN, self);
-        // 检查禁言
-        permissionManager.checkMute(self);
+        if (self != null) {
+            log.info("===> 用户加入聊天室：{}", self.getGuid());
+            // 推送所有用户数据
+            List<BaseUser> previews = permissionManager.getUserPreviews(self);
+            self.send(CommandEnum.INIT.name(), CommandEnum.INIT, previews);
+            // 向其他人发送加入通知
+            userManager.sendAll(CommandEnum.JOIN, self);
+            // 检查禁言
+            permissionManager.checkMute(self);
+        }
     }
 
     @OnClose
     public void onClose() {
-        log.info("<=== 用户退出聊天室：{}", self.getGuid());
-        // 退出通知
-        userManager.exit(self, null);
-        userManager.sendAll(CommandEnum.EXIT, self);
+        if (self != null) {
+            log.info("<=== 用户退出聊天室：{}", self.getGuid());
+            // 退出通知
+            userManager.exit(self, null);
+            userManager.sendAll(CommandEnum.EXIT, self);
+        }
     }
 
     @OnError
