@@ -112,7 +112,7 @@ public class AES {
             ciphertext = StrUtil.removePrefix(ciphertext, "<");
             ciphertext = StrUtil.removeSuffix(ciphertext, ">");
         }
-        byte[] bytes = Base64.decode(ciphertext.substring(1, ciphertext.length() - 1));
+        byte[] bytes = Base64.decode(ciphertext);
         try {
             Cipher cipher = getCipher(Cipher.DECRYPT_MODE, key);
             return new String(cipher.doFinal(bytes)).substring(RANDOM_PREFIX_LENGTH);
