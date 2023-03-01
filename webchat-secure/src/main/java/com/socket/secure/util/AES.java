@@ -93,6 +93,9 @@ public class AES {
      * @return plaintext
      */
     public static String decrypt(String ciphertext, HttpSession session) {
+        if (!StrUtil.isWrap(ciphertext, "<", ">")) {
+            return ciphertext;
+        }
         return decrypt(StrUtil.unWrap(ciphertext, "<", ">"), getAesKey(session));
     }
 
