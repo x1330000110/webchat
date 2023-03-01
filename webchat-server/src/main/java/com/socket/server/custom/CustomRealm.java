@@ -11,6 +11,7 @@ import com.socket.core.custom.SocketRedisManager;
 import com.socket.core.mapper.SysUserLogMapper;
 import com.socket.core.mapper.SysUserMapper;
 import com.socket.core.model.base.BaseModel;
+import com.socket.core.model.base.BaseUser;
 import com.socket.core.model.po.SysUser;
 import com.socket.core.model.po.SysUserLog;
 import com.socket.core.util.Bcrypt;
@@ -92,7 +93,7 @@ public class CustomRealm extends AuthorizingRealm {
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
         String guid = (String) token.getPrincipal();
         LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(guid.contains("@") ? SysUser::getEmail : SysUser::getGuid, guid);
+        wrapper.eq(BaseUser::getGuid, guid);
         SysUser user = sysUserMapper.selectOne(wrapper);
         // 无效账号
         if (user == null) {

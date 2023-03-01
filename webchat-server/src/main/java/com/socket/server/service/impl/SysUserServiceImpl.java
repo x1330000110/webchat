@@ -4,7 +4,6 @@ import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.img.Img;
 import cn.hutool.core.img.ImgUtil;
 import cn.hutool.core.io.IORuntimeException;
-import cn.hutool.core.lang.Opt;
 import cn.hutool.core.lang.Validator;
 import cn.hutool.core.util.DesensitizedUtil;
 import cn.hutool.core.util.StrUtil;
@@ -75,26 +74,25 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public void login(LoginCondition condition) {
-        String code = condition.getCode(), guid = condition.getUser();
-        // 优先验证邮箱验证码
+        String code = condition.getCode();
+        String guid = condition.getUser();
+        // 查询相关用户
+        LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(Validator.isEmail(guid) ? SysUser::getEmail : SysUser::getGuid, guid);
+        SysUser user = getFirst(wrapper);
+        Assert.notNull(user, "找不到指定账号", UnknownAccountException::new);
+        // 验证异地登录
         if (StrUtil.isNotEmpty(code)) {
-            String email = guid;
-            if (!email.contains("@")) {
-                LambdaQueryWrapper<SysUser> wrapper = Wrappers.lambdaQuery(SysUser.class);
-                wrapper.eq(SysUser::getGuid, guid);
-                email = Opt.ofNullable(getFirst(wrapper)).map(SysUser::getEmail).get();
-                Assert.notNull(email, "找不到指定账号", UnknownAccountException::new);
-            }
-            String key = RedisTree.EMAIL.concat(email);
+            String key = RedisTree.EMAIL.concat(user.getEmail());
             Object redisCode = redisClient.get(key);
             Assert.equals(redisCode, code, "验证码不正确", AccountException::new);
             Request.set(Constants.AUHT_OFFSITE_REQUEST);
             redisClient.remove(key);
         }
         // shiro登录
-        SecurityUtils.getSubject().login(new UsernamePasswordToken(guid, condition.getPass(), condition.isAuto()));
+        SecurityUtils.getSubject().login(new UsernamePasswordToken(user.getGuid(), condition.getPass(), condition.isAuto()));
         // 保存并设置响应头
-        String token = tokenUserManager.setToken(guid, AES.getAesKey(session), session.getMaxInactiveInterval());
+        String token = tokenUserManager.setToken(user.getGuid(), AES.getAesKey(session), session.getMaxInactiveInterval());
         session.setAttribute(Constants.AUTH_TOKEN, token);
         Response.setHeader(Constants.AUTH_TOKEN, token);
     }
