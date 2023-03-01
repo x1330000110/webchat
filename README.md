@@ -10,11 +10,10 @@ WebScoket消息发送，重要API接口已被加密，有关HTTP数据加密/验
 
 ```
                                            |----> UserManager                                   | -----> GroupCommandParser
-                                           |                                                    |
---------------                             |----> PermissionManager ------> CommandParser ------| -----> UserCommandParser
-webchat-client -------> SocketEndpoint ----|                                                    |
---------------                             |----> GroupManager                                  | -----> PermissCommandParser
-
+--------------                             |                                                    |
+webchat-client -------> SocketEndpoint ----|----> PermissionManager ------> CommandParser ------| -----> UserCommandParser
+--------------                             |                                                    |
+                                           |----> GroupManager                                  | -----> PermissCommandParser
        ⇑
  [webchat-core]        |---> message
        ⇓               |                      | ------> BaiduSpeech
