@@ -1,6 +1,5 @@
 package com.socket.core.custom;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
 import com.socket.core.model.AuthUser;
@@ -31,7 +30,7 @@ public class TokenUserManager {
     public String setToken(String uid, String key, long expired) {
         String token = RandomUtil.randomString(HEX, 16);
         AuthUser user = new AuthUser(uid, key);
-        client.set(RedisTree.AUTH.concat(token), BeanUtil.beanToMap(user), expired);
+        client.set(RedisTree.AUTH.concat(token), JSONUtil.toJsonStr(user), expired);
         log.info("生成Token: {} UID: {}", token, uid);
         return token;
     }
