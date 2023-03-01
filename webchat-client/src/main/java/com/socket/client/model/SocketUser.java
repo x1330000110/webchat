@@ -4,8 +4,9 @@ import cn.hutool.core.annotation.PropIgnore;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.toolkit.AES;
+import com.socket.client.util.AES;
 import com.socket.core.custom.TokenUserManager;
+import com.socket.core.model.AuthUser;
 import com.socket.core.model.command.Command;
 import com.socket.core.model.command.impl.CommandEnum;
 import com.socket.core.model.enums.OnlineState;
@@ -83,8 +84,13 @@ public class SocketUser extends SysUser {
      * 解密消息
      */
     public SocketMessage decrypt(String str) {
-        // TODO 获取交换的密钥
-        JSONObject json = JSONUtil.parseObj(str);
+        AuthUser auth = manager.getTokenUser(token);
+        if (auth == null) {
+            return null;
+        }
+        // 解密消息
+        String decrypt = AES.decrypt(str, auth.getKey());
+        JSONObject json = JSONUtil.parseObj(decrypt);
         SocketMessage message = json.toBean(SocketMessage.class, true);
         message.setType(Enums.of(CommandEnum.class, json.getStr("type")));
         message.setGuid(getGuid());
@@ -154,8 +160,13 @@ public class SocketUser extends SysUser {
      */
     public void send(SocketMessage message) {
         if (isOnline()) {
-            String str = JSONUtil.toJsonStr(message);
-            session.sendText(AES.encrypt(str, manager.getTokenUser(token).getKey()));
+            AuthUser auth = manager.getTokenUser(token);
+            if (auth != null) {
+                // 加密消息
+                String str = JSONUtil.toJsonStr(message);
+                String encrypt = AES.encrypt(str, auth.getKey());
+                session.sendText(encrypt);
+            }
         }
     }
 
