@@ -1,4 +1,4 @@
-package com.socket.core.exception;
+package com.socket.server.exception;
 
 import cn.hutool.http.HttpException;
 import cn.hutool.json.JSONException;

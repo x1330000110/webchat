@@ -1,23 +1,23 @@
-package com.socket.core.custom;
+package com.socket.server.custom;
 
 import cn.hutool.core.util.DesensitizedUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.core.constant.Constants;
-import com.socket.core.exception.AccountException;
-import com.socket.core.exception.OffsiteLoginException;
+import com.socket.core.custom.IPAddrRequest;
+import com.socket.core.custom.SocketRedisManager;
 import com.socket.core.mapper.SysUserLogMapper;
 import com.socket.core.mapper.SysUserMapper;
 import com.socket.core.model.base.BaseModel;
-import com.socket.core.model.enums.RedisTree;
 import com.socket.core.model.po.SysUser;
 import com.socket.core.model.po.SysUserLog;
 import com.socket.core.util.Bcrypt;
-import com.socket.core.util.RedisClient;
-import com.socket.core.util.Requests;
 import com.socket.core.util.Wss;
 import com.socket.secure.util.Assert;
+import com.socket.server.exception.AccountException;
+import com.socket.server.exception.OffsiteLoginException;
+import com.socket.server.util.servlet.Request;
 import lombok.RequiredArgsConstructor;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
@@ -42,8 +42,8 @@ import java.util.Optional;
 public class CustomRealm extends AuthorizingRealm {
     private final SysUserLogMapper sysUserLogMapper;
     private final SysUserMapper sysUserMapper;
+    private final SocketRedisManager redisManager;
     private final IPAddrRequest ipAddrRequest;
-    private final RedisClient<?> redis;
 
     /**
      * 权限认证
@@ -104,7 +104,7 @@ public class CustomRealm extends AuthorizingRealm {
      * 验证登录限制
      */
     private void checkLimit(String guid) {
-        long time = redis.getExpired(RedisTree.LOCK.concat(guid));
+        long time = redisManager.getLockTime(guid);
         if (time > 0) {
             throw new AccountException("您已被限制登录，预计剩余" + Wss.universal(time));
         }
@@ -129,9 +129,9 @@ public class CustomRealm extends AuthorizingRealm {
             return;
         }
         // 检查标记
-        if (!Requests.exist(Constants.OFFSITE)) {
+        if (!Request.exist(Constants.OFFSITE)) {
             // 检查异地
-            String remoteIP = Requests.getRemoteIP();
+            String remoteIP = Request.getRemoteIP();
             if (!Objects.equals(log.getIp(), remoteIP)) {
                 // IP所属是否相同
                 boolean offsite = Objects.equals(log.getProvince(), ipAddrRequest.getProvince(remoteIP));

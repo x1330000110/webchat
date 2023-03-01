@@ -7,10 +7,10 @@ import com.socket.core.constant.Constants;
 import com.socket.core.model.condition.GroupCondition;
 import com.socket.core.model.enums.HttpStatus;
 import com.socket.core.model.po.SysGroup;
-import com.socket.core.util.ShiroUser;
 import com.socket.secure.filter.anno.Encrypted;
 import com.socket.secure.util.Assert;
 import com.socket.server.service.SysGroupService;
+import com.socket.server.util.ShiroUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

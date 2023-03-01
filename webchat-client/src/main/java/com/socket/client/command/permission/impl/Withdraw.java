@@ -1,10 +1,10 @@
 package com.socket.client.command.permission.impl;
 
 import com.socket.client.command.permission.PermissionHandler;
+import com.socket.client.model.SocketMessage;
+import com.socket.client.model.SocketUser;
 import com.socket.core.model.base.BaseUser;
 import com.socket.core.model.command.impl.PermissionEnum;
-import com.socket.core.model.socket.SocketMessage;
-import com.socket.core.model.socket.SocketUser;
 import com.socket.core.util.Wss;
 import org.springframework.stereotype.Component;
 

@@ -1,4 +1,4 @@
-package com.socket.core.model.socket;
+package com.socket.client.model;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.socket.core.model.po.SysGroup;

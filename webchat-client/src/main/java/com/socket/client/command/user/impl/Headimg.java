@@ -1,7 +1,7 @@
 package com.socket.client.command.user.impl;
 
 import com.socket.client.command.user.UserChangeHandler;
-import com.socket.core.model.socket.SocketUser;
+import com.socket.client.model.SocketUser;
 import org.springframework.stereotype.Component;
 
 /**

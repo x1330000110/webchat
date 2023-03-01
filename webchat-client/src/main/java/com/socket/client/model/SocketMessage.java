@@ -1,4 +1,4 @@
-package com.socket.core.model.socket;
+package com.socket.client.model;
 
 import cn.hutool.crypto.digest.MD5;
 import com.socket.core.model.command.Command;

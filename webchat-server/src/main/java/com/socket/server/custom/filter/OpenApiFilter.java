@@ -1,9 +1,12 @@
 package com.socket.server.custom.filter;
 
 import com.socket.core.constant.Constants;
+import com.socket.secure.exception.InvalidRequestException;
+import com.socket.secure.util.AES;
+import com.socket.secure.util.Assert;
 import com.socket.server.custom.filter.anno.OpenApi;
+import com.socket.server.util.servlet.Session;
 import lombok.RequiredArgsConstructor;
-import org.apache.shiro.web.util.WebUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerExecutionChain;
@@ -29,11 +32,10 @@ public class OpenApiFilter implements Filter {
         HandlerMethod method = getHandlerMethod(_request);
         // 检查服务调用接口
         if (method != null && method.hasMethodAnnotation(OpenApi.class)) {
-            String header = _request.getHeader(Constants.AUTH_SERVER_HEADER);
-            if (!Constants.AUTH_SERVER_KEY.equals(header)) {
-                WebUtils.toHttp(response).setStatus(404);
-                return;
-            }
+            String encuid = _request.getHeader(Constants.AUTH_SERVER_KEY);
+            Assert.notNull(encuid, InvalidRequestException::new);
+            String decuid = AES.decrypt(encuid, Session.get());
+            _request.setAttribute(Constants.AUTH_SERVER_KEY, decuid);
         }
         chain.doFilter(request, response);
     }

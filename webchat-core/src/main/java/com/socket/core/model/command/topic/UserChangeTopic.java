@@ -1,7 +1,6 @@
 package com.socket.core.model.command.topic;
 
 import com.socket.core.model.command.impl.UserEnum;
-import com.socket.core.util.ShiroUser;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -23,10 +22,6 @@ public class UserChangeTopic {
      * 新数据
      */
     private String param;
-
-    public UserChangeTopic(String param, UserEnum operation) {
-        this(ShiroUser.getUserId(), param, operation);
-    }
 
     public UserChangeTopic(String target, String param, UserEnum operation) {
         this.operation = operation;

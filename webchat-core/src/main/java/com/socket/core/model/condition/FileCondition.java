@@ -2,6 +2,7 @@ package com.socket.core.model.condition;
 
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
+//import org.springframework.web.multipart.MultipartFile;
 
 @Data
 public class FileCondition {

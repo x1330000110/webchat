@@ -1,14 +1,15 @@
 package com.socket.server.controller;
 
 import cn.hutool.json.JSONUtil;
+import com.socket.core.constant.Constants;
 import com.socket.core.model.condition.MessageCondition;
 import com.socket.core.model.enums.HttpStatus;
 import com.socket.core.model.po.ChatRecord;
-import com.socket.core.util.ShiroUser;
-import com.socket.secure.filter.anno.Encrypted;
 import com.socket.secure.util.AES;
 import com.socket.server.custom.filter.anno.OpenApi;
 import com.socket.server.service.ChatRecordService;
+import com.socket.server.util.ShiroUser;
+import com.socket.server.util.servlet.Request;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,14 +24,12 @@ import java.util.stream.Collectors;
 public class MessageController {
     private final ChatRecordService chatRecordService;
 
-    @Encrypted
     @PostMapping("/clear")
     public HttpStatus clear(@RequestBody MessageCondition condition) {
         chatRecordService.removeAllMessage(condition.getTarget());
         return HttpStatus.SUCCESS.message("清除成功");
     }
 
-    @Encrypted
     @PostMapping("/reading")
     public HttpStatus reading(@RequestBody MessageCondition condition) {
         if (condition.getMid() != null) {
@@ -42,14 +41,12 @@ public class MessageController {
         return HttpStatus.SUCCESS.message("操作成功");
     }
 
-    @Encrypted
     @PostMapping("/withdraw")
     public HttpStatus withdrawMessage(@RequestBody MessageCondition condition) {
         boolean state = chatRecordService.withdrawMessage(condition.getMid());
         return HttpStatus.state(state, "操作");
     }
 
-    @Encrypted
     @PostMapping("/remove")
     public HttpStatus removeMessage(@RequestBody MessageCondition condition) {
         boolean state = chatRecordService.removeMessage(condition.getMid());
@@ -70,7 +67,7 @@ public class MessageController {
     @OpenApi
     @GetMapping("/latest")
     public HttpStatus getLatest() {
-        String userId = ShiroUser.getUserId();
+        String userId = Request.get(Constants.AUTH_SERVER_KEY);
         Map<String, ChatRecord> map = chatRecordService.getLatestUnreadMessages(userId);
         return HttpStatus.SUCCESS.body(map);
     }

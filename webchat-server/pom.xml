@@ -12,8 +12,18 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.springframework.session</groupId>
+            <artifactId>spring-session-data-redis</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
         </dependency>
 
         <dependency>
@@ -28,6 +38,11 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-spring</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
@@ -39,6 +54,11 @@
             <version>2.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.socket</groupId>
+            <artifactId>webchat-secure</artifactId>
+            <version>2.0</version>
+        </dependency>
     </dependencies>
 
     <build>

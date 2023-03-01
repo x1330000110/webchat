@@ -3,7 +3,6 @@ package com.socket.server.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.socket.core.exception.UploadException;
 import com.socket.core.mapper.ChatRecordFileMapper;
 import com.socket.core.mapper.ChatRecordMapper;
 import com.socket.core.model.condition.FileCondition;
@@ -17,9 +16,11 @@ import com.socket.core.util.RedisClient;
 import com.socket.core.util.Wss;
 import com.socket.secure.util.Assert;
 import com.socket.server.custom.storage.ResourceStorage;
+import com.socket.server.exception.UploadException;
 import com.socket.server.request.BaiduSpeechRequest;
 import com.socket.server.request.enums.VideoType;
 import com.socket.server.service.ResourceService;
+import com.socket.server.util.ShiroUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -90,7 +91,7 @@ public class ResourceServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatR
             ChatRecord record = chatRecordMapper.selectOne(wrapper2);
             Assert.notNull(record, "正在同步远程消息", IllegalStateException::new);
             // 检查来源
-            if (Wss.checkMessagePermission(record)) {
+            if (checkMessagePermission(record)) {
                 String url = file.getUrl();
                 VideoType parse = Enums.of(VideoType.class, file.getType());
                 // Enum非空 ? 解析请求 : 返回URL
@@ -119,6 +120,20 @@ public class ResourceServiceImpl extends ServiceImpl<ChatRecordFileMapper, ChatR
         Assert.notNull(parse, IllegalArgumentException::new);
         String hash = Wss.generateHash(url.getBytes(StandardCharsets.UTF_8));
         this.save(new ChatRecordFile(condition.getMid(), parse.getKey(), url, hash, null));
+    }
+
+    /**
+     * 检查消息是否有操作权限（目标是群组，发起者是自己或目标是自己）
+     */
+    private boolean checkMessagePermission(ChatRecord record) {
+        String userId = ShiroUser.getUserId();
+        if (userId == null) {
+            return false;
+        }
+        boolean isgroup = Wss.isGroup(record.getTarget());
+        boolean self = userId.equals(record.getGuid());
+        boolean target = userId.equals(record.getTarget());
+        return isgroup || self || target;
     }
 
     /**

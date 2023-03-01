@@ -1,4 +1,4 @@
-package com.socket.core.exception;
+package com.socket.server.exception;
 
 /**
  * 文件上传失败异常

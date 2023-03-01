@@ -1,4 +1,4 @@
-package com.socket.core.exception;
+package com.socket.server.exception;
 
 /**
  * 转发终止异常

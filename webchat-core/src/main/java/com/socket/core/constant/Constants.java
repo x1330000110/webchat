@@ -9,10 +9,6 @@ public interface Constants {
      */
     String SUBJECT = "SUBJECT";
     /**
-     * http session
-     */
-    String HTTP_SESSION = "HTTP_SESSION";
-    /**
      * 用户IP地址
      */
     String IP = "REQUEST.IP";
@@ -45,11 +41,11 @@ public interface Constants {
      */
     String SYSTEM_UID = "10000";
     /**
-     * 服务之间传输的请求头标识
+     * 服务之间传输的请求标识
      */
-    String AUTH_SERVER_HEADER = "auth-server-key";
+    String AUTH_SERVER_KEY = "auth-server-key";
     /**
-     * 服务之间传输的自定义密钥
+     * 认证密钥
      */
-    String AUTH_SERVER_KEY = "RCTYVGUHBJINMKLKMOINJUGYTVFCRFVGYHBJNKM";
+    String AUTH_TOKEN = "Token";
 }

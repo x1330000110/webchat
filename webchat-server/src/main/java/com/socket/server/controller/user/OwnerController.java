@@ -3,8 +3,8 @@ package com.socket.server.controller.user;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.socket.core.custom.RedisManager;
 import com.socket.core.custom.SettingSupport;
+import com.socket.core.custom.SocketRedisManager;
 import com.socket.core.model.Announce;
 import com.socket.core.model.command.impl.PermissionEnum;
 import com.socket.core.model.command.impl.UserEnum;
@@ -16,13 +16,13 @@ import com.socket.core.model.enums.Setting;
 import com.socket.core.model.enums.UserRole;
 import com.socket.core.model.po.ChatRecord;
 import com.socket.core.model.po.SysUser;
-import com.socket.core.util.ShiroUser;
 import com.socket.secure.exception.InvalidRequestException;
 import com.socket.secure.filter.anno.Encrypted;
 import com.socket.secure.util.Assert;
 import com.socket.server.custom.publisher.CommandPublisher;
 import com.socket.server.service.ChatRecordService;
 import com.socket.server.service.SysUserService;
+import com.socket.server.util.ShiroUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,7 +36,7 @@ public class OwnerController {
     private final ChatRecordService chatRecordService;
     private final SettingSupport settingSupport;
     private final SysUserService sysUserService;
-    private final RedisManager redisManager;
+    private final SocketRedisManager redisManager;
     private final CommandPublisher publisher;
 
     @ModelAttribute

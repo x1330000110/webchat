@@ -1,4 +1,4 @@
-package com.socket.core.util;
+package com.socket.server.util.servlet;
 
 import javax.servlet.http.HttpSession;
 import java.util.Arrays;
@@ -8,7 +8,7 @@ import java.util.Arrays;
  *
  * @date 2022/2/9
  */
-public class Sessions {
+public class Session {
     /**
      * 获取会话储存的对象（强制转换）
      *
@@ -26,7 +26,7 @@ public class Sessions {
      * Get the HttpSession
      */
     public static HttpSession get() {
-        return Requests.get().getSession();
+        return Request.get().getSession();
     }
 
     /**

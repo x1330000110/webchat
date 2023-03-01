@@ -53,7 +53,11 @@ public enum RedisTree {
     /**
      * 屏蔽列表
      */
-    SHIELD;
+    SHIELD,
+    /**
+     * 认证信息
+     */
+    AUTH;
 
     private final String dir;
 

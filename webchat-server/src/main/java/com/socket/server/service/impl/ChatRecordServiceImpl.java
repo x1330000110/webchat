@@ -11,7 +11,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.socket.core.constant.ChatProperties;
 import com.socket.core.constant.Topics;
-import com.socket.core.custom.RedisManager;
+import com.socket.core.custom.SocketRedisManager;
 import com.socket.core.mapper.ChatRecordDeletedMapper;
 import com.socket.core.mapper.ChatRecordMapper;
 import com.socket.core.mapper.ChatRecordOffsetMapper;
@@ -22,11 +22,11 @@ import com.socket.core.model.po.ChatRecord;
 import com.socket.core.model.po.ChatRecordDeleted;
 import com.socket.core.model.po.ChatRecordOffset;
 import com.socket.core.util.DbUtil;
-import com.socket.core.util.ShiroUser;
 import com.socket.core.util.Wss;
 import com.socket.secure.util.Assert;
 import com.socket.server.custom.publisher.CommandPublisher;
 import com.socket.server.service.ChatRecordService;
+import com.socket.server.util.ShiroUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -47,7 +47,7 @@ public class ChatRecordServiceImpl extends ServiceImpl<ChatRecordMapper, ChatRec
     private final ChatRecordOffsetMapper offsetMapper;
     private final CommandPublisher publisher;
     private final ChatProperties properties;
-    private final RedisManager redisManager;
+    private final SocketRedisManager redisManager;
 
     @KafkaListener(topics = Topics.MESSAGE, groupId = "MESSAGE")
     public void saveRecord(ConsumerRecord<String, String> data) {

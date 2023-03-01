@@ -1,9 +1,9 @@
 package com.socket.client.command.user.impl;
 
 import com.socket.client.command.user.UserChangeHandler;
+import com.socket.client.model.SocketUser;
 import com.socket.core.model.command.impl.UserEnum;
 import com.socket.core.model.enums.UserRole;
-import com.socket.core.model.socket.SocketUser;
 import com.socket.core.util.Enums;
 import org.springframework.stereotype.Component;
 

@@ -1,75 +1,72 @@
 package com.socket.client.point;
 
-import com.socket.client.config.SocketConfig;
 import com.socket.client.manager.GroupManager;
 import com.socket.client.manager.PermissionManager;
 import com.socket.client.manager.UserManager;
+import com.socket.client.model.SocketMessage;
+import com.socket.client.model.SocketUser;
 import com.socket.core.constant.Constants;
 import com.socket.core.custom.SettingSupport;
 import com.socket.core.model.base.BaseUser;
 import com.socket.core.model.command.impl.CommandEnum;
 import com.socket.core.model.enums.OnlineState;
 import com.socket.core.model.enums.Setting;
-import com.socket.core.model.socket.SocketMessage;
-import com.socket.core.model.socket.SocketUser;
 import com.socket.core.util.Enums;
-import com.socket.secure.exception.InvalidRequestException;
+import io.netty.handler.codec.http.HttpHeaders;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Service;
+import org.yeauty.annotation.*;
+import org.yeauty.pojo.Session;
 
-import javax.websocket.*;
-import javax.websocket.server.ServerEndpoint;
 import java.util.List;
-import java.util.Optional;
 
 /**
- * Ws聊天室用户与消息处理
+ * Socket端点处理类
  */
 @Slf4j
-@Service
-@ServerEndpoint(value = "/user/room", configurator = SocketConfig.class)
+@ServerEndpoint(value = "/ws/room", port = "${server.port}")
 public class SocketEndpoint implements ApplicationContextAware {
+    private static final String TOKEN = "Sec-WebSocket-Protocol";
     private static PermissionManager permissionManager;
     private static SettingSupport settingSupport;
     private static GroupManager groupManager;
     private static UserManager userManager;
     private SocketUser self;
 
+    @BeforeHandshake
+    public void handshake(Session session, HttpHeaders headers) {
+        String token = headers.get(TOKEN);
+        // token认证
+        this.self = userManager.join(session, token);
+        if (self != null) {
+            session.setSubprotocols(token);
+        }
+    }
+
     @OnOpen
-    public void onOpen(Session session, EndpointConfig config) {
-        // 加入聊天室
-        Optional.ofNullable(userManager.join(session, config.getUserProperties())).ifPresent(user -> {
-            log.info("===> 用户加入聊天室：{}", user.getGuid());
-            // 推送所有用户数据
-            List<BaseUser> previews = permissionManager.getUserPreviews(user);
-            user.send(CommandEnum.INIT.name(), CommandEnum.INIT, previews);
-            // 向其他人发送加入通知
-            userManager.sendAll(CommandEnum.JOIN, user);
-            // 检查禁言
-            permissionManager.checkMute(user);
-            this.self = user;
-        });
+    public void onOpen(Session session) {
+        log.info("===> 用户加入聊天室：{}", self.getGuid());
+        // 推送所有用户数据
+        List<BaseUser> previews = permissionManager.getUserPreviews(self);
+        self.send(CommandEnum.INIT.name(), CommandEnum.INIT, previews);
+        // 向其他人发送加入通知
+        userManager.sendAll(CommandEnum.JOIN, self);
+        // 检查禁言
+        permissionManager.checkMute(self);
     }
 
     @OnClose
     public void onClose() {
-        Optional.ofNullable(self).ifPresent(user -> {
-            log.info("<=== 用户退出聊天室：{}", user.getGuid());
-            userManager.exit(user, null);
-            // 退出通知
-            userManager.sendAll(CommandEnum.EXIT, user);
-        });
+        log.info("<=== 用户退出聊天室：{}", self.getGuid());
+        // 退出通知
+        userManager.exit(self, null);
+        userManager.sendAll(CommandEnum.EXIT, self);
     }
 
     @OnError
     public void onError(Throwable e) {
-        if (e instanceof InvalidRequestException) {
-            log.warn("安全验证失败：{}", e.getMessage());
-            return;
-        }
         e.printStackTrace();
     }
 

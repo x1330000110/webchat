@@ -3,11 +3,11 @@ package com.socket.server.service.impl;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.socket.core.custom.RedisManager;
+import com.socket.core.custom.SocketRedisManager;
 import com.socket.core.mapper.ShieldUserMapper;
 import com.socket.core.model.po.ShieldUser;
-import com.socket.core.util.ShiroUser;
 import com.socket.server.service.ShieldUserService;
+import com.socket.server.util.ShiroUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +16,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ShieldUserServiceImpl extends ServiceImpl<ShieldUserMapper, ShieldUser> implements ShieldUserService {
-    private final RedisManager redisManager;
+    private final SocketRedisManager redisManager;
 
     public boolean shieldTarget(String target) {
         String guid = ShiroUser.getUserId();

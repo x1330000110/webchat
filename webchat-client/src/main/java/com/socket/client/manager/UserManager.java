@@ -8,10 +8,15 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.socket.client.custom.XiaoBingRequest;
 import com.socket.client.feign.ChatRecordApi;
 import com.socket.client.feign.SysUserLogApi;
+import com.socket.client.model.SocketMessage;
+import com.socket.client.model.SocketUser;
+import com.socket.client.util.ThreadUser;
 import com.socket.core.constant.Constants;
 import com.socket.core.constant.Topics;
-import com.socket.core.custom.RedisManager;
+import com.socket.core.custom.SocketRedisManager;
+import com.socket.core.custom.TokenUserManager;
 import com.socket.core.mapper.SysUserMapper;
+import com.socket.core.model.AuthUser;
 import com.socket.core.model.command.Command;
 import com.socket.core.model.command.impl.CommandEnum;
 import com.socket.core.model.condition.MessageCondition;
@@ -19,18 +24,13 @@ import com.socket.core.model.enums.LogType;
 import com.socket.core.model.po.ChatRecord;
 import com.socket.core.model.po.SysUser;
 import com.socket.core.model.po.SysUserLog;
-import com.socket.core.model.socket.SocketMessage;
-import com.socket.core.model.socket.SocketUser;
 import com.socket.core.util.Enums;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shiro.subject.Subject;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
+import org.yeauty.pojo.Session;
 
-import javax.servlet.http.HttpSession;
-import javax.websocket.Session;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -41,9 +41,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 @RequiredArgsConstructor
 public class UserManager extends ConcurrentHashMap<String, SocketUser> {
-    private final KafkaTemplate<String, String> kafkaTemplate;
+    private final KafkaTemplate<String, String> messageQueue;
     private final XiaoBingRequest xiaoBingRequest;
-    private final RedisManager redisManager;
+    private final TokenUserManager tokenUserManager;
+    private final SocketRedisManager redisManager;
     private final SysUserLogApi sysUserLogApi;
     private final ChatRecordApi chatRecordApi;
     private final SysUserMapper userMapper;
@@ -51,22 +52,24 @@ public class UserManager extends ConcurrentHashMap<String, SocketUser> {
     /**
      * 加入用户
      *
-     * @param session    ws session
-     * @param properties 配置信息
+     * @param session ws session
+     * @param token   令牌
      * @return 已加入的用户对象
      */
-    public SocketUser join(Session session, Map<String, Object> properties) {
+    public SocketUser join(Session session, String token) {
+        // 通过令牌查找用户
+        AuthUser auth = tokenUserManager.getTokenUser(token);
+        if (auth == null) {
+            return null;
+        }
         // 查找用户
-        Subject subject = (Subject) properties.get(Constants.SUBJECT);
-        SysUser principal = (SysUser) subject.getPrincipal();
-        SocketUser user = get(principal.getGuid());
-        HttpSession hs = (HttpSession) properties.get(Constants.HTTP_SESSION);
+        SocketUser user = get(auth.getUid());
         // 检查重复登录
-        if (user.isOnline() && user.differentSession(hs)) {
+        if (user.isOnline()) {
             user.logout("您的账号已在别处登录");
         }
         // 写入聊天室
-        user.login(session, hs, subject);
+        user.login(tokenUserManager, session, token);
         // 检查登录限制（会话缓存检查）
         long time = redisManager.getLockTime(user.getGuid());
         if (time > 0) {
@@ -78,6 +81,8 @@ public class UserManager extends ConcurrentHashMap<String, SocketUser> {
         userLog.setIp(user.getIp());
         userLog.setType(Enums.key(LogType.LOGIN));
         sysUserLogApi.saveLog(userLog);
+        // 记录线程变量
+        ThreadUser.set(auth);
         return user;
     }
 
@@ -107,11 +112,15 @@ public class UserManager extends ConcurrentHashMap<String, SocketUser> {
      * @param reason 原因
      */
     public void exit(SocketUser user, String reason) {
+        // 保存日志
         SysUserLog log = BeanUtil.copyProperties(user, SysUserLog.class);
         log.setIp(user.getIp());
         log.setType(Enums.key(LogType.LOGOUT));
         sysUserLogApi.saveLog(log);
+        // 注销目标会话
         user.logout(reason);
+        // 移除线程变量
+        ThreadUser.remove();
     }
 
     /**
@@ -194,7 +203,7 @@ public class UserManager extends ConcurrentHashMap<String, SocketUser> {
         // 群组以外的语音消息始终未读
         boolean audio = !message.isGroup() && message.getType() == CommandEnum.AUDIO;
         record.setUnread(audio || !isread);
-        kafkaTemplate.send(Topics.MESSAGE, JSONUtil.toJsonStr(record));
+        messageQueue.send(Topics.MESSAGE, JSONUtil.toJsonStr(record));
         // 目标列表添加发起者uid
         if (!isread) {
             redisManager.setUnreadCount(message.getTarget(), message.getGuid(), 1);

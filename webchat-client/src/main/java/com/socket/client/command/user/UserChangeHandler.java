@@ -2,8 +2,8 @@ package com.socket.client.command.user;
 
 import com.socket.client.command.CommandHandler;
 import com.socket.client.manager.UserManager;
+import com.socket.client.model.SocketUser;
 import com.socket.core.model.command.topic.UserChangeTopic;
-import com.socket.core.model.socket.SocketUser;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

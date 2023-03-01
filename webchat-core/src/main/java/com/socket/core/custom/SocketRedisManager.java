@@ -20,16 +20,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * ws redis管理器
+ * Socket Redis管理器
  */
 @Component
 @RequiredArgsConstructor
-public class RedisManager {
+@SuppressWarnings("unchecked")
+public class SocketRedisManager {
     private final ShieldUserMapper shieldUserMapper;
-    private final RedisClient<Integer> permission;
-    private final RedisClient<Object> announce;
     private final ChatProperties properties;
-    private final RedisClient<String> shield;
+    private final RedisClient client;
 
     /**
      * 临时禁言
@@ -39,7 +38,7 @@ public class RedisManager {
      */
     public void setMute(String guid, long time) {
         long value = (System.currentTimeMillis() / 1000) + time;
-        permission.set(RedisTree.MUTE.concat(guid), (int) value, time);
+        client.set(RedisTree.MUTE.concat(guid), (int) value, time);
     }
 
     /**
@@ -50,21 +49,21 @@ public class RedisManager {
      */
     public void setLock(String guid, long time) {
         long value = (System.currentTimeMillis() / 1000) + time;
-        permission.set(RedisTree.LOCK.concat(guid), (int) value, time);
+        client.set(RedisTree.LOCK.concat(guid), (int) value, time);
     }
 
     /**
      * 获取禁言剩余时间（单位：秒）
      */
     public long getMuteTime(String guid) {
-        return permission.getExpired(RedisTree.MUTE.concat(guid));
+        return client.getExpired(RedisTree.MUTE.concat(guid));
     }
 
     /**
      * 获取冻结剩余时间（单位：秒）
      */
     public long getLockTime(String guid) {
-        return permission.getExpired(RedisTree.LOCK.concat(guid));
+        return client.getExpired(RedisTree.LOCK.concat(guid));
     }
 
     /**
@@ -75,7 +74,7 @@ public class RedisManager {
      */
     public long incrSpeak(String guid) {
         String key = RedisTree.SPEAK.concat(guid);
-        return permission.exist(key) ? permission.incr(key, 1) : permission.incr(key, 1, 10);
+        return client.exist(key) ? client.incr(key, 1) : client.incr(key, 1, 10);
     }
 
     /**
@@ -86,7 +85,7 @@ public class RedisManager {
      * @param delta  递增/递减阈值（0清除未读消息）
      */
     public void setUnreadCount(String guid, String target, int delta) {
-        RedisMap<String, Integer> map = permission.withMap(RedisTree.UNREAD.concat(guid));
+        RedisMap<String, Integer> map = client.withMap(RedisTree.UNREAD.concat(guid));
         if (delta == 0 || map.increment(target, delta) <= 0) {
             map.remove(target);
         }
@@ -100,7 +99,7 @@ public class RedisManager {
      * @return 未读消息数量
      */
     public int getUnreadCount(String guid, String target) {
-        Map<String, Integer> map = permission.withMap(RedisTree.UNREAD.concat(guid));
+        Map<String, Integer> map = client.withMap(RedisTree.UNREAD.concat(guid));
         return map.getOrDefault(target, 0);
     }
 
@@ -110,7 +109,7 @@ public class RedisManager {
      * @param content 公告
      */
     public void pushNotice(String content) {
-        RedisMap<String, Object> map = announce.withMap(RedisTree.ANNOUNCE.get());
+        RedisMap<String, Object> map = client.withMap(RedisTree.ANNOUNCE.get());
         // 公告为空删除
         if (content.isEmpty()) {
             map.clear();
@@ -126,7 +125,7 @@ public class RedisManager {
      * @return 屏蔽列表
      */
     public List<String> getShield(String guid) {
-        RedisList<String> redisList = shield.withList(RedisTree.SHIELD.concat(guid));
+        RedisList<String> redisList = client.withList(RedisTree.SHIELD.concat(guid));
         // 检查缓存
         if (redisList.isEmpty()) {
             // 查询数据库

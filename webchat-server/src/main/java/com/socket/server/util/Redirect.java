@@ -1,6 +1,6 @@
 package com.socket.server.util;
 
-import com.socket.core.exception.RedirectException;
+import com.socket.server.exception.RedirectException;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;

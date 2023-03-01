@@ -1,10 +1,10 @@
-package com.socket.core.config;
+package com.socket.server.config;
 
 import cn.hutool.http.ContentType;
 import com.socket.core.constant.Constants;
-import com.socket.core.custom.CustomRealm;
 import com.socket.core.model.enums.HttpStatus;
 import com.socket.core.util.Enums;
+import com.socket.server.custom.CustomRealm;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
@@ -76,8 +76,7 @@ public class ShiroConfig {
                 return true;
             }
             // 来自其他服务
-            String header = WebUtils.toHttp(request).getHeader(Constants.AUTH_SERVER_HEADER);
-            if (Constants.AUTH_SERVER_KEY.equals(header)) {
+            if (WebUtils.toHttp(request).getHeader(Constants.AUTH_SERVER_KEY) != null) {
                 return true;
             }
             // 返回403

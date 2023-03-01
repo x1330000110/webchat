@@ -1,5 +1,6 @@
 package com.socket.core.util;
 
+import lombok.Getter;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -9,6 +10,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class RedisClient<V> implements InitializingBean {
+    @Getter
     private final RedisTemplate<String, V> template;
     private final ValueOperations<String, V> operations;
 

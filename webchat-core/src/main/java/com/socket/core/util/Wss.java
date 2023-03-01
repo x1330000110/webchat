@@ -2,7 +2,6 @@ package com.socket.core.util;
 
 import cn.hutool.crypto.SecureUtil;
 import com.socket.core.constant.Constants;
-import com.socket.core.model.po.ChatRecord;
 
 public class Wss {
 
@@ -17,20 +16,6 @@ public class Wss {
         if (second < 60 * 60 * 24) return hour + "小时";
         long days = second / (60 * 60 * 24);
         return days + "天" + (hour - days * 24) + "小时";
-    }
-
-    /**
-     * 检查消息是否有操作权限（目标是群组，发起者是自己或目标是自己）
-     */
-    public static boolean checkMessagePermission(ChatRecord record) {
-        String userId = ShiroUser.getUserId();
-        if (userId == null) {
-            return false;
-        }
-        boolean isgroup = Wss.isGroup(record.getTarget());
-        boolean self = userId.equals(record.getGuid());
-        boolean target = userId.equals(record.getTarget());
-        return isgroup || self || target;
     }
 
     /**

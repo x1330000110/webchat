@@ -1,4 +1,4 @@
-package com.socket.core.util;
+package com.socket.server.util;
 
 import cn.hutool.core.bean.BeanDesc;
 import cn.hutool.core.bean.BeanUtil;

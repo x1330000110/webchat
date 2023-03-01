@@ -1,5 +1,6 @@
 package com.socket.client.custom;
 
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
@@ -7,7 +8,6 @@ import cn.hutool.json.JSONException;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.script.JavaScriptEngine;
-import com.socket.secure.util.Assert;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.BeanCreationException;
@@ -61,7 +61,7 @@ public class XiaoBingRequest implements InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
         InputStream stream = getClass().getClassLoader().getResourceAsStream("static/bing.min.js");
-        Assert.notNull(stream, "找不到BING参数加密文件，无法使用小冰API。", BeanCreationException::new);
+        Assert.notNull(stream, () -> new BeanCreationException("找不到BING参数加密文件，无法使用小冰API。"));
         JavaScriptEngine instance = JavaScriptEngine.instance();
         instance.eval(new InputStreamReader(stream));
         this.instance = instance;

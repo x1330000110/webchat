@@ -3,7 +3,7 @@ package com.socket.server.controller.login;
 import cn.hutool.core.codec.Base64;
 import cn.hutool.http.ContentType;
 import com.socket.core.constant.Constants;
-import com.socket.core.custom.RedisManager;
+import com.socket.core.custom.SocketRedisManager;
 import com.socket.core.model.enums.HttpStatus;
 import com.socket.core.model.po.SysUser;
 import com.socket.server.properties.WxProperties;
@@ -22,7 +22,7 @@ import java.nio.charset.StandardCharsets;
 public class WXLoginController {
     private final WxloginService wxloginService;
     private final WxProperties properties;
-    private final RedisManager redis;
+    private final SocketRedisManager redis;
 
     @PostMapping("/state/{uuid}")
     public HttpStatus state(@PathVariable String uuid) {

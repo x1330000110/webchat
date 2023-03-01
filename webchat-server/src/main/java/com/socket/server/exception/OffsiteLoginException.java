@@ -1,4 +1,4 @@
-package com.socket.core.exception;
+package com.socket.server.exception;
 
 /**
  * 异地登录检查

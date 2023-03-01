@@ -1,4 +1,4 @@
-package com.socket.core.exception;
+package com.socket.server.exception;
 
 import org.apache.shiro.authc.AuthenticationException;
 

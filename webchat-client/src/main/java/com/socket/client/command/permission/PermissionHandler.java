@@ -3,9 +3,9 @@ package com.socket.client.command.permission;
 import com.socket.client.command.CommandHandler;
 import com.socket.client.manager.GroupManager;
 import com.socket.client.manager.UserManager;
+import com.socket.client.model.SocketUser;
 import com.socket.core.model.base.BaseUser;
 import com.socket.core.model.command.topic.PermissionTopic;
-import com.socket.core.model.socket.SocketUser;
 import com.socket.core.util.Wss;
 import org.springframework.beans.factory.annotation.Autowired;
 

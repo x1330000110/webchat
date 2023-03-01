@@ -1,12 +1,12 @@
 package com.socket.server.controller.user;
 
-import com.socket.core.custom.RedisManager;
+import com.socket.core.custom.SocketRedisManager;
 import com.socket.core.model.command.impl.PermissionEnum;
 import com.socket.core.model.condition.LimitCondition;
-import com.socket.core.util.ShiroUser;
 import com.socket.secure.exception.InvalidRequestException;
 import com.socket.secure.util.Assert;
 import com.socket.server.custom.publisher.CommandPublisher;
+import com.socket.server.util.ShiroUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/admin")
 public class AdminController {
-    private final RedisManager redisManager;
+    private final SocketRedisManager redisManager;
     private final CommandPublisher publisher;
 
     @ModelAttribute

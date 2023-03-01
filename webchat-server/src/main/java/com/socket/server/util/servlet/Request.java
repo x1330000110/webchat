@@ -1,4 +1,4 @@
-package com.socket.core.util;
+package com.socket.server.util.servlet;
 
 import cn.hutool.extra.servlet.ServletUtil;
 import cn.hutool.http.Header;
@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletRequest;
  *
  * @date 2022/2/9
  */
-public class Requests {
+public class Request {
     /**
      * 检查指定标记是否存在
      *

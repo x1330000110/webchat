@@ -1,9 +1,9 @@
 package com.socket.client.manager;
 
+import com.socket.client.model.SocketMessage;
+import com.socket.client.model.SocketUser;
 import com.socket.core.model.command.Command;
 import com.socket.core.model.po.SysGroup;
-import com.socket.core.model.socket.SocketMessage;
-import com.socket.core.model.socket.SocketUser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
