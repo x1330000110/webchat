@@ -8,15 +8,15 @@ WebScoket消息发送，重要API接口已被加密，有关HTTP数据加密/验
 
 #### 层级结构
 
-```
+```shell
                                               |----> UserManager                                   | -----> GroupChangeHandler
 --------------                                |                                                    |
 webchat-client -------> SocketEndpoint -------|----> PermissionManager ------> CommandHandler -----| -----> UserChangeHandler
 --------------                                |                                                    |
                                               |----> GroupManager                                  | -----> PermissionHandler
-       ⇑
- [webchat-core]        |---> message
-       ⇓               |                      | ------> BaiduSpeech
+
+                       |---> message
+                       |                      |------> BaiduSpeech
                        |---> resource --------| 
 --------------         |                      | ------> ResourceStorage
 webchat-server --------|---> group
