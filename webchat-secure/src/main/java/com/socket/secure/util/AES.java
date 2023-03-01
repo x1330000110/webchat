@@ -2,6 +2,7 @@ package com.socket.secure.util;
 
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.util.HexUtil;
+import cn.hutool.core.util.StrUtil;
 import com.socket.secure.constant.RequsetTemplate;
 import com.socket.secure.constant.SecureConstant;
 import com.socket.secure.exception.InvalidRequestException;
@@ -67,6 +68,13 @@ public class AES {
         }
     }
 
+    /**
+     * Get the AES key exchanged in the current session, or null if the key does not exist
+     */
+    public static String getAesKey(HttpSession session) {
+        return (String) session.getAttribute(SecureConstant.AESKEY);
+    }
+
     private static Cipher getCipher(int mode, String key) throws GeneralSecurityException {
         SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
         StringBuilder sb = new StringBuilder();
@@ -89,13 +97,6 @@ public class AES {
     }
 
     /**
-     * Get the AES key exchanged in the current session, or null if the key does not exist
-     */
-    public static String getAesKey(HttpSession session) {
-        return (String) session.getAttribute(SecureConstant.AESKEY);
-    }
-
-    /**
      * AES decryption (custom key)
      *
      * @param ciphertext ciphertext
@@ -106,9 +107,10 @@ public class AES {
         if (!StringUtils.hasLength(ciphertext)) {
             return "";
         }
-        // check mark
-        if (!(ciphertext.startsWith("<") && ciphertext.endsWith(">"))) {
-            return ciphertext;
+        // replace mark
+        if (ciphertext.startsWith("<") && ciphertext.endsWith(">")) {
+            ciphertext = StrUtil.removePrefix(ciphertext, "<");
+            ciphertext = StrUtil.removeSuffix(ciphertext, ">");
         }
         byte[] bytes = Base64.decode(ciphertext.substring(1, ciphertext.length() - 1));
         try {
