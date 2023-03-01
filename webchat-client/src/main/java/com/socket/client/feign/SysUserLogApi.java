@@ -21,6 +21,6 @@ public interface SysUserLogApi {
     /**
      * 获取所有用户最新登录日志
      */
-    @GetMapping("/getLatest")
+    @GetMapping("/latest")
     FeignResponse<Map<String, SysUserLog>> getLatest();
 }

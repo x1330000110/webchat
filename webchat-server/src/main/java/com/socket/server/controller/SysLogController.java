@@ -16,7 +16,7 @@ public class SysLogController {
     private final SysUserLogService sysUserLogService;
 
     @OpenApi
-    @GetMapping("/getLatest")
+    @GetMapping("/latest")
     public HttpStatus getLatestUserLogs() {
         Map<String, SysUserLog> map = sysUserLogService.getLatestUserLogs();
         return HttpStatus.SUCCESS.body(map);
