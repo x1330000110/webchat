@@ -88,12 +88,12 @@ public class AES {
     /**
      * AES decryption (using the current session's key)
      *
-     * @param ciphertext ciphertext
+     * @param ciphertext &lt;ciphertext&gt;
      * @param session    {@linkplain HttpSession}
      * @return plaintext
      */
     public static String decrypt(String ciphertext, HttpSession session) {
-        return decrypt(ciphertext, getAesKey(session));
+        return decrypt(StrUtil.unWrap(ciphertext, "<", ">"), getAesKey(session));
     }
 
     /**
@@ -108,7 +108,7 @@ public class AES {
             return "";
         }
         // replace and convert
-        byte[] bytes = Base64.decode(StrUtil.unWrap(ciphertext, "<", ">"));
+        byte[] bytes = Base64.decode(ciphertext);
         try {
             Cipher cipher = getCipher(Cipher.DECRYPT_MODE, key);
             return new String(cipher.doFinal(bytes)).substring(RANDOM_PREFIX_LENGTH);
