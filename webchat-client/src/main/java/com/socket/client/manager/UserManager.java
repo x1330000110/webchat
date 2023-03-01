@@ -10,7 +10,6 @@ import com.socket.client.feign.ChatRecordApi;
 import com.socket.client.feign.SysUserLogApi;
 import com.socket.client.model.SocketMessage;
 import com.socket.client.model.SocketUser;
-import com.socket.client.util.ThreadUser;
 import com.socket.core.constant.ChatConstants;
 import com.socket.core.constant.Topics;
 import com.socket.core.custom.SocketRedisManager;
@@ -82,8 +81,6 @@ public class UserManager extends ConcurrentHashMap<String, SocketUser> {
         userLog.setIp(user.getIp());
         userLog.setType(Enums.key(LogType.LOGIN));
         sysUserLogApi.saveLog(userLog);
-        // 记录线程变量
-        ThreadUser.set(auth);
         return user;
     }
 
@@ -120,8 +117,6 @@ public class UserManager extends ConcurrentHashMap<String, SocketUser> {
         sysUserLogApi.saveLog(log);
         // 注销目标会话
         user.logout(reason);
-        // 移除线程变量
-        ThreadUser.remove();
     }
 
     /**

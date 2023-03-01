@@ -1,12 +1,10 @@
 package com.socket.server.custom.filter;
 
+import cn.hutool.http.HttpStatus;
 import com.socket.core.constant.ChatConstants;
-import com.socket.core.constant.Constants;
-import com.socket.secure.exception.InvalidRequestException;
-import com.socket.secure.util.AES;
-import com.socket.secure.util.Assert;
-import com.socket.server.custom.filter.anno.OpenApi;
+import com.socket.server.custom.filter.anno.OpenAPI;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.web.util.WebUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
@@ -21,6 +19,7 @@ import java.io.IOException;
 /**
  * 服务接口专用过滤器
  */
+@Slf4j
 @WebFilter
 @Component
 @RequiredArgsConstructor
@@ -30,19 +29,14 @@ public class OpenApiFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws ServletException, IOException {
-        HttpServletRequest _request = (HttpServletRequest) request;
-        HandlerMethod method = getHandlerMethod(_request);
+        HttpServletRequest httpreq = WebUtils.toHttp(request);
+        HandlerMethod method = getHandlerMethod(httpreq);
         // 检查服务调用接口
-        if (method != null && method.hasMethodAnnotation(OpenApi.class)) {
-            String header = constants.getAuthServerHeader();
-            String encuid = _request.getHeader(header);
-            try {
-                Assert.notNull(encuid, InvalidRequestException::new);
-                String key = constants.getAuthServerKey();
-                String decuid = AES.decrypt(encuid, key);
-                _request.setAttribute(Constants.CURRENT_USER_ID, decuid);
-            } catch (InvalidRequestException e) {
-                WebUtils.toHttp(response).setStatus(404);
+        if (method != null && method.hasMethodAnnotation(OpenAPI.class)) {
+            String value = httpreq.getHeader(constants.getAuthServerHeader());
+            if (!constants.getAuthServerKey().equals(value)) {
+                WebUtils.toHttp(response).setStatus(HttpStatus.HTTP_NOT_FOUND);
+                log.warn("请求认证失败：{}", httpreq.getRequestURI());
                 return;
             }
         }

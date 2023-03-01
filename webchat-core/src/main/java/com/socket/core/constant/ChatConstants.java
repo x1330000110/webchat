@@ -32,10 +32,9 @@ public class ChatConstants {
     /**
      * 服务之间传输的请求标识
      */
-    String authServerHeader = "auth-server";
+    String authServerHeader = "auth-token";
     /**
      * 服务之间传输的加密密钥
      */
-    String authServerKey = "auth-server-key";
-
+    String authServerKey = "_(TH#(EIBGW)I$HN+T#";
 }

@@ -6,7 +6,7 @@ import com.socket.core.model.condition.MessageCondition;
 import com.socket.core.model.enums.HttpStatus;
 import com.socket.core.model.po.ChatRecord;
 import com.socket.secure.util.AES;
-import com.socket.server.custom.filter.anno.OpenApi;
+import com.socket.server.custom.filter.anno.OpenAPI;
 import com.socket.server.service.ChatRecordService;
 import com.socket.server.util.ShiroUser;
 import com.socket.server.util.servlet.Request;
@@ -64,7 +64,7 @@ public class MessageController {
         return HttpStatus.SUCCESS.body(collect);
     }
 
-    @OpenApi
+    @OpenAPI
     @GetMapping("/latest")
     public HttpStatus getLatest() {
         String userId = Request.get(Constants.CURRENT_USER_ID);
