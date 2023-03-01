@@ -2,7 +2,7 @@
 
 #### 项目介绍
 
-由SpringCloule+WebSocket+Netty构建，完整实现了HTML5在线多人聊天功能。支持各种消息发送和查看，聊天记录离线保存，未读消息记录，视频语音通话（WebRTC），个性化设置以及管理员权限。
+由SpringCloud+WebSocket+Netty构建，完整实现了HTML5在线多人聊天功能。支持各种消息发送和查看，聊天记录离线保存，未读消息记录，视频语音通话（WebRTC），个性化设置以及管理员权限。
 
 WebScoket消息发送，重要API接口已被加密，有关HTTP数据加密/验证支持欢迎一起交流 [参考文档](https://www.zybuluo.com/1330000110/note/2172127)。
 
