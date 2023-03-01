@@ -67,7 +67,7 @@ public class MessageController {
     @OpenApi
     @GetMapping("/latest")
     public HttpStatus getLatest() {
-        String userId = Request.get(Constants.AUTH_SERVER_KEY);
+        String userId = Request.get(Constants.CURRENT_USER_ID);
         Map<String, ChatRecord> map = chatRecordService.getLatestUnreadMessages(userId);
         return HttpStatus.SUCCESS.body(map);
     }

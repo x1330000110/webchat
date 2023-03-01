@@ -7,8 +7,8 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
+import com.socket.core.constant.ChatConstants;
 import com.socket.core.constant.ChatProperties;
-import com.socket.core.constant.Constants;
 import com.socket.core.mapper.SysGroupMapper;
 import com.socket.core.mapper.SysGroupUserMapper;
 import com.socket.core.model.base.BaseModel;
@@ -35,6 +35,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
     private final SysGroupUserMapper sysGroupUserMapper;
     private final CommandPublisher publisher;
     private final ChatProperties properties;
+    private final ChatConstants constants;
 
     public String createGroup(String groupName, String password) {
         String userId = ShiroUser.getUserId();
@@ -53,7 +54,7 @@ public class SysGroupServiceImpl extends ServiceImpl<SysGroupMapper, SysGroup> i
         Assert.isNull(getFirst(wrapper), "群组名称已存在", IllegalStateException::new);
         // 写入数据库
         SysGroup group = new SysGroup();
-        String gid = Constants.GROUP_PREFIX + RandomUtil.randomNumbers(6);
+        String gid = constants.getGroupPrefix() + RandomUtil.randomNumbers(6);
         group.setGuid(gid);
         group.setName(groupName);
         group.setOwner(userId);

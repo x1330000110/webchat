@@ -11,7 +11,7 @@ import com.socket.client.feign.SysUserLogApi;
 import com.socket.client.model.SocketMessage;
 import com.socket.client.model.SocketUser;
 import com.socket.client.util.ThreadUser;
-import com.socket.core.constant.Constants;
+import com.socket.core.constant.ChatConstants;
 import com.socket.core.constant.Topics;
 import com.socket.core.custom.SocketRedisManager;
 import com.socket.core.custom.TokenUserManager;
@@ -48,6 +48,7 @@ public class UserManager extends ConcurrentHashMap<String, SocketUser> {
     private final SysUserLogApi sysUserLogApi;
     private final ChatRecordApi chatRecordApi;
     private final SysUserMapper userMapper;
+    private final ChatConstants constants;
 
     /**
      * 加入用户
@@ -182,14 +183,19 @@ public class UserManager extends ConcurrentHashMap<String, SocketUser> {
      * @param message 消息
      */
     public void sendAIMessage(SocketUser target, SocketMessage message) {
-        xiaoBingRequest.dialogue(message.getContent()).addCallback(result -> {
-            if (result != null) {
-                // AI消息
-                SocketMessage aimsg = new SocketMessage(Constants.SYSTEM_UID, message.getGuid(), result, CommandEnum.TEXT);
-                target.send(aimsg);
-                cacheRecord(aimsg, true);
-            }
-        }, exception -> log.warn(exception.getMessage()));
+        boolean sysuid = constants.getSystemUid().equals(message.getTarget());
+        boolean text = CommandEnum.TEXT == message.getType();
+        // 判断AI消息
+        if (sysuid && text && !get(constants.getSystemUid()).isOnline()) {
+            xiaoBingRequest.dialogue(message.getContent()).addCallback(result -> {
+                if (result != null) {
+                    // AI消息
+                    SocketMessage aimsg = new SocketMessage(constants.getSystemUid(), message.getGuid(), result, CommandEnum.TEXT);
+                    target.send(aimsg);
+                    cacheRecord(aimsg, true);
+                }
+            }, exception -> log.warn(exception.getMessage()));
+        }
     }
 
     /**

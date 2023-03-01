@@ -5,7 +5,6 @@ import com.socket.client.manager.PermissionManager;
 import com.socket.client.manager.UserManager;
 import com.socket.client.model.SocketMessage;
 import com.socket.client.model.SocketUser;
-import com.socket.core.constant.Constants;
 import com.socket.core.custom.SettingSupport;
 import com.socket.core.model.base.BaseUser;
 import com.socket.core.model.command.impl.CommandEnum;
@@ -155,7 +154,7 @@ public class SocketEndpoint implements ApplicationContextAware {
             self.send(message);
             // AI消息智能回复
             if (settingSupport.getSetting(Setting.AI_MESSAGE)) {
-                this.parseAiMessage(message);
+                userManager.sendAIMessage(self, message);
             }
         } finally {
             // 已读条件：消息未送达，目标是群组，目标正在选择你
@@ -206,18 +205,6 @@ public class SocketEndpoint implements ApplicationContextAware {
             self.send("对方屏蔽了你", CommandEnum.ERROR);
         }
         target.send(message);
-    }
-
-    /**
-     * AI接管消息
-     */
-    private void parseAiMessage(SocketMessage message) {
-        boolean sysuid = Constants.SYSTEM_UID.equals(message.getTarget());
-        boolean text = CommandEnum.TEXT == message.getType();
-        // 判断AI消息
-        if (sysuid && text && !userManager.get(Constants.SYSTEM_UID).isOnline()) {
-            userManager.sendAIMessage(self, message);
-        }
     }
 
     @Override

@@ -1,11 +1,11 @@
 package com.socket.server.custom.filter;
 
+import com.socket.core.constant.ChatConstants;
 import com.socket.core.constant.Constants;
 import com.socket.secure.exception.InvalidRequestException;
 import com.socket.secure.util.AES;
 import com.socket.secure.util.Assert;
 import com.socket.server.custom.filter.anno.OpenApi;
-import com.socket.server.util.servlet.Session;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
@@ -25,6 +25,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class OpenApiFilter implements Filter {
     private final RequestMappingHandlerMapping mapping;
+    private final ChatConstants constants;
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws ServletException, IOException {
@@ -32,10 +33,10 @@ public class OpenApiFilter implements Filter {
         HandlerMethod method = getHandlerMethod(_request);
         // 检查服务调用接口
         if (method != null && method.hasMethodAnnotation(OpenApi.class)) {
-            String encuid = _request.getHeader(Constants.AUTH_SERVER_KEY);
+            String encuid = _request.getHeader(constants.getAuthServerHeader());
             Assert.notNull(encuid, InvalidRequestException::new);
-            String decuid = AES.decrypt(encuid, Session.get());
-            _request.setAttribute(Constants.AUTH_SERVER_KEY, decuid);
+            String decuid = AES.decrypt(encuid, constants.getAuthServerKey());
+            _request.setAttribute(Constants.CURRENT_USER_ID, decuid);
         }
         chain.doFilter(request, response);
     }

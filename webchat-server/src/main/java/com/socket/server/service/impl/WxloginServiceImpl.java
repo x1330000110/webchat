@@ -6,8 +6,8 @@ import cn.hutool.extra.qrcode.QrCodeUtil;
 import cn.hutool.extra.qrcode.QrConfig;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.socket.core.constant.ChatConstants;
 import com.socket.core.constant.ChatProperties;
-import com.socket.core.constant.Constants;
 import com.socket.core.model.base.BaseUser;
 import com.socket.core.model.condition.LoginCondition;
 import com.socket.core.model.condition.RegisterCondition;
@@ -39,6 +39,7 @@ public class WxloginServiceImpl implements WxloginService {
     private final SysUserService sysUserService;
     private final WxAuth2Request wxAuth2Request;
     private final ChatProperties properties;
+    private final ChatConstants constants;
     private final RedisClient<String> redis;
 
     @Override
@@ -56,7 +57,7 @@ public class WxloginServiceImpl implements WxloginService {
                 // 注册用户
                 RegisterCondition condition = new RegisterCondition();
                 condition.setName(StrUtil.sub(wxuser.getNickname(), 0, 6).trim());
-                condition.setPass(Constants.DEFAULT_PASSWORD);
+                condition.setPass(constants.getDefaultPassword());
                 condition.setImgurl(wxuser.getHeadimgurl());
                 condition.setOpenid(wxuser.getOpenid());
                 return sysUserService._register(condition).getGuid();
@@ -77,7 +78,7 @@ public class WxloginServiceImpl implements WxloginService {
         if (StrUtil.isEmpty(guid)) {
             return false;
         }
-        sysUserService.login(new LoginCondition(guid, Constants.DEFAULT_PASSWORD));
+        sysUserService.login(new LoginCondition(guid, constants.getDefaultPassword()));
         return redis.remove(key);
     }
 

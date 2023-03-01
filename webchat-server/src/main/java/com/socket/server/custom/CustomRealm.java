@@ -4,6 +4,7 @@ import cn.hutool.core.util.DesensitizedUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.socket.core.constant.ChatConstants;
 import com.socket.core.constant.Constants;
 import com.socket.core.custom.IPAddrRequest;
 import com.socket.core.custom.SocketRedisManager;
@@ -44,6 +45,7 @@ public class CustomRealm extends AuthorizingRealm {
     private final SysUserMapper sysUserMapper;
     private final SocketRedisManager redisManager;
     private final IPAddrRequest ipAddrRequest;
+    private final ChatConstants constants;
 
     /**
      * 权限认证
@@ -68,7 +70,7 @@ public class CustomRealm extends AuthorizingRealm {
                 SysUser user = info.getPrincipals().oneByType(SysUser.class);
                 String input = new String((char[]) token.getCredentials());
                 // 微信默认密码登录
-                if (StrUtil.equals(input, Constants.DEFAULT_PASSWORD)) {
+                if (StrUtil.equals(input, constants.getDefaultPassword())) {
                     checkLimit(user.getGuid());
                     return true;
                 }
@@ -129,7 +131,7 @@ public class CustomRealm extends AuthorizingRealm {
             return;
         }
         // 检查标记
-        if (!Request.exist(Constants.OFFSITE)) {
+        if (!Request.exist(Constants.AUHT_OFFSITE_REQUEST)) {
             // 检查异地
             String remoteIP = Request.getRemoteIP();
             if (!Objects.equals(log.getIp(), remoteIP)) {

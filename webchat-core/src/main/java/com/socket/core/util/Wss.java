@@ -1,9 +1,15 @@
 package com.socket.core.util;
 
 import cn.hutool.crypto.SecureUtil;
-import com.socket.core.constant.Constants;
+import com.socket.core.constant.ChatConstants;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
 
-public class Wss {
+@Component
+public class Wss implements ApplicationContextAware {
+    private static ApplicationContext context;
 
     /**
      * 转为通用时间 (1分钟 1小时 1天)
@@ -22,7 +28,8 @@ public class Wss {
      * 检查目标是否为群组
      */
     public static boolean isGroup(String guid) {
-        return guid != null && (Constants.DEFAULT_GROUP.equals(guid) || guid.startsWith(Constants.GROUP_PREFIX));
+        ChatConstants constants = context.getBean(ChatConstants.class);
+        return guid != null && (constants.getDefaultGroup().equals(guid) || guid.startsWith(constants.getGroupPrefix()));
     }
 
     /**
@@ -33,5 +40,10 @@ public class Wss {
      */
     public static String generateHash(byte[] bytes) {
         return SecureUtil.hmacMd5(String.valueOf(bytes.length << bytes.length / 2)).digestHex(bytes) + ".txt";
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext context) throws BeansException {
+        Wss.context = context;
     }
 }

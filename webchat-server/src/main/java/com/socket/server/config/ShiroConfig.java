@@ -1,10 +1,11 @@
 package com.socket.server.config;
 
 import cn.hutool.http.ContentType;
-import com.socket.core.constant.Constants;
+import com.socket.core.constant.ChatConstants;
 import com.socket.core.model.enums.HttpStatus;
 import com.socket.core.util.Enums;
 import com.socket.server.custom.CustomRealm;
+import lombok.RequiredArgsConstructor;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
@@ -14,7 +15,6 @@ import org.apache.shiro.web.mgt.CookieRememberMeManager;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.apache.shiro.web.servlet.SimpleCookie;
 import org.apache.shiro.web.util.WebUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -25,13 +25,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @Configuration
+@RequiredArgsConstructor
 public class ShiroConfig {
-    private CustomRealm customRealm;
-
-    @Autowired
-    public void setCustomRealm(CustomRealm customRealm) {
-        this.customRealm = customRealm;
-    }
+    private final ChatConstants constants;
+    private final CustomRealm customRealm;
 
     @Bean
     public ShiroFilterFactoryBean getShiroFilterFactoryBean() {
@@ -67,7 +64,7 @@ public class ShiroConfig {
         return rememberMeManager;
     }
 
-    static class JsonRetuenFilter extends AuthenticationFilter {
+    class JsonRetuenFilter extends AuthenticationFilter {
         @Override
         protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception {
             Subject subject = SecurityUtils.getSubject();
@@ -76,7 +73,7 @@ public class ShiroConfig {
                 return true;
             }
             // 来自其他服务
-            if (WebUtils.toHttp(request).getHeader(Constants.AUTH_SERVER_KEY) != null) {
+            if (WebUtils.toHttp(request).getHeader(constants.getAuthServerHeader()) != null) {
                 return true;
             }
             // 返回403

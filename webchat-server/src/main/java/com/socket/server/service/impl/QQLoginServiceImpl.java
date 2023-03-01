@@ -3,7 +3,7 @@ package com.socket.server.service.impl;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.socket.core.constant.Constants;
+import com.socket.core.constant.ChatConstants;
 import com.socket.core.model.base.BaseUser;
 import com.socket.core.model.condition.LoginCondition;
 import com.socket.core.model.condition.RegisterCondition;
@@ -25,6 +25,7 @@ import java.util.Optional;
 public class QQLoginServiceImpl implements QQLoginService {
     private final SysUserService sysUserService;
     private final QQAuthRequest qqAuthRequest;
+    private final ChatConstants constants;
 
     public QQAuthReq getLoginAuth() {
         return qqAuthRequest.getAuth();
@@ -60,10 +61,10 @@ public class QQLoginServiceImpl implements QQLoginService {
                 condition.setImgurl(info.getImgurl());
             }
             condition.setUin(uin);
-            condition.setPass(Constants.DEFAULT_PASSWORD);
+            condition.setPass(constants.getDefaultPassword());
             return sysUserService._register(condition).getGuid();
         });
         // 登录
-        sysUserService.login(new LoginCondition(guid, Constants.DEFAULT_PASSWORD));
+        sysUserService.login(new LoginCondition(guid, constants.getDefaultPassword()));
     }
 }

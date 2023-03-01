@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.socket.core.constant.ChatConstants;
 import com.socket.core.constant.ChatProperties;
 import com.socket.core.constant.Constants;
 import com.socket.core.custom.TokenUserManager;
@@ -67,6 +68,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private final TokenUserManager tokenUserManager;
     private final CommandPublisher publisher;
     private final ChatProperties properties;
+    private final ChatConstants constants;
     private final ResourceStorage storage;
     private final HttpSession session;
     private final Email sender;
@@ -86,7 +88,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             String key = RedisTree.EMAIL.concat(email);
             Object redisCode = redisClient.get(key);
             Assert.equals(redisCode, code, "验证码不正确", AccountException::new);
-            Request.set(Constants.OFFSITE);
+            Request.set(Constants.AUHT_OFFSITE_REQUEST);
             redisClient.remove(key);
         }
         // shiro登录
@@ -118,7 +120,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         user.setUin(condition.getUin());
         super.save(user);
         // 加入默认群组
-        sysGroupService.joinGroup(Constants.DEFAULT_GROUP, user.getGuid());
+        sysGroupService.joinGroup(constants.getDefaultGroup(), user.getGuid());
         return user;
     }
 

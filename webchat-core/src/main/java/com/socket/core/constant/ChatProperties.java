@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Data
 @RefreshScope
 @Component
-@ConfigurationProperties(prefix = "webchat.config")
+@ConfigurationProperties(prefix = "webchat.propertie")
 public class ChatProperties {
     /**
      * 邮箱验证码有效时间（单位：分钟）
