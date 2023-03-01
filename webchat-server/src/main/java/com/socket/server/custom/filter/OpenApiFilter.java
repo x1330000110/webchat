@@ -7,6 +7,7 @@ import com.socket.secure.util.AES;
 import com.socket.secure.util.Assert;
 import com.socket.server.custom.filter.anno.OpenApi;
 import lombok.RequiredArgsConstructor;
+import org.apache.shiro.web.util.WebUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerExecutionChain;
@@ -33,10 +34,17 @@ public class OpenApiFilter implements Filter {
         HandlerMethod method = getHandlerMethod(_request);
         // 检查服务调用接口
         if (method != null && method.hasMethodAnnotation(OpenApi.class)) {
-            String encuid = _request.getHeader(constants.getAuthServerHeader());
-            Assert.notNull(encuid, InvalidRequestException::new);
-            String decuid = AES.decrypt(encuid, constants.getAuthServerKey());
-            _request.setAttribute(Constants.CURRENT_USER_ID, decuid);
+            String header = constants.getAuthServerHeader();
+            String encuid = _request.getHeader(header);
+            try {
+                Assert.notNull(encuid, InvalidRequestException::new);
+                String key = constants.getAuthServerKey();
+                String decuid = AES.decrypt(encuid, key);
+                _request.setAttribute(Constants.CURRENT_USER_ID, decuid);
+            } catch (InvalidRequestException e) {
+                WebUtils.toHttp(response).setStatus(404);
+                return;
+            }
         }
         chain.doFilter(request, response);
     }
