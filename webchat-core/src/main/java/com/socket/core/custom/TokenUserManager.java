@@ -2,6 +2,7 @@ package com.socket.core.custom;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.RandomUtil;
+import cn.hutool.json.JSONUtil;
 import com.socket.core.model.AuthUser;
 import com.socket.core.model.enums.RedisTree;
 import com.socket.core.util.RedisClient;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class TokenUserManager {
+    private static final String HEX = RandomUtil.BASE_NUMBER + RandomUtil.BASE_CHAR.substring(0, 6);
     private final RedisClient<Object> client;
 
     /**
@@ -27,7 +29,7 @@ public class TokenUserManager {
      * @return token
      */
     public String setToken(String uid, String key, long expired) {
-        String token = RandomUtil.randomString(RandomUtil.BASE_CHAR_NUMBER.substring(0, 16), 16);
+        String token = RandomUtil.randomString(HEX, 16);
         AuthUser user = new AuthUser(uid, key);
         client.set(RedisTree.AUTH.concat(token), BeanUtil.beanToMap(user), expired);
         log.info("生成Token: {} UID: {}", token, uid);
@@ -44,7 +46,7 @@ public class TokenUserManager {
         AuthUser user = getTokenUser(token);
         if (user != null) {
             user.setKey(key);
-            client.setIfPresent(RedisTree.AUTH.concat(token), BeanUtil.beanToMap(user));
+            client.setIfPresent(RedisTree.AUTH.concat(token), JSONUtil.toJsonStr(user));
         }
     }
 
@@ -56,7 +58,7 @@ public class TokenUserManager {
      */
     public AuthUser getTokenUser(String token) {
         Object obj = client.get(RedisTree.AUTH.concat(token));
-        return obj == null ? null : BeanUtil.toBean(obj, AuthUser.class);
+        return obj == null ? null : JSONUtil.parseObj(obj).toBean(AuthUser.class);
     }
 
     /**
