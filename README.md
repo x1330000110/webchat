@@ -9,11 +9,11 @@ WebScoket消息发送，重要API接口已被加密，有关HTTP数据加密/验
 #### 层级结构
 
 ```
-                                           |----> UserManager                                   | -----> GroupCommandParser
---------------                             |                                                    |
-webchat-client -------> SocketEndpoint ----|----> PermissionManager ------> CommandParser ------| -----> UserCommandParser
---------------                             |                                                    |
-                                           |----> GroupManager                                  | -----> PermissCommandParser
+                                              |----> UserManager                                   | -----> GroupChangeHandler
+--------------                                |                                                    |
+webchat-client -------> SocketEndpoint -------|----> PermissionManager ------> CommandHandler -----| -----> UserChangeHandler
+--------------                                |                                                    |
+                                              |----> GroupManager                                  | -----> PermissionHandler
        ⇑
  [webchat-core]        |---> message
        ⇓               |                      | ------> BaiduSpeech
@@ -27,9 +27,9 @@ webchat-server --------|---> group
                        |---> login ----------> shiro ----------|
                                                                | ------> QQ
 
-                                        | -----> CamouflagePublicKey
-                       | ---> core -----|
---------------         |                | -----> SignatureGenerator                             | -----> CheckExpired
+                                              | -----> CamouflagePublicKey
+                       | ---> core -----------|
+--------------         |                      | -----> SignatureGenerator                       | -----> CheckExpired
 webchat-secure --------|                                                                        |
 --------------         |                                        | ----> RepeatValidator --------| -----> MappedRepeatValidator
                        | ---> Validator ----> RequestWapper-----|                               |
