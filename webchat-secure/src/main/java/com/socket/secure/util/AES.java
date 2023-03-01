@@ -107,12 +107,8 @@ public class AES {
         if (!StringUtils.hasLength(ciphertext)) {
             return "";
         }
-        // replace mark
-        if (ciphertext.startsWith("<") && ciphertext.endsWith(">")) {
-            ciphertext = StrUtil.removePrefix(ciphertext, "<");
-            ciphertext = StrUtil.removeSuffix(ciphertext, ">");
-        }
-        byte[] bytes = Base64.decode(ciphertext);
+        // replace and convert
+        byte[] bytes = Base64.decode(StrUtil.unWrap(ciphertext, "<", ">"));
         try {
             Cipher cipher = getCipher(Cipher.DECRYPT_MODE, key);
             return new String(cipher.doFinal(bytes)).substring(RANDOM_PREFIX_LENGTH);
